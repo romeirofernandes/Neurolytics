@@ -60,10 +60,15 @@ const Hero2 = () => {
           </p>
           <div
             className="mt-10 flex flex-col items-center justify-center space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
+ <button
+              onClick={() => navigate('/login')}
+              className="h-12 rounded-full bg-primary px-8 text-base font-medium text-primary-foreground hover:bg-primary/90 transition-all duration-200 shadow-lg hover:shadow-xl">
+              Start as Researcher
+            </button>
             <button
-              onClick={() => navigate('/register')}
-              className="h-12 rounded-full bg-primary px-8 text-base font-medium text-primary-foreground hover:bg-primary/90">
-              Get Started
+              onClick={() => navigate('/participant/login')}
+              className="h-12 rounded-full bg-secondary px-8 text-base font-medium text-secondary-foreground hover:bg-secondary/90 transition-all duration-200 border border-border shadow-md hover:shadow-lg">
+              Join as Participant
             </button>
           </div>
 

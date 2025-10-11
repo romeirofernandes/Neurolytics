@@ -6,6 +6,7 @@ const userRoutes = require('./routes/userRoutes');
 const participantRoutes = require('./routes/participantRoutes');
 const consentFormRoutes = require('./routes/consentFormRoutes');
 const experimentRoutes = require('./routes/experimentRoutes');
+const researcherRoutes = require('./routes/researcherRoutes');
 
 const app = express();
 
@@ -25,15 +26,11 @@ app.use((req, res, next) => {
 
 // Routes
 app.use('/api/users', userRoutes);
+app.use('/api/researchers', researcherRoutes);
 app.use('/api/participants', participantRoutes);
 app.use('/api/consent-forms', consentFormRoutes);
 app.use('/api/experiments', experimentRoutes);
 
-console.log('✅ Routes registered:');
-console.log('  - /api/users');
-console.log('  - /api/participants');
-console.log('  - /api/consent-forms');
-console.log('  - /api/experiments');
 
 // Health check
 app.get('/', (req, res) => {

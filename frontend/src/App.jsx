@@ -7,6 +7,7 @@ import Landing from './pages/Landing'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/User/Dashboard'
+import Profile from './pages/User/Profile'
 import AdminAuth from './pages/Admin/AdminAuth'
 import AdminDashboard from './pages/Admin/AdminDashboard'
 import ParticipantLogin from './pages/Participant/Login'
@@ -114,7 +115,12 @@ const App = () => {
                   <ConsentFormBuilder />
                 </ProtectedRoute>
               } />
-              
+              <Route path="/profile" element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } />
+            
               {/* Admin routes */}
               <Route path="/admin/auth" element={<AdminAuth />} />
               <Route path="/admin/dashboard" element={<AdminDashboard />} />

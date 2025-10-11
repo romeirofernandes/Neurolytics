@@ -46,6 +46,11 @@ const AppSidebar = () => {
       icon: HiHome,
     },
     {
+      title: 'Profile',
+      url: '/profile',
+      icon: HiUser,
+    },
+    {
       title: 'Experiment Builder',
       url: '/experiment-builder',
       icon: FaFlask,
