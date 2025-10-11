@@ -1,10 +1,8 @@
 import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useParticipant } from '../../context/ParticipantContext';
 import { useTheme } from '../../context/ThemeContext';
 
-import { signOut } from 'firebase/auth';
-import { auth } from '../../../firebase.config';
 import {
   Sidebar,
   SidebarContent,
@@ -19,21 +17,18 @@ import {
   SidebarSeparator,
 } from '../ui/sidebar';
 import { Button } from '../ui/button';
-import { ConnectedThemeToggle } from '../ui/ConnectedThemeToggle';
-import { HiHome, HiCog, HiLogout, HiUser, HiSun, HiMoon, HiChartBar } from 'react-icons/hi';
-import { FaBrain, FaFlask } from 'react-icons/fa';
+import { HiHome, HiCog, HiLogout, HiUser, HiSun, HiMoon, HiChartBar, HiClipboardList } from 'react-icons/hi';
 
-const AppSidebar = () => {
-  const { user, logout } = useAuth();
+const ParticipantSidebar = () => {
+  const { participant, logout } = useParticipant();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
 
   const handleLogout = async () => {
     try {
-      await signOut(auth);
       logout();
-      navigate('/login');
+      navigate('/participant/login');
     } catch (error) {
       console.error('Logout error:', error);
     }
@@ -42,22 +37,17 @@ const AppSidebar = () => {
   const menuItems = [
     {
       title: 'Dashboard',
-      url: '/dashboard',
+      url: '/participant/dashboard',
       icon: HiHome,
     },
     {
-      title: 'Profile',
-      url: '/profile',
-      icon: HiUser,
-    },
-    {
-      title: 'Experiment Builder',
-      url: '/experiment-builder',
-      icon: FaFlask,
+      title: 'My Experiments',
+      url: '/participant/experiments',
+      icon: HiClipboardList,
     },
     {
       title: 'Settings',
-      url: '#',
+      url: '/participant/settings',
       icon: HiCog,
     },
   ];
@@ -67,15 +57,14 @@ const AppSidebar = () => {
       <SidebarHeader className="border-b border-border">
         <div className="flex items-center gap-3 px-4 py-4">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            {/* changed: use a dashboard/chart icon at the top */}
             <HiChartBar className="h-5 w-5" />
           </div>
           <div className="flex flex-col">
             <h1 className="text-lg font-semibold text-foreground">
-              Dashboard
+              Participant Portal
             </h1>
             <p className="text-xs text-muted-foreground">
-              Control Panel
+              Research Dashboard
             </p>
           </div>
         </div>
@@ -148,18 +137,17 @@ const AppSidebar = () => {
           {/* Separator */}
           <SidebarSeparator />
 
-          {/* User Info */}
-          <div className="flex items-center gap-3 px-3 py-2 rounded-md bg-muted/50">
-            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary text-primary-foreground text-sm font-medium">
-              {/* changed: show user icon instead of letter */}
+          {/* Participant Info */}
+          <div className="flex items-start gap-3 px-3 py-3 rounded-md bg-muted/50">
+            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary text-primary-foreground text-sm font-medium shrink-0">
               <HiUser className="h-5 w-5" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground truncate">
-                {user?.name || 'User'}
+              <p className="text-xs font-medium text-muted-foreground mb-1">
+                Participant ID
               </p>
-              <p className="text-xs text-muted-foreground truncate">
-                {user?.email || 'user@example.com'}
+              <p className="text-xs font-mono text-foreground break-all leading-relaxed">
+                {participant?.id || 'N/A'}
               </p>
             </div>
           </div>
@@ -179,4 +167,4 @@ const AppSidebar = () => {
   );
 };
 
-export default AppSidebar;
+export default ParticipantSidebar;
