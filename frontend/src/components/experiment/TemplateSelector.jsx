@@ -6,11 +6,13 @@ import { StroopTemplate } from './templates/StroopTemplate';
 import { PosnerTemplate } from './templates/PosnerTemplate';
 import { ABBATemplate } from './templates/ABBATemplate';
 import { TowerHanoiTemplate } from './templates/TowerHanoiTemplate';
-import { Loader2, ArrowLeft, Brain, Target, Zap, Layers, Puzzle } from 'lucide-react';
+import { Loader2, ArrowLeft, Brain, Target, Zap, Layers, Puzzle, Download } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const templates = [
   {
@@ -228,17 +230,273 @@ export const TemplateSelector = () => {
               </Button>
               <Button 
                 onClick={() => {
-                  const dataStr = JSON.stringify(results, null, 2);
-                  const dataBlob = new Blob([dataStr], { type: 'application/json' });
-                  const url = URL.createObjectURL(dataBlob);
-                  const link = document.createElement('a');
-                  link.href = url;
-                  link.download = `${template.id}-results-${Date.now()}.json`;
-                  link.click();
+                  try {
+                    const doc = new jsPDF();
+                    const pageWidth = doc.internal.pageSize.getWidth();
+                    const pageHeight = doc.internal.pageSize.getHeight();
+                    const margin = 20;
+                    const maxWidth = pageWidth - (margin * 2);
+                    let yPosition = margin;
+
+                    // Title
+                    doc.setFontSize(20);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(26, 26, 26);
+                    doc.text(`${template.fullName}`, margin, yPosition);
+                    yPosition += 10;
+                    
+                    doc.setFontSize(16);
+                    doc.text('Experiment Results', margin, yPosition);
+                    yPosition += 15;
+
+                    // Date
+                    doc.setFontSize(10);
+                    doc.setFont('helvetica', 'normal');
+                    doc.setTextColor(102, 102, 102);
+                    doc.text(`Generated: ${new Date().toLocaleString()}`, margin, yPosition);
+                    yPosition += 15;
+
+                    // Add a line separator
+                    doc.setDrawColor(59, 130, 246);
+                    doc.setLineWidth(0.5);
+                    doc.line(margin, yPosition, pageWidth - margin, yPosition);
+                    yPosition += 10;
+
+                    if (results?.analysis) {
+                      // Helper function to parse inline markdown formatting
+                      const parseInlineMarkdown = (text) => {
+                        const segments = [];
+                        let remaining = text;
+                        
+                        // Parse bold (**text**), italic (*text*), and code (`text`)
+                        const pattern = /(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g;
+                        let match;
+                        let lastIndex = 0;
+                        
+                        while ((match = pattern.exec(remaining)) !== null) {
+                          // Add text before match
+                          if (match.index > lastIndex) {
+                            segments.push({
+                              text: remaining.substring(lastIndex, match.index),
+                              style: 'normal'
+                            });
+                          }
+                          
+                          const matched = match[0];
+                          if (matched.startsWith('**') && matched.endsWith('**')) {
+                            // Bold
+                            segments.push({
+                              text: matched.slice(2, -2),
+                              style: 'bold'
+                            });
+                          } else if (matched.startsWith('*') && matched.endsWith('*') && !matched.startsWith('**')) {
+                            // Italic
+                            segments.push({
+                              text: matched.slice(1, -1),
+                              style: 'italic'
+                            });
+                          } else if (matched.startsWith('`') && matched.endsWith('`')) {
+                            // Code
+                            segments.push({
+                              text: matched.slice(1, -1),
+                              style: 'code'
+                            });
+                          }
+                          
+                          lastIndex = pattern.lastIndex;
+                        }
+                        
+                        // Add remaining text
+                        if (lastIndex < remaining.length) {
+                          segments.push({
+                            text: remaining.substring(lastIndex),
+                            style: 'normal'
+                          });
+                        }
+                        
+                        return segments;
+                      };
+                      
+                      // Helper function to render text with formatting
+                      const renderFormattedText = (text, x, y, maxW) => {
+                        const segments = parseInlineMarkdown(text);
+                        let currentX = x;
+                        const lineHeight = 6;
+                        let currentY = y;
+                        
+                        for (const segment of segments) {
+                          if (segment.style === 'bold') {
+                            doc.setFont('helvetica', 'bold');
+                            doc.setTextColor(26, 26, 26);
+                          } else if (segment.style === 'italic') {
+                            doc.setFont('helvetica', 'italic');
+                            doc.setTextColor(55, 65, 81);
+                          } else if (segment.style === 'code') {
+                            doc.setFont('courier', 'normal');
+                            doc.setFontSize(10);
+                            doc.setTextColor(79, 70, 229);
+                          } else {
+                            doc.setFont('helvetica', 'normal');
+                            doc.setFontSize(11);
+                            doc.setTextColor(55, 65, 81);
+                          }
+                          
+                          const words = segment.text.split(' ');
+                          for (let w = 0; w < words.length; w++) {
+                            const word = words[w] + (w < words.length - 1 ? ' ' : '');
+                            const wordWidth = doc.getTextWidth(word);
+                            
+                            if (currentX + wordWidth > x + maxW) {
+                              currentY += lineHeight;
+                              currentX = x;
+                              
+                              // Check for new page
+                              if (currentY > pageHeight - 30) {
+                                doc.addPage();
+                                currentY = margin;
+                              }
+                            }
+                            
+                            doc.text(word, currentX, currentY);
+                            currentX += wordWidth;
+                          }
+                        }
+                        
+                        // Reset to normal
+                        doc.setFont('helvetica', 'normal');
+                        doc.setFontSize(11);
+                        doc.setTextColor(55, 65, 81);
+                        
+                        return currentY + lineHeight + 2;
+                      };
+                      
+                      // Parse and add markdown content
+                      const lines = results.analysis.split('\n');
+                      
+                      for (let i = 0; i < lines.length; i++) {
+                        const line = lines[i].trim();
+                        
+                        // Check if we need a new page
+                        if (yPosition > pageHeight - 30) {
+                          doc.addPage();
+                          yPosition = margin;
+                        }
+
+                        // H2 Headers (##)
+                        if (line.startsWith('## ')) {
+                          yPosition += 5;
+                          doc.setFontSize(16);
+                          doc.setFont('helvetica', 'bold');
+                          doc.setTextColor(30, 64, 175);
+                          const text = line.substring(3);
+                          doc.text(text, margin, yPosition);
+                          yPosition += 8;
+                          
+                          // Underline
+                          doc.setDrawColor(219, 234, 254);
+                          doc.setLineWidth(0.5);
+                          doc.line(margin, yPosition, pageWidth - margin, yPosition);
+                          yPosition += 8;
+                        }
+                        // H3 Headers (###)
+                        else if (line.startsWith('### ')) {
+                          yPosition += 4;
+                          doc.setFontSize(14);
+                          doc.setFont('helvetica', 'bold');
+                          doc.setTextColor(30, 64, 175);
+                          const text = line.substring(4);
+                          doc.text(text, margin, yPosition);
+                          yPosition += 7;
+                        }
+                        // List items
+                        else if (line.startsWith('- ') || line.startsWith('* ')) {
+                          const text = line.substring(2);
+                          doc.setFontSize(11);
+                          doc.setFont('helvetica', 'normal');
+                          doc.setTextColor(55, 65, 81);
+                          doc.text('•', margin + 2, yPosition);
+                          yPosition = renderFormattedText(text, margin + 7, yPosition, maxWidth - 7);
+                        }
+                        // Blockquote
+                        else if (line.startsWith('> ')) {
+                          yPosition += 2;
+                          doc.setDrawColor(59, 130, 246);
+                          doc.setLineWidth(2);
+                          doc.line(margin, yPosition - 3, margin, yPosition + 8);
+                          
+                          const text = line.substring(2);
+                          doc.setFontSize(11);
+                          doc.setFont('helvetica', 'italic');
+                          doc.setTextColor(75, 85, 99);
+                          yPosition = renderFormattedText(text, margin + 6, yPosition, maxWidth - 6);
+                          yPosition += 2;
+                        }
+                        // Table detection
+                        else if (line.includes('|') && line.trim().length > 0) {
+                          // Collect table rows
+                          const tableLines = [line];
+                          let j = i + 1;
+                          while (j < lines.length && lines[j].includes('|')) {
+                            tableLines.push(lines[j].trim());
+                            j++;
+                          }
+                          
+                          if (tableLines.length > 2) { // Has header, separator, and data
+                            // Parse table
+                            const headers = tableLines[0].split('|').filter(c => c.trim()).map(c => c.trim());
+                            const data = tableLines.slice(2).map(row => 
+                              row.split('|').filter(c => c.trim()).map(c => c.trim())
+                            );
+                            
+                            // Draw table using autoTable
+                            autoTable(doc, {
+                              startY: yPosition,
+                              head: [headers],
+                              body: data,
+                              theme: 'grid',
+                              headStyles: { 
+                                fillColor: [249, 250, 251],
+                                textColor: [26, 26, 26],
+                                fontStyle: 'bold',
+                                lineWidth: 0.1,
+                                lineColor: [209, 213, 219]
+                              },
+                              bodyStyles: {
+                                textColor: [55, 65, 81],
+                                lineWidth: 0.1,
+                                lineColor: [209, 213, 219]
+                              },
+                              margin: { left: margin, right: margin },
+                              styles: { fontSize: 10 }
+                            });
+                            
+                            yPosition = doc.lastAutoTable.finalY + 10;
+                            i = j - 1; // Skip processed table lines
+                          }
+                        }
+                        // Regular paragraphs
+                        else if (line.length > 0) {
+                          yPosition = renderFormattedText(line, margin, yPosition, maxWidth);
+                        }
+                      }
+                    } else {
+                      doc.setFontSize(11);
+                      doc.setTextColor(102, 102, 102);
+                      doc.text('No analysis available.', margin, yPosition);
+                    }
+
+                    // Save the PDF
+                    doc.save(`${template.id}-results-${Date.now()}.pdf`);
+                  } catch (error) {
+                    console.error('PDF generation error:', error);
+                    alert('Failed to generate PDF. Please try again.');
+                  }
                 }}
                 variant="outline"
+                className="gap-2"
               >
-                Download Results
+                <Download className="h-4 w-4" />
+                Download PDF Report
               </Button>
             </div>
           </CardContent>
