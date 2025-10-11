@@ -13,6 +13,7 @@ import ParticipantLogin from './pages/Participant/Login'
 import ParticipantRegister from './pages/Participant/Register'
 import ParticipantDashboard from './pages/Participant/Dashboard'
 import NotFoundPage from './pages/404Page'
+import ExperimentBuilder from './pages/User/ExperimentBuilder'
 
 // Inline route protection components
 const ProtectedRoute = ({ children }) => {
@@ -83,6 +84,12 @@ const App = () => {
                 </ProtectedRoute>
               } />
               
+            <Route path="/experiment-builder" element={
+              <ProtectedRoute>
+                <ExperimentBuilder />
+              </ProtectedRoute>
+            } />
+            
               {/* Admin routes */}
               <Route path="/admin/auth" element={<AdminAuth />} />
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
