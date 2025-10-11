@@ -19,6 +19,7 @@ const topRowTestimonials = [
   }
 ]
 
+
 const bottomRowTestimonials = [
   {
     author: {
@@ -37,6 +38,7 @@ const bottomRowTestimonials = [
     text: "Finally, an accessible tool for running sophisticated experiments online. The accuracy rivals our traditional lab setup, and we can recruit diverse participant populations."
   }
 ]
+
 
 export function TestimonialsSectionDemo() {
   return (
