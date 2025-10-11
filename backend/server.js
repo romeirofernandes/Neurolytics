@@ -8,6 +8,7 @@ const consentFormRoutes = require('./routes/consentFormRoutes');
 const experimentRoutes = require('./routes/experimentRoutes');
 const researcherRoutes = require('./routes/researcherRoutes');
 const analysisRoutes = require('./routes/analysisRoutes');
+const emotionsRoutes = require('./routes/emotionsRoutes');
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.use('/api/participants', participantRoutes);
 app.use('/api/consent-forms', consentFormRoutes);
 app.use('/api/experiments', experimentRoutes);
 app.use('/api/analysis', analysisRoutes);
+app.use('/api/emotions', emotionsRoutes);
 
 // Health check
 app.get('/', (req, res) => {

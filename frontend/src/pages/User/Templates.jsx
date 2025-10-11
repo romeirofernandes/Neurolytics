@@ -1,4 +1,4 @@
-import { TemplateSelector } from '@/components/experiment/TemplateSelector';
+import TemplateSelector from '@/components/experiment/TemplateSelector';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import AppSidebar from '@/components/user/AppSidebar';
 import { Separator } from '@/components/ui/separator';
@@ -17,12 +17,6 @@ export default function Templates() {
         
         <div className="p-6">
           <div className="max-w-7xl mx-auto space-y-6">
-            <div className="space-y-2">
-              <p className="text-muted-foreground">
-                Choose from our collection of validated psychological experiments. Each template is based on established research paradigms and includes AI-powered analysis.
-              </p>
-            </div>
-            
             <TemplateSelector />
           </div>
         </div>

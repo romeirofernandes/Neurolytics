@@ -19,6 +19,7 @@ import ExperimentBuilder from './pages/User/ExperimentBuilder'
 import ConsentFormBuilder from './pages/User/ConsentFormBuilder'
 import { AlertCircle } from 'lucide-react'
 import { Button } from './components/ui/button'
+import TestModels from './pages/TestModels'
 
 // Inline route protection components
 const ProtectedRoute = ({ children }) => {
@@ -154,6 +155,8 @@ const App = () => {
               <Route path="/experiment/:experimentId" element={
                 <PublicExperimentPage />
               } />
+              
+              <Route path="/test-models" element={<TestModels />} />
               
               {/* 404 route - catch all unmatched routes */}
               <Route path="*" element={<NotFoundPage />} />
