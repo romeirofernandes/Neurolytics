@@ -46,7 +46,6 @@ const ParticipantRegister = () => {
   };
 
   const handleGoToDashboard = () => {
-    console.log('🚀 Navigating to dashboard with participant data:', participantData);
     login(participantData);
     navigate('/participant/dashboard');
   };
@@ -56,20 +55,8 @@ const ParticipantRegister = () => {
     setError('');
     setSuccess('');
     setLoading(true);
-
-    console.log('========== PARTICIPANT REGISTRATION ATTEMPT ==========');
-    console.log('Form data:', {
-      password: formData.password ? '***' : '',
-      confirmPassword: formData.confirmPassword ? '***' : '',
-      age: formData.age,
-      gender: formData.gender,
-      education: formData.education,
-      city: formData.city
-    });
-
     // Validate required fields
     if (!formData.password || !formData.age || !formData.gender || !formData.education) {
-      console.log('❌ Validation failed: Missing required fields');
       setError('Please fill in all required fields');
       setLoading(false);
       return;
@@ -77,7 +64,6 @@ const ParticipantRegister = () => {
 
     // Validate password confirmation
     if (formData.password !== formData.confirmPassword) {
-      console.log('❌ Validation failed: Passwords do not match');
       setError('Passwords do not match');
       setLoading(false);
       return;
@@ -85,7 +71,6 @@ const ParticipantRegister = () => {
 
     // Validate age
     if (formData.age < 1 || formData.age > 120) {
-      console.log('❌ Validation failed: Invalid age');
       setError('Please enter a valid age');
       setLoading(false);
       return;
@@ -99,12 +84,8 @@ const ParticipantRegister = () => {
       city: formData.city || undefined
     };
 
-    console.log('📤 Sending registration request to backend...');
-    console.log('Request body:', { ...requestBody, password: '***' });
-    console.log('API URL: http://localhost:8000/api/participants/register');
-
     try {
-      const response = await fetch('http://localhost:8000/api/participants/register', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/participants/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

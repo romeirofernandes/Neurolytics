@@ -20,23 +20,18 @@ const ParticipantLogin = () => {
     setError('');
     setLoading(true);
 
-    console.log('========== PARTICIPANT LOGIN ATTEMPT ==========');
-    console.log('Login data:', { id, password: password ? '***' : '' });
-
     // Validate inputs
     if (!id || !password) {
-      console.log('❌ Validation failed: Missing ID or password');
+      console.log('Validation failed: Missing ID or password');
       setError('Please enter both ID and password');
       setLoading(false);
       return;
     }
 
     const requestBody = { id, password };
-    console.log('📤 Sending login request to backend...');
-    console.log('API URL: http://localhost:8000/api/participants/login');
 
     try {
-      const response = await fetch('http://localhost:8000/api/participants/login', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/participants/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -44,25 +39,18 @@ const ParticipantLogin = () => {
         body: JSON.stringify(requestBody),
       });
 
-      console.log('📥 Response status:', response.status);
-      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-
       const data = await response.json();
       console.log('Response data:', data);
 
       if (!response.ok) {
-        console.log('❌ Login failed:', data.message);
+        console.log('Login failed:', data.message);
         throw new Error(data.message || 'Login failed');
       }
 
-      // Login successful
-      console.log('✅ Login successful!');
-      console.log('Participant data received:', data.participant);
       login(data.participant);
       console.log('Navigating to dashboard...');
       navigate('/participant/dashboard');
     } catch (err) {
-      console.error('❌ ERROR during login:', err);
       console.error('Error message:', err.message);
       console.error('Error stack:', err.stack);
       setError(err.message || 'An error occurred during login');
