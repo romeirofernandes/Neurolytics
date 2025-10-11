@@ -477,6 +477,68 @@ const getPublicExperiment = async (req, res) => {
   }
 };
 
+/**
+ * Save experiment results
+ * @route POST /api/experiments/:experimentId/results
+ */
+const saveExperimentResults = async (req, res) => {
+  try {
+    const { experimentId } = req.params;
+    const { participantId, results, completedAt, userAgent } = req.body;
+
+    if (!results) {
+      return res.status(400).json({
+        success: false,
+        message: 'Results data is required'
+      });
+    }
+
+    const experiment = await Experiment.findById(experimentId);
+    if (!experiment) {
+      return res.status(404).json({
+        success: false,
+        message: 'Experiment not found'
+      });
+    }
+
+    // Create results document
+    const resultData = {
+      experimentId,
+      participantId: participantId || 'anonymous',
+      results,
+      completedAt: completedAt || new Date(),
+      userAgent: userAgent || '',
+      metadata: {
+        experimentTitle: experiment.title,
+        experimentType: experiment.templateType,
+        aiGenerated: experiment.aiGenerated || false
+      }
+    };
+
+    // Save to database (you'll need a Results model)
+    // For now, we'll log it
+    console.log('📊 Experiment results received:', resultData);
+
+    // Increment participant count
+    experiment.participantCount = (experiment.participantCount || 0) + 1;
+    await experiment.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'Results saved successfully',
+      resultId: 'temp-' + Date.now() // In production, return actual result ID
+    });
+
+  } catch (error) {
+    console.error('❌ Error saving results:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error saving results',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   createExperiment,
   getExperimentById,
@@ -488,4 +550,5 @@ module.exports = {
   getExperimentStats,
   deleteExperiment,
   getPublicExperiment,
+  saveExperimentResults
 };

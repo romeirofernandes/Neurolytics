@@ -20,6 +20,7 @@ import ConsentFormBuilder from './pages/User/ConsentFormBuilder'
 import { AlertCircle } from 'lucide-react'
 import { Button } from './components/ui/button'
 import TestModels from './pages/TestModels'
+import AIExperimentBuilder from './pages/User/AIExperimentBuilder'
 
 // Inline route protection components
 const ProtectedRoute = ({ children }) => {
@@ -93,6 +94,12 @@ const App = () => {
               <Route path="/experiment-builder" element={
                 <ProtectedRoute>
                   <ExperimentBuilder />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/ai-experiment-builder" element={
+                <ProtectedRoute>
+                  <AIExperimentBuilder />
                 </ProtectedRoute>
               } />
 
