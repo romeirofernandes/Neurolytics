@@ -949,7 +949,7 @@ const ConsentFormBuilder = () => {
 
               {/* Live Preview */}
               {showPreview && (
-                <div className="lg:sticky lg:top-6 h-fit">
+                <div className="lg:sticky lg:top-6 h-fit mx-2">
                   <Card className="border-2">
                     <CardHeader className="bg-muted/50">
                       <CardTitle className="flex items-center gap-2">
