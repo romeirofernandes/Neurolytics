@@ -4,6 +4,8 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const userRoutes = require('./routes/userRoutes');
 const participantRoutes = require('./routes/participantRoutes');
+const consentFormRoutes = require('./routes/consentFormRoutes');
+const experimentRoutes = require('./routes/experimentRoutes');
 const researcherRoutes = require('./routes/researcherRoutes');
 
 const app = express();
@@ -26,10 +28,17 @@ app.use((req, res, next) => {
 app.use('/api/users', userRoutes);
 app.use('/api/researchers', researcherRoutes);
 app.use('/api/participants', participantRoutes);
+app.use('/api/consent-forms', consentFormRoutes);
+app.use('/api/experiments', experimentRoutes);
+
 
 // Health check
 app.get('/', (req, res) => {
-  res.json({ message: 'Server is running' });
+  res.json({ 
+    message: 'Cognitive Science Research Platform API',
+    version: '1.0.0',
+    status: 'active',
+  });
 });
 
 // MongoDB connection
@@ -46,9 +55,25 @@ mongoose.connect(MONGODB_URI)
     app.listen(PORT, () => {
       console.log(`\n🚀 Server running on port ${PORT}`);
       console.log(`📡 API Base URL: http://localhost:${PORT}/api`);
-      console.log(`🔗 Participant routes available at: http://localhost:${PORT}/api/participants`);
+      console.log(`🔗 Routes available:`);
+      console.log(`   - Users: http://localhost:${PORT}/api/users`);
+      console.log(`   - Participants: http://localhost:${PORT}/api/participants`);
+      console.log(`   - Consent Forms: http://localhost:${PORT}/api/consent-forms`);
+      console.log(`   - Experiments: http://localhost:${PORT}/api/experiments`);
     });
   })
   .catch((error) => {
     console.error('❌ MongoDB connection error:', error);
   });
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(500).json({
+    success: false,
+    message: 'Internal server error',
+    error: process.env.NODE_ENV === 'development' ? err.message : undefined,
+  });
+});
+
+module.exports = app;
