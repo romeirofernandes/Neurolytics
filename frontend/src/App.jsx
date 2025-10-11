@@ -13,10 +13,14 @@ import AdminDashboard from './pages/Admin/AdminDashboard'
 import ParticipantLogin from './pages/Participant/Login'
 import ParticipantRegister from './pages/Participant/Register'
 import ParticipantDashboard from './pages/Participant/Dashboard'
+import ParticipantExplore from './pages/Participant/Explore'
+import TemplateDetail from './pages/Participant/TemplateDetail'
+import RunExperiment from './pages/Participant/RunExperiment'
 import NotFoundPage from './pages/404Page'
 import Templates from './pages/User/Templates'
 import ExperimentBuilder from './pages/User/ExperimentBuilder'
 import ConsentFormBuilder from './pages/User/ConsentFormBuilder'
+import ConsentDisplay from './components/experiment/ConsentDisplay'
 import { AlertCircle } from 'lucide-react'
 import { Button } from './components/ui/button'
 import TestModels from './pages/TestModels'
@@ -148,6 +152,21 @@ const App = () => {
               <Route path="/participant/dashboard" element={
                 <ProtectedParticipantRoute>
                   <ParticipantDashboard />
+                </ProtectedParticipantRoute>
+              } />
+              <Route path="/participant/explore" element={
+                <ProtectedParticipantRoute>
+                  <ParticipantExplore />
+                </ProtectedParticipantRoute>
+              } />
+              <Route path="/participant/experiment/:templateId" element={
+                <ProtectedParticipantRoute>
+                  <TemplateDetail />
+                </ProtectedParticipantRoute>
+              } />
+              <Route path="/participant/run-experiment/:templateId" element={
+                <ProtectedParticipantRoute>
+                  <RunExperiment />
                 </ProtectedParticipantRoute>
               } />
               

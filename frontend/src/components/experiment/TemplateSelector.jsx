@@ -430,5 +430,4 @@ const TemplateSelector = ({ onTemplateSelect }) => {
 	);
 };
 
-// Default export
 export default TemplateSelector;

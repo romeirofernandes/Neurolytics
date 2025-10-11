@@ -17,7 +17,7 @@ import {
   SidebarSeparator,
 } from '../ui/sidebar';
 import { Button } from '../ui/button';
-import { HiHome, HiCog, HiLogout, HiUser, HiSun, HiMoon, HiChartBar, HiClipboardList } from 'react-icons/hi';
+import { HiHome, HiCog, HiLogout, HiUser, HiSun, HiMoon, HiChartBar, HiClipboardList, HiCollection } from 'react-icons/hi';
 
 const ParticipantSidebar = () => {
   const { participant, logout } = useParticipant();
@@ -39,6 +39,11 @@ const ParticipantSidebar = () => {
       title: 'Dashboard',
       url: '/participant/dashboard',
       icon: HiHome,
+    },
+    {
+      title: 'Explore',
+      url: '/participant/explore',
+      icon: HiCollection,
     },
     {
       title: 'My Experiments',
