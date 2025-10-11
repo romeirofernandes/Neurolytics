@@ -8,6 +8,9 @@ import { ABBATemplate } from './templates/ABBATemplate';
 import { TowerHanoiTemplate } from './templates/TowerHanoiTemplate';
 import { Loader2, ArrowLeft, Brain, Target, Zap, Layers, Puzzle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
 
 const templates = [
   {
@@ -177,8 +180,38 @@ export const TemplateSelector = () => {
             )}
 
             {results?.analysis ? (
-              <div className="prose dark:prose-invert max-w-none">
-                <div dangerouslySetInnerHTML={{ __html: results.analysis }} />
+              <div className="prose prose-slate dark:prose-invert max-w-none prose-headings:font-bold prose-h2:text-2xl prose-h2:mt-8 prose-h2:mb-4 prose-h2:border-b prose-h2:pb-2 prose-h3:text-xl prose-h3:mt-6 prose-h3:mb-3 prose-p:text-base prose-p:leading-7 prose-li:text-base prose-table:text-sm prose-th:bg-muted prose-th:p-3 prose-td:p-3 prose-strong:text-foreground prose-strong:font-semibold">
+                <ReactMarkdown 
+                  remarkPlugins={[remarkGfm]} 
+                  rehypePlugins={[rehypeRaw]}
+                  components={{
+                    h2: ({node, ...props}) => <h2 className="text-2xl font-bold mt-8 mb-4 pb-2 border-b border-border text-foreground" {...props} />,
+                    h3: ({node, ...props}) => <h3 className="text-xl font-semibold mt-6 mb-3 text-foreground" {...props} />,
+                    p: ({node, ...props}) => <p className="text-base leading-7 mb-4 text-foreground/90" {...props} />,
+                    ul: ({node, ...props}) => <ul className="my-4 ml-6 list-disc space-y-2" {...props} />,
+                    ol: ({node, ...props}) => <ol className="my-4 ml-6 list-decimal space-y-2" {...props} />,
+                    li: ({node, ...props}) => <li className="text-base text-foreground/90" {...props} />,
+                    table: ({node, ...props}) => (
+                      <div className="my-6 overflow-x-auto">
+                        <table className="w-full border-collapse border border-border rounded-lg overflow-hidden" {...props} />
+                      </div>
+                    ),
+                    thead: ({node, ...props}) => <thead className="bg-muted" {...props} />,
+                    th: ({node, ...props}) => <th className="border border-border p-3 text-left font-semibold text-foreground" {...props} />,
+                    td: ({node, ...props}) => <td className="border border-border p-3 text-foreground/90" {...props} />,
+                    strong: ({node, ...props}) => <strong className="font-semibold text-foreground" {...props} />,
+                    em: ({node, ...props}) => <em className="italic text-foreground/80" {...props} />,
+                    code: ({node, inline, ...props}) => 
+                      inline 
+                        ? <code className="bg-muted px-1.5 py-0.5 rounded text-sm font-mono" {...props} />
+                        : <code className="block bg-muted p-4 rounded-lg my-4 overflow-x-auto text-sm font-mono" {...props} />,
+                    blockquote: ({node, ...props}) => (
+                      <blockquote className="border-l-4 border-primary pl-4 my-4 italic text-foreground/80" {...props} />
+                    ),
+                  }}
+                >
+                  {results.analysis}
+                </ReactMarkdown>
               </div>
             ) : (
               <div className="space-y-4">
