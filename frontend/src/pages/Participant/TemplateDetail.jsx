@@ -6,18 +6,30 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../..
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { Alert, AlertDescription } from '../../components/ui/alert';
+import { MarkdownRenderer } from '../../components/ui/MarkdownRenderer';
 import { 
-  Brain, Target, Zap, Layers, Puzzle, Filter, Hand, 
-  RefreshCw, Move, Hash, Search, Camera, Clock, Award,
-  ArrowLeft, Play, CheckCircle, AlertCircle, BookOpen,
-  Users, TrendingUp, FileText
-} from 'lucide-react';
+  FaBrain, FaBullseye, FaBolt, FaLayerGroup, FaPuzzlePiece, 
+  FaFilter, FaHandPaper, FaSyncAlt, FaArrowsAlt, FaHashtag, 
+  FaSearch, FaCamera, FaClock, FaTrophy, FaArrowLeft, 
+  FaPlay, FaCheckCircle, FaExclamationCircle, FaBook,
+  FaUsers, FaChartLine, FaFileAlt
+} from 'react-icons/fa';
 import templatesData from '../../../templates.json';
 
 // Icon mapping
 const iconMap = {
-  Brain, Target, Zap, Layers, Puzzle, Filter, Hand,
-  RefreshCw, Move, Hash, Search, Camera
+  Brain: FaBrain,
+  Target: FaBullseye,
+  Zap: FaBolt,
+  Layers: FaLayerGroup,
+  Puzzle: FaPuzzlePiece,
+  Filter: FaFilter,
+  Hand: FaHandPaper,
+  RefreshCw: FaSyncAlt,
+  Move: FaArrowsAlt,
+  Hash: FaHashtag,
+  Search: FaSearch,
+  Camera: FaCamera
 };
 
 const TemplateDetail = () => {
@@ -40,7 +52,7 @@ const TemplateDetail = () => {
           <main className="flex-1 overflow-auto">
             <div className="container mx-auto p-6">
               <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
+                <FaExclamationCircle className="h-4 w-4" />
                 <AlertDescription>
                   Experiment template not found. Please return to the explore page.
                 </AlertDescription>
@@ -50,7 +62,7 @@ const TemplateDetail = () => {
                 className="mt-4"
                 variant="outline"
               >
-                <ArrowLeft className="mr-2 h-4 w-4" />
+                <FaArrowLeft className="mr-2 h-4 w-4" />
                 Back to Explore
               </Button>
             </div>
@@ -60,7 +72,7 @@ const TemplateDetail = () => {
     );
   }
 
-  const Icon = iconMap[template.icon] || Brain;
+  const Icon = iconMap[template.icon] || FaBrain;
 
   const getDifficultyColor = (difficulty) => {
     switch(difficulty.toLowerCase()) {
@@ -88,7 +100,7 @@ const TemplateDetail = () => {
               variant="ghost"
               className="mb-4"
             >
-              <ArrowLeft className="mr-2 h-4 w-4" />
+              <FaArrowLeft className="mr-2 h-4 w-4" />
               Back to Explore
             </Button>
 
@@ -96,8 +108,8 @@ const TemplateDetail = () => {
             <Card className="border-2">
               <CardHeader>
                 <div className="flex flex-col sm:flex-row items-start gap-4">
-                  <div className={`p-4 rounded-xl bg-gradient-to-br ${template.color} text-white`}>
-                    <Icon className="h-8 w-8" />
+                  <div className="p-4 rounded-xl bg-primary/10">
+                    <Icon className="h-8 w-8 text-primary" />
                   </div>
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-2 mb-2">
@@ -110,7 +122,7 @@ const TemplateDetail = () => {
                       </Badge>
                       {template.requiresCamera && (
                         <Badge variant="secondary">
-                          <Camera className="h-3 w-3 mr-1" />
+                          <FaCamera className="h-3 w-3 mr-1" />
                           Camera Required
                         </Badge>
                       )}
@@ -120,15 +132,15 @@ const TemplateDetail = () => {
                     </CardDescription>
                     <div className="flex flex-wrap gap-4 mt-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4" />
+                        <FaClock className="h-4 w-4" />
                         <span>{template.duration}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Award className="h-4 w-4" />
+                        <FaTrophy className="h-4 w-4" />
                         <span>{template.trials}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <BookOpen className="h-4 w-4" />
+                        <FaBook className="h-4 w-4" />
                         <span>{template.category}</span>
                       </div>
                     </div>
@@ -138,7 +150,7 @@ const TemplateDetail = () => {
                     onClick={handleStartExperiment}
                     className="whitespace-nowrap"
                   >
-                    <Play className="mr-2 h-5 w-5" />
+                    <FaPlay className="mr-2 h-5 w-5" />
                     Start Experiment
                   </Button>
                 </div>
@@ -148,7 +160,7 @@ const TemplateDetail = () => {
             {/* Camera Warning */}
             {template.requiresCamera && (
               <Alert>
-                <Camera className="h-4 w-4" />
+                <FaCamera className="h-4 w-4" />
                 <AlertDescription>
                   This experiment requires camera access for facial emotion tracking. 
                   You will be prompted to allow camera access when you start.
@@ -160,15 +172,15 @@ const TemplateDetail = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
+                  <FaFileAlt className="h-5 w-5" />
                   About This Experiment
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="prose dark:prose-invert max-w-none">
-                  <p className="text-muted-foreground whitespace-pre-line">
-                    {template.detailedDescription}
-                  </p>
+              <CardContent>
+                <div className="prose prose-slate dark:prose-invert max-w-none">
+                  <div className="text-foreground/90 leading-relaxed space-y-4">
+                    <MarkdownRenderer content={template.detailedDescription} />
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -177,7 +189,7 @@ const TemplateDetail = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
+                  <FaChartLine className="h-5 w-5" />
                   What We Measure
                 </CardTitle>
               </CardHeader>
@@ -188,7 +200,7 @@ const TemplateDetail = () => {
                       key={index}
                       className="flex items-center gap-2 p-3 rounded-lg bg-muted/50"
                     >
-                      <CheckCircle className="h-4 w-4 text-primary flex-shrink-0" />
+                      <FaCheckCircle className="h-4 w-4 text-primary flex-shrink-0" />
                       <span className="text-sm">{measure}</span>
                     </div>
                   ))}
@@ -200,7 +212,7 @@ const TemplateDetail = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
+                  <FaUsers className="h-5 w-5" />
                   Research Areas
                 </CardTitle>
               </CardHeader>
@@ -219,7 +231,7 @@ const TemplateDetail = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Hash className="h-5 w-5" />
+                  <FaHashtag className="h-5 w-5" />
                   Keywords
                 </CardTitle>
               </CardHeader>
@@ -239,7 +251,7 @@ const TemplateDetail = () => {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <BookOpen className="h-5 w-5" />
+                    <FaBook className="h-5 w-5" />
                     Key Publications
                   </CardTitle>
                 </CardHeader>
@@ -269,7 +281,7 @@ const TemplateDetail = () => {
                     size="lg"
                     onClick={handleStartExperiment}
                   >
-                    <Play className="mr-2 h-5 w-5" />
+                    <FaPlay className="mr-2 h-5 w-5" />
                     Start Experiment
                   </Button>
                 </div>
