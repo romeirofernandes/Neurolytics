@@ -62,7 +62,7 @@ export const BARTTemplate = ({ onComplete }) => {
       }]);
       
       setTimeout(() => {
-        if (balloonCount >= 93) { // 3 training + 90 main
+        if (balloonCount >= 33) { // Reduced from 93 to 33
           onComplete?.(results);
         } else {
           setBalloonCount(balloonCount + 1);
@@ -89,7 +89,7 @@ export const BARTTemplate = ({ onComplete }) => {
       totalEarnings: newEarnings
     }]);
 
-    if (balloonCount >= 93) {
+    if (balloonCount >= 33) { // Reduced from 93 to 33 (3 training + 30 main)
       onComplete?.(results);
     } else {
       setBalloonCount(balloonCount + 1);
@@ -105,7 +105,7 @@ export const BARTTemplate = ({ onComplete }) => {
       <CardHeader>
         <CardTitle>Balloon Analogue Risk Task (BART)</CardTitle>
         <CardDescription>
-          {isTraining ? 'Training Mode' : `Trial ${balloonCount - 3} of 90`}
+          {isTraining ? 'Training Mode' : `Trial ${balloonCount - 3} of 30`}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
