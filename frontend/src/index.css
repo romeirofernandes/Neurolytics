@@ -2,6 +2,7 @@
 @import "tw-animate-css";
 @import "@fontsource/plus-jakarta-sans";
 @import "@fontsource/inter";
+@import 'jspsych/css/jspsych.css';
 
 body {
   font-family: "Inter", sans-serif;

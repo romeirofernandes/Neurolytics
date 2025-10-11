@@ -9,6 +9,7 @@ import Dashboard from './pages/User/Dashboard'
 import AdminAuth from './pages/Admin/AdminAuth'
 import AdminDashboard from './pages/Admin/AdminDashboard'
 import NotFoundPage from './pages/404Page'
+import ExperimentBuilder from './pages/User/ExperimentBuilder'
 
 // Inline route protection components
 const ProtectedRoute = ({ children }) => {
@@ -55,6 +56,12 @@ const App = () => {
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/experiment-builder" element={
+              <ProtectedRoute>
+                <ExperimentBuilder />
               </ProtectedRoute>
             } />
             

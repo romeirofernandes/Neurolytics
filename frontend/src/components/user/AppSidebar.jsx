@@ -21,6 +21,7 @@ import {
 import { Button } from '../ui/button';
 import { ConnectedThemeToggle } from '../ui/ConnectedThemeToggle';
 import { HiHome, HiCog, HiLogout, HiUser, HiSun, HiMoon, HiChartBar } from 'react-icons/hi';
+import { FaBrain, FaFlask } from 'react-icons/fa';
 
 const AppSidebar = () => {
   const { user, logout } = useAuth();
@@ -45,8 +46,13 @@ const AppSidebar = () => {
       icon: HiHome,
     },
     {
+      title: 'Experiment Builder',
+      url: '/experiment-builder',
+      icon: FaFlask,
+    },
+    {
       title: 'Settings',
-      url: '/settings',
+      url: '#',
       icon: HiCog,
     },
   ];
