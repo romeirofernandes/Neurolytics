@@ -2,12 +2,16 @@ import React from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { ThemeProvider } from './context/ThemeContext'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { ParticipantProvider, useParticipant } from './context/ParticipantContext'
 import Landing from './pages/Landing'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/User/Dashboard'
 import AdminAuth from './pages/Admin/AdminAuth'
 import AdminDashboard from './pages/Admin/AdminDashboard'
+import ParticipantLogin from './pages/Participant/Login'
+import ParticipantRegister from './pages/Participant/Register'
+import ParticipantDashboard from './pages/Participant/Dashboard'
 import NotFoundPage from './pages/404Page'
 
 // Inline route protection components
@@ -30,42 +34,81 @@ const PublicRoute = ({ children }) => {
   return children;
 };
 
+// Participant route protection components
+const ProtectedParticipantRoute = ({ children }) => {
+  const { isAuthenticated } = useParticipant();
+  const location = useLocation();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/participant/login" state={{ from: location }} replace />;
+  }
+  return children;
+};
+
+const PublicParticipantRoute = ({ children }) => {
+  const { isAuthenticated } = useParticipant();
+
+  if (isAuthenticated) {
+    return <Navigate to="/participant/dashboard" replace />;
+  }
+  return children;
+};
+
 const App = () => {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <div>
-          <Routes>
-            {/* Public routes - accessible to everyone */}
-            <Route path="/" element={<Landing />} />
-            
-            {/* Auth routes - only accessible when NOT logged in */}
-            <Route path="/login" element={
-              <PublicRoute>
-                <Login />
-              </PublicRoute>
-            } />
-            <Route path="/register" element={
-              <PublicRoute>
-                <Register />
-              </PublicRoute>
-            } />
-            
-            {/* Protected routes - only accessible when logged in */}
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } />
-            
-            {/* Admin routes */}
-            <Route path="/admin/auth" element={<AdminAuth />} />
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
-            
-            {/* 404 route - catch all unmatched routes */}
-            <Route path="*" element={<NotFoundPage />} />
-          </Routes>
-        </div>
+        <ParticipantProvider>
+          <div>
+            <Routes>
+              {/* Public routes - accessible to everyone */}
+              <Route path="/" element={<Landing />} />
+              
+              {/* Auth routes - only accessible when NOT logged in */}
+              <Route path="/login" element={
+                <PublicRoute>
+                  <Login />
+                </PublicRoute>
+              } />
+              <Route path="/register" element={
+                <PublicRoute>
+                  <Register />
+                </PublicRoute>
+              } />
+              
+              {/* Protected routes - only accessible when logged in */}
+              <Route path="/dashboard" element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } />
+              
+              {/* Admin routes */}
+              <Route path="/admin/auth" element={<AdminAuth />} />
+              <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              
+              {/* Participant routes */}
+              <Route path="/participant/login" element={
+                <PublicParticipantRoute>
+                  <ParticipantLogin />
+                </PublicParticipantRoute>
+              } />
+              <Route path="/participant/register" element={
+                <PublicParticipantRoute>
+                  <ParticipantRegister />
+                </PublicParticipantRoute>
+              } />
+              <Route path="/participant/dashboard" element={
+                <ProtectedParticipantRoute>
+                  <ParticipantDashboard />
+                </ProtectedParticipantRoute>
+              } />
+              
+              {/* 404 route - catch all unmatched routes */}
+              <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+          </div>
+        </ParticipantProvider>
       </AuthProvider>
     </ThemeProvider>
   )
