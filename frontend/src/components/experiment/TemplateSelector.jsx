@@ -6,7 +6,13 @@ import { StroopTemplate } from './templates/StroopTemplate';
 import { PosnerTemplate } from './templates/PosnerTemplate';
 import { ABBATemplate } from './templates/ABBATemplate';
 import { TowerHanoiTemplate } from './templates/TowerHanoiTemplate';
-import { Loader2, ArrowLeft, Brain, Target, Zap, Layers, Puzzle } from 'lucide-react';
+import { FlankerTemplate } from './templates/FlankerTemplate';
+import { GoNoGoTemplate } from './templates/GoNoGoTemplate';
+import { NBackTemplate } from './templates/NBackTemplate';
+import { SimonTemplate } from './templates/SimonTemplate';
+import { DigitSpanTemplate } from './templates/DigitSpanTemplate';
+import { VisualSearchTemplate } from './templates/VisualSearchTemplate';
+import { Loader2, ArrowLeft, Brain, Target, Zap, Layers, Puzzle, Filter, Hand, RefreshCw, Move, Hash, Search } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const templates = [
@@ -37,6 +43,19 @@ const templates = [
     color: 'from-purple-500 to-pink-500'
   },
   {
+    id: 'flanker',
+    name: 'Flanker Task',
+    fullName: 'Eriksen Flanker Task',
+    description: 'Measures selective attention and response inhibition',
+    details: 'Participants respond to a central target letter while ignoring flanking distractors. Compatible and incompatible trials reveal cognitive control mechanisms.',
+    duration: '~10 minutes',
+    trials: '50 trials (10 training)',
+    measures: ['Selective attention', 'Cognitive control', 'Interference suppression', 'Flanker effect'],
+    component: FlankerTemplate,
+    icon: Filter,
+    color: 'from-orange-500 to-red-500'
+  },
+  {
     id: 'posner',
     name: 'Posner Cueing',
     fullName: 'Posner Spatial Cueing Task',
@@ -48,6 +67,71 @@ const templates = [
     component: PosnerTemplate,
     icon: Zap,
     color: 'from-yellow-500 to-orange-500'
+  },
+  {
+    id: 'simon',
+    name: 'Simon Task',
+    fullName: 'Simon Stimulus-Response Compatibility',
+    description: 'Measures stimulus-response compatibility and spatial attention',
+    details: 'Respond to word meaning while ignoring spatial position. Compatible vs incompatible spatial mapping reveals automatic processing of irrelevant location information.',
+    duration: '~8 minutes',
+    trials: '60 trials (10 training)',
+    measures: ['S-R compatibility', 'Spatial interference', 'Automatic processing', 'Simon effect'],
+    component: SimonTemplate,
+    icon: Move,
+    color: 'from-teal-500 to-cyan-500'
+  },
+  {
+    id: 'gonogo',
+    name: 'Go/No-Go',
+    fullName: 'Go/No-Go Inhibition Task',
+    description: 'Measures response inhibition and impulse control',
+    details: 'Respond quickly to frequent Go signals but withhold responses to rare No-Go signals. Assesses inhibitory control critical for self-regulation.',
+    duration: '~7 minutes',
+    trials: '60 trials',
+    measures: ['Response inhibition', 'Impulse control', 'Commission errors', 'Reaction time'],
+    component: GoNoGoTemplate,
+    icon: Hand,
+    color: 'from-rose-500 to-pink-500'
+  },
+  {
+    id: 'nback',
+    name: 'N-Back (2-Back)',
+    fullName: '2-Back Working Memory Task',
+    description: 'Measures working memory capacity and updating',
+    details: 'Monitor a sequence of letters and respond when the current letter matches one shown 2 positions back. Classic working memory paradigm used in cognitive training.',
+    duration: '~12 minutes',
+    trials: '75 trials (3 blocks)',
+    measures: ['Working memory', 'Updating ability', 'Sustained attention', 'Executive function'],
+    component: NBackTemplate,
+    icon: RefreshCw,
+    color: 'from-violet-500 to-purple-500'
+  },
+  {
+    id: 'digitspan',
+    name: 'Digit Span',
+    fullName: 'Digit Span Memory Test',
+    description: 'Measures short-term memory capacity',
+    details: 'Remember and recall increasingly long sequences of digits. Classic measure of memory span, typically 7±2 digits for adults.',
+    duration: '~5 minutes',
+    trials: 'Adaptive (until 2 errors)',
+    measures: ['Short-term memory', 'Memory span', 'Recall accuracy', 'Sequential processing'],
+    component: DigitSpanTemplate,
+    icon: Hash,
+    color: 'from-emerald-500 to-green-500'
+  },
+  {
+    id: 'visualsearch',
+    name: 'Visual Search',
+    fullName: 'Conjunction Visual Search',
+    description: 'Measures visual attention and search efficiency',
+    details: 'Find an orange upright T among rotated Ts and colored Ts. Search time increases with set size, revealing serial vs parallel processing.',
+    duration: '~10 minutes',
+    trials: '50 trials (5 training)',
+    measures: ['Visual attention', 'Search slopes', 'Feature integration', 'Processing efficiency'],
+    component: VisualSearchTemplate,
+    icon: Search,
+    color: 'from-indigo-500 to-blue-500'
   },
   {
     id: 'abba',
