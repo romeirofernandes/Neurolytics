@@ -45,6 +45,11 @@ const AppSidebar = () => {
       icon: HiHome,
     },
     {
+      title: 'Profile',
+      url: '/profile',
+      icon: HiUser,
+    },
+    {
       title: 'Settings',
       url: '/settings',
       icon: HiCog,

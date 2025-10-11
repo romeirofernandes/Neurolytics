@@ -6,6 +6,7 @@ import Landing from './pages/Landing'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/User/Dashboard'
+import Profile from './pages/User/Profile'
 import AdminAuth from './pages/Admin/AdminAuth'
 import AdminDashboard from './pages/Admin/AdminDashboard'
 import NotFoundPage from './pages/404Page'
@@ -55,6 +56,11 @@ const App = () => {
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <Profile />
               </ProtectedRoute>
             } />
             
