@@ -14,6 +14,7 @@ import ParticipantLogin from './pages/Participant/Login'
 import ParticipantRegister from './pages/Participant/Register'
 import ParticipantDashboard from './pages/Participant/Dashboard'
 import NotFoundPage from './pages/404Page'
+import Templates from './pages/User/Templates'
 import ExperimentBuilder from './pages/User/ExperimentBuilder'
 import ConsentFormBuilder from './pages/User/ConsentFormBuilder'
 import { AlertCircle } from 'lucide-react'
@@ -115,11 +116,18 @@ const App = () => {
                   <ConsentFormBuilder />
                 </ProtectedRoute>
               } />
+
               <Route path="/profile" element={
               <ProtectedRoute>
                 <Profile />
               </ProtectedRoute>
             } />
+
+              <Route path="/templates" element={
+                <ProtectedRoute>
+                  <Templates />
+                </ProtectedRoute>
+              } />
             
               {/* Admin routes */}
               <Route path="/admin/auth" element={<AdminAuth />} />

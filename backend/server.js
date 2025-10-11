@@ -7,6 +7,7 @@ const participantRoutes = require('./routes/participantRoutes');
 const consentFormRoutes = require('./routes/consentFormRoutes');
 const experimentRoutes = require('./routes/experimentRoutes');
 const researcherRoutes = require('./routes/researcherRoutes');
+const analysisRoutes = require('./routes/analysisRoutes');
 
 const app = express();
 
@@ -30,7 +31,7 @@ app.use('/api/researchers', researcherRoutes);
 app.use('/api/participants', participantRoutes);
 app.use('/api/consent-forms', consentFormRoutes);
 app.use('/api/experiments', experimentRoutes);
-
+app.use('/api/analysis', analysisRoutes);
 
 // Health check
 app.get('/', (req, res) => {
@@ -42,7 +43,7 @@ app.get('/', (req, res) => {
 });
 
 // MongoDB connection
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8000;
 const MONGODB_URI = process.env.MONGODB_URI;
 
 console.log('🔧 Configuration:');
@@ -53,17 +54,11 @@ mongoose.connect(MONGODB_URI)
   .then(() => {
     console.log('✅ Connected to MongoDB');
     app.listen(PORT, () => {
-      console.log(`\n🚀 Server running on port ${PORT}`);
-      console.log(`📡 API Base URL: http://localhost:${PORT}/api`);
-      console.log(`🔗 Routes available:`);
-      console.log(`   - Users: http://localhost:${PORT}/api/users`);
-      console.log(`   - Participants: http://localhost:${PORT}/api/participants`);
-      console.log(`   - Consent Forms: http://localhost:${PORT}/api/consent-forms`);
-      console.log(`   - Experiments: http://localhost:${PORT}/api/experiments`);
+      console.log(`\nServer running on port ${PORT}`);
     });
   })
   .catch((error) => {
-    console.error('❌ MongoDB connection error:', error);
+    console.error('MongoDB connection error:', error);
   });
 
 // Error handling middleware

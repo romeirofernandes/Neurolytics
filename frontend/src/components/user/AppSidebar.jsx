@@ -22,6 +22,7 @@ import { Button } from '../ui/button';
 import { ConnectedThemeToggle } from '../ui/ConnectedThemeToggle';
 import { HiHome, HiCog, HiLogout, HiUser, HiSun, HiMoon, HiChartBar } from 'react-icons/hi';
 import { FaBrain, FaFlask } from 'react-icons/fa';
+import { Home, Settings, User, FileText, FlaskConical, BookTemplate } from "lucide-react";
 
 const AppSidebar = () => {
   const { user, logout } = useAuth();
@@ -39,27 +40,12 @@ const AppSidebar = () => {
     }
   };
 
-  const menuItems = [
-    {
-      title: 'Dashboard',
-      url: '/dashboard',
-      icon: HiHome,
-    },
-    {
-      title: 'Profile',
-      url: '/profile',
-      icon: HiUser,
-    },
-    {
-      title: 'Experiment Builder',
-      url: '/experiment-builder',
-      icon: FaFlask,
-    },
-    {
-      title: 'Settings',
-      url: '#',
-      icon: HiCog,
-    },
+  const items = [
+    { title: "Dashboard", url: "/dashboard", icon: Home },
+    { title: "Experiments", url: "/experiment-builder", icon: FlaskConical },
+    { title: "Templates", url: "/templates", icon: BookTemplate },
+    { title: "Consent Forms", url: "/consent-builder", icon: FileText },
+    { title: "Profile", url: "/profile", icon: User },
   ];
 
   return (
@@ -88,7 +74,7 @@ const AppSidebar = () => {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
-              {menuItems.map((item) => {
+              {items.map((item) => {
                 const isActive = location.pathname === item.url;
                 const Icon = item.icon;
                 return (
