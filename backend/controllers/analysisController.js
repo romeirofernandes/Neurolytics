@@ -40,18 +40,26 @@ const analyzeExperiment = async (req, res) => {
 };
 
 function generatePromptForTemplate(templateId, results) {
-  const basePrompt = `You are a psychology research expert. Analyze the following experimental data and provide detailed insights in well-formatted HTML.
+  const basePrompt = `You are a psychology research expert. Analyze the following experimental data and provide detailed insights in well-formatted MARKDOWN.
 
-Use the following structure:
-- Use <h2> for main sections
-- Use <h3> for subsections
-- Use <p> for paragraphs
-- Use <ul> and <li> for lists
-- Use <strong> for emphasis
-- Use <table> for statistical summaries
-- Include clear interpretations and clinical/research relevance
+Use the following MARKDOWN formatting:
+- Use ## for main section headings (h2)
+- Use ### for subsection headings (h3)
+- Use **bold** for emphasis
+- Use tables for statistical summaries (use | for columns)
+- Use bullet points (- or *) for lists
+- Use > for important callouts/quotes
+- Use \`code\` for numerical values and metrics
 
-Make the analysis professional, comprehensive, and actionable.`;
+Make the analysis:
+- Professional and comprehensive
+- Easy to understand for researchers and participants
+- Include clear interpretations
+- Provide actionable insights
+- Use proper scientific terminology
+- Include statistical summaries in table format
+
+IMPORTANT: Return ONLY markdown text. Do NOT use HTML tags.`;
 
   switch (templateId) {
     case 'bart':
@@ -63,29 +71,29 @@ Data: ${JSON.stringify(results, null, 2)}
 
 Please provide a comprehensive analysis including:
 
-<h2>1. Overall BART Performance</h2>
+## 1. Overall BART Performance
 - Calculate and report the BART score (average pumps on non-exploded balloons)
 - Total trials completed and completion rate
 - Total earnings and efficiency metrics
 
-<h2>2. Risk-Taking Pattern Analysis</h2>
+## 2. Risk-Taking Pattern Analysis
 - Break down performance by balloon color (blue, yellow, orange)
 - Identify risk-taking strategies
 - Compare adjusted vs unadjusted pumps
 
-<h2>3. Statistical Summary</h2>
+## 3. Statistical Summary
 Create a table showing:
 - Mean pumps per color
 - Explosion rate per color
 - Average earnings per trial
 - Standard deviations
 
-<h2>4. Clinical Interpretation</h2>
+## 4. Clinical Interpretation
 - Compare to normative data (typical BART scores range from 30-45)
 - Assess risk propensity (conservative, moderate, or high risk-taker)
 - Discuss implications for real-world decision-making
 
-<h2>5. Recommendations</h2>
+## 5. Recommendations
 - Suggestions for improving decision-making
 - Pattern observations
 - Any notable behavioral tendencies`;
@@ -99,28 +107,28 @@ Data: ${JSON.stringify(results, null, 2)}
 
 Please provide a comprehensive analysis including:
 
-<h2>1. Reaction Time Analysis</h2>
+## 1. Reaction Time Analysis
 - Average RT for compatible trials
 - Average RT for incompatible trials
 - Calculate the Stroop effect (incompatible RT - compatible RT)
 
-<h2>2. Accuracy Analysis</h2>
+## 2. Accuracy Analysis
 - Overall accuracy rate
 - Accuracy for compatible vs incompatible trials
 - Error patterns and types
 
-<h2>3. Statistical Summary</h2>
+## 3. Statistical Summary
 Create a table comparing:
 - Compatible vs incompatible trial performance
 - Training vs main task performance
 - RT distributions
 
-<h2>4. Cognitive Interpretation</h2>
+## 4. Cognitive Interpretation
 - Assess attentional control (typical Stroop effect is 50-100ms)
 - Evaluate processing speed
 - Discuss automaticity vs controlled processing
 
-<h2>5. Clinical Relevance</h2>
+## 5. Clinical Relevance
 - Compare to typical adult performance
 - Implications for executive function
 - Suggestions for cognitive training`;
@@ -134,29 +142,29 @@ Data: ${JSON.stringify(results, null, 2)}
 
 Please provide a comprehensive analysis including:
 
-<h2>1. Cueing Effect Analysis</h2>
+## 1. Cueing Effect Analysis
 - Average RT for valid cues
 - Average RT for invalid cues
 - Calculate cueing benefit (valid RT benefit)
 - Calculate cueing cost (invalid RT cost)
 
-<h2>2. Accuracy and Performance</h2>
+## 2. Accuracy and Performance
 - Overall accuracy rate
 - Accuracy for valid vs invalid trials
 - Spatial biases (left vs right)
 
-<h2>3. Statistical Summary</h2>
+## 3. Statistical Summary
 Create a table showing:
 - Valid vs invalid cue performance
 - Cueing effect magnitude
 - Lateralization effects
 
-<h2>4. Attentional Interpretation</h2>
+## 4. Attentional Interpretation
 - Assess attentional orienting efficiency (typical cueing effect: 20-40ms)
 - Evaluate spatial attention distribution
 - Discuss endogenous vs exogenous attention
 
-<h2>5. Research Implications</h2>
+## 5. Research Implications
 - Compare to established norms
 - Relevance for attention disorders
 - Practical applications`;
@@ -170,28 +178,28 @@ Data: ${JSON.stringify(results, null, 2)}
 
 Please provide a comprehensive analysis including:
 
-<h2>1. Response Compatibility Analysis</h2>
+## 1. Response Compatibility Analysis
 - Average RT for compatible trials (same response planned and executed)
 - Average RT for incompatible trials (different responses)
 - Calculate reversed-compatibility effect
 
-<h2>2. Action Planning Efficiency</h2>
+## 2. Action Planning Efficiency
 - Response A execution accuracy
 - Response B reaction times
 - Planning vs execution dissociation
 
-<h2>3. Statistical Summary</h2>
+## 3. Statistical Summary
 Create a table comparing:
 - Compatible vs incompatible performance
 - Single vs double response trials
 - Planning accuracy
 
-<h2>4. Cognitive Control Interpretation</h2>
+## 4. Cognitive Control Interpretation
 - Assess motor planning ability
 - Evaluate cognitive flexibility
 - Discuss the reversed-compatibility phenomenon
 
-<h2>5. Implications</h2>
+## 5. Implications
 - Compare to typical ABBA effects
 - Relevance for motor control research
 - Applications in skill learning`;
@@ -205,28 +213,28 @@ Data: ${JSON.stringify(results, null, 2)}
 
 Please provide a comprehensive analysis including:
 
-<h2>1. Performance Metrics</h2>
+## 1. Performance Metrics
 - Total moves to solution
 - Comparison to optimal solution (7 moves)
 - Total time to completion
 - Efficiency ratio (optimal/actual moves)
 
-<h2>2. Error Analysis</h2>
+## 2. Error Analysis
 - Number of rule violations (larger on smaller disc)
 - Invalid move attempts
 - Error patterns over time
 
-<h2>3. Problem-Solving Strategy</h2>
+## 3. Problem-Solving Strategy
 - Identify solution approach (trial-and-error vs systematic)
 - Planning depth assessment
 - Strategy efficiency
 
-<h2>4. Cognitive Interpretation</h2>
+## 4. Cognitive Interpretation
 - Assess planning ability (excellent: 7-9 moves, good: 10-15, needs improvement: >15)
 - Working memory demands
 - Executive function evaluation
 
-<h2>5. Recommendations</h2>
+## 5. Recommendations
 - Suggestions for improving problem-solving
 - Strategy optimization tips
 - Training implications
