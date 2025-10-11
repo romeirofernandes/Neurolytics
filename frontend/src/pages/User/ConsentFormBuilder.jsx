@@ -189,14 +189,11 @@ const ConsentFormBuilder = () => {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b px-6">
+        <header className="flex h-23 shrink-0 items-center justify-between gap-2 border-b px-6">
           <div className="flex items-center gap-2">
             <SidebarTrigger className="-ml-1" />
             <div>
               <h1 className="text-xl font-semibold text-foreground">Consent Form Builder</h1>
-              <p className="text-sm text-muted-foreground">
-                Create IRB & GDPR compliant consent forms
-              </p>
             </div>
           </div>
           
@@ -230,7 +227,7 @@ const ConsentFormBuilder = () => {
         </header>
 
         <main className="flex-1 overflow-y-auto p-6">
-          <div className="max-w-6xl mx-auto">
+          <div className="w-full mx-auto">
             {message.text && (
               <div className={`mb-6 p-4 rounded-lg flex items-center gap-3 ${
                 message.type === 'success' 
@@ -246,560 +243,561 @@ const ConsentFormBuilder = () => {
               </div>
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6">
               {/* Form Builder */}
-              <div className="space-y-6">
-                <Tabs defaultValue="basic" className="w-full">
-                  <TabsList className="grid w-full grid-cols-5">
-                    <TabsTrigger value="basic">
-                      <FileText className="w-4 h-4 mr-1" />
-                      Basic
-                    </TabsTrigger>
-                    <TabsTrigger value="study">
-                      <Users className="w-4 h-4 mr-1" />
-                      Study
-                    </TabsTrigger>
-                    <TabsTrigger value="data">
-                      <Shield className="w-4 h-4 mr-1" />
-                      Data
-                    </TabsTrigger>
-                    <TabsTrigger value="contact">
-                      <Mail className="w-4 h-4 mr-1" />
-                      Contact
-                    </TabsTrigger>
-                    <TabsTrigger value="ethics">
-                      <CheckCircle className="w-4 h-4 mr-1" />
-                      Ethics
-                    </TabsTrigger>
-                  </TabsList>
+              <div className="space-y-8 w-full">
+                <div className="flex justify-center">
+                  <Tabs defaultValue="basic" className="w-full px-2 py-4">
+                    <TabsList className="grid w-full grid-cols-5">
+                      <TabsTrigger value="basic">
+                        <FileText className="w-4 h-4 mr-1" />
+                        Basic
+                      </TabsTrigger>
+                      <TabsTrigger value="study">
+                        <Users className="w-4 h-4 mr-1" />
+                        Study
+                      </TabsTrigger>
+                      <TabsTrigger value="data">
+                        <Shield className="w-4 h-4 mr-1" />
+                        Data
+                      </TabsTrigger>
+                      <TabsTrigger value="contact">
+                        <Mail className="w-4 h-4 mr-1" />
+                        Contact
+                      </TabsTrigger>
+                      <TabsTrigger value="ethics">
+                        <CheckCircle className="w-4 h-4 mr-1" />
+                        Ethics
+                      </TabsTrigger>
+                    </TabsList>
 
-                  {/* Basic Information Tab */}
-                  <TabsContent value="basic" className="space-y-4 mt-4">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Basic Information</CardTitle>
-                        <CardDescription>
-                          Essential details about your study
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="title">
-                            Study Title <span className="text-red-500">*</span>
-                          </Label>
-                          <Input
-                            id="title"
-                            name="title"
-                            placeholder="e.g., Effects of Sleep on Memory Consolidation"
-                            value={formData.title}
-                            onChange={handleChange}
-                            required
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="estimatedDuration">
-                            Estimated Duration (minutes) <span className="text-red-500">*</span>
-                          </Label>
-                          <Input
-                            id="estimatedDuration"
-                            name="estimatedDuration"
-                            type="number"
-                            min="1"
-                            placeholder="15"
-                            value={formData.estimatedDuration}
-                            onChange={handleChange}
-                            required
-                          />
-                          <p className="text-xs text-muted-foreground">
-                            How long will participants spend on this study?
-                          </p>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="eligibility.minAge">
-                            Minimum Age Requirement
-                          </Label>
-                          <Input
-                            id="eligibility.minAge"
-                            name="eligibility.minAge"
-                            type="number"
-                            min="0"
-                            max="120"
-                            value={formData.eligibility.minAge}
-                            onChange={handleChange}
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="eligibility.otherCriteria">
-                            Other Eligibility Criteria
-                          </Label>
-                          <Textarea
-                            id="eligibility.otherCriteria"
-                            name="eligibility.otherCriteria"
-                            rows={3}
-                            placeholder="e.g., Must be fluent in English..."
-                            value={formData.eligibility.otherCriteria}
-                            onChange={handleChange}
-                          />
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-
-                  {/* Study Details Tab */}
-                  <TabsContent value="study" className="space-y-4 mt-4">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Study Details</CardTitle>
-                        <CardDescription>
-                          Purpose, procedures, risks, and benefits
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="studyPurpose">
-                            Study Purpose <span className="text-red-500">*</span>
-                          </Label>
-                          <Textarea
-                            id="studyPurpose"
-                            name="studyPurpose"
-                            rows={4}
-                            placeholder="Describe the purpose of your research..."
-                            value={formData.studyPurpose}
-                            onChange={handleChange}
-                            required
-                          />
-                          <p className="text-xs text-muted-foreground">
-                            Minimum 50 characters (GDPR requirement)
-                          </p>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="procedures">
-                            Procedures <span className="text-red-500">*</span>
-                          </Label>
-                          <Textarea
-                            id="procedures"
-                            name="procedures"
-                            rows={5}
-                            placeholder="Describe what participants will do..."
-                            value={formData.procedures}
-                            onChange={handleChange}
-                            required
-                          />
-                          <p className="text-xs text-muted-foreground">
-                            Minimum 100 characters (IRB requirement)
-                          </p>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="risks">
-                            Potential Risks <span className="text-red-500">*</span>
-                          </Label>
-                          <Textarea
-                            id="risks"
-                            name="risks"
-                            rows={3}
-                            value={formData.risks}
-                            onChange={handleChange}
-                            required
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="benefits">
-                            Potential Benefits <span className="text-red-500">*</span>
-                          </Label>
-                          <Textarea
-                            id="benefits"
-                            name="benefits"
-                            rows={3}
-                            value={formData.benefits}
-                            onChange={handleChange}
-                            required
-                          />
-                        </div>
-
-                        <div className="space-y-3 p-4 border rounded-lg">
-                          <div className="flex items-center space-x-2">
-                            <input
-                              type="checkbox"
-                              id="compensation.provided"
-                              name="compensation.provided"
-                              checked={formData.compensation.provided}
-                              onChange={handleChange}
-                              className="rounded"
-                            />
-                            <Label htmlFor="compensation.provided" className="cursor-pointer">
-                              Compensation is provided for this study
+                    {/* Basic Information Tab */}
+                    <TabsContent value="basic" className="space-y-4 mt-4">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Basic Information</CardTitle>
+                          <CardDescription>
+                            Essential details about your study
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="title">
+                              Study Title <span className="text-red-500">*</span>
                             </Label>
+                            <Input
+                              id="title"
+                              name="title"
+                              placeholder="e.g., Effects of Sleep on Memory Consolidation"
+                              value={formData.title}
+                              onChange={handleChange}
+                              required
+                            />
                           </div>
-                          
-                          {formData.compensation.provided && (
-                            <div className="space-y-2 mt-3">
-                              <Label htmlFor="compensation.description">
-                                Compensation Details
+
+                          <div className="space-y-2">
+                            <Label htmlFor="estimatedDuration">
+                              Estimated Duration (minutes) <span className="text-red-500">*</span>
+                            </Label>
+                            <Input
+                              id="estimatedDuration"
+                              name="estimatedDuration"
+                              type="number"
+                              min="1"
+                              placeholder="15"
+                              value={formData.estimatedDuration}
+                              onChange={handleChange}
+                              required
+                            />
+                            <p className="text-xs text-muted-foreground">
+                              How long will participants spend on this study?
+                            </p>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="eligibility.minAge">
+                              Minimum Age Requirement
+                            </Label>
+                            <Input
+                              id="eligibility.minAge"
+                              name="eligibility.minAge"
+                              type="number"
+                              min="0"
+                              max="120"
+                              value={formData.eligibility.minAge}
+                              onChange={handleChange}
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="eligibility.otherCriteria">
+                              Other Eligibility Criteria
+                            </Label>
+                            <Textarea
+                              id="eligibility.otherCriteria"
+                              name="eligibility.otherCriteria"
+                              rows={3}
+                              placeholder="e.g., Must be fluent in English..."
+                              value={formData.eligibility.otherCriteria}
+                              onChange={handleChange}
+                            />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </TabsContent>
+
+                    {/* Study Details Tab */}
+                    <TabsContent value="study" className="space-y-4 mt-4">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Study Details</CardTitle>
+                          <CardDescription>
+                            Purpose, procedures, risks, and benefits
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="studyPurpose">
+                              Study Purpose <span className="text-red-500">*</span>
+                            </Label>
+                            <Textarea
+                              id="studyPurpose"
+                              name="studyPurpose"
+                              rows={4}
+                              placeholder="Describe the purpose of your research..."
+                              value={formData.studyPurpose}
+                              onChange={handleChange}
+                              required
+                            />
+                            <p className="text-xs text-muted-foreground">
+                              Minimum 50 characters (GDPR requirement)
+                            </p>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="procedures">
+                              Procedures <span className="text-red-500">*</span>
+                            </Label>
+                            <Textarea
+                              id="procedures"
+                              name="procedures"
+                              rows={5}
+                              placeholder="Describe what participants will do..."
+                              value={formData.procedures}
+                              onChange={handleChange}
+                              required
+                            />
+                            <p className="text-xs text-muted-foreground">
+                              Minimum 100 characters (IRB requirement)
+                            </p>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="risks">
+                              Potential Risks <span className="text-red-500">*</span>
+                            </Label>
+                            <Textarea
+                              id="risks"
+                              name="risks"
+                              rows={3}
+                              value={formData.risks}
+                              onChange={handleChange}
+                              required
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="benefits">
+                              Potential Benefits <span className="text-red-500">*</span>
+                            </Label>
+                            <Textarea
+                              id="benefits"
+                              name="benefits"
+                              rows={3}
+                              value={formData.benefits}
+                              onChange={handleChange}
+                              required
+                            />
+                          </div>
+
+                          <div className="space-y-3 p-4 border rounded-lg">
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                id="compensation.provided"
+                                name="compensation.provided"
+                                checked={formData.compensation.provided}
+                                onChange={handleChange}
+                                className="rounded"
+                              />
+                              <Label htmlFor="compensation.provided" className="cursor-pointer">
+                                Compensation is provided for this study
+                              </Label>
+                            </div>
+                            
+                            {formData.compensation.provided && (
+                              <div className="space-y-2 mt-3">
+                                <Label htmlFor="compensation.description">
+                                  Compensation Details
+                                </Label>
+                                <Textarea
+                                  id="compensation.description"
+                                  name="compensation.description"
+                                  rows={2}
+                                  placeholder="Describe the compensation..."
+                                  value={formData.compensation.description}
+                                  onChange={handleChange}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </TabsContent>
+
+                    {/* Data Handling Tab */}
+                    <TabsContent value="data" className="space-y-4 mt-4">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Data Handling & Privacy</CardTitle>
+                          <CardDescription>
+                            GDPR-compliant data protection information
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="flex items-center space-x-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                            <Shield className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                            <span className="text-sm text-blue-800 dark:text-blue-200">
+                              This section ensures GDPR compliance (Articles 5, 13, 32)
+                            </span>
+                          </div>
+
+                          <div className="space-y-3 p-4 border rounded-lg">
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                id="dataHandling.anonymity"
+                                name="dataHandling.anonymity"
+                                checked={formData.dataHandling.anonymity}
+                                onChange={handleChange}
+                                className="rounded"
+                              />
+                              <Label htmlFor="dataHandling.anonymity" className="cursor-pointer font-semibold">
+                                Data will be anonymized
+                              </Label>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <Label htmlFor="dataHandling.anonymityDescription">
+                                Anonymity Description
                               </Label>
                               <Textarea
-                                id="compensation.description"
-                                name="compensation.description"
-                                rows={2}
-                                placeholder="Describe the compensation..."
-                                value={formData.compensation.description}
+                                id="dataHandling.anonymityDescription"
+                                name="dataHandling.anonymityDescription"
+                                rows={3}
+                                value={formData.dataHandling.anonymityDescription}
                                 onChange={handleChange}
                               />
                             </div>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-
-                  {/* Data Handling Tab */}
-                  <TabsContent value="data" className="space-y-4 mt-4">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Data Handling & Privacy</CardTitle>
-                        <CardDescription>
-                          GDPR-compliant data protection information
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="flex items-center space-x-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                          <Shield className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                          <span className="text-sm text-blue-800 dark:text-blue-200">
-                            This section ensures GDPR compliance (Articles 5, 13, 32)
-                          </span>
-                        </div>
-
-                        <div className="space-y-3 p-4 border rounded-lg">
-                          <div className="flex items-center space-x-2">
-                            <input
-                              type="checkbox"
-                              id="dataHandling.anonymity"
-                              name="dataHandling.anonymity"
-                              checked={formData.dataHandling.anonymity}
-                              onChange={handleChange}
-                              className="rounded"
-                            />
-                            <Label htmlFor="dataHandling.anonymity" className="cursor-pointer font-semibold">
-                              Data will be anonymized
-                            </Label>
                           </div>
-                          
+
                           <div className="space-y-2">
-                            <Label htmlFor="dataHandling.anonymityDescription">
-                              Anonymity Description
+                            <Label htmlFor="dataHandling.storage">
+                              Data Storage Method <span className="text-red-500">*</span>
                             </Label>
                             <Textarea
-                              id="dataHandling.anonymityDescription"
-                              name="dataHandling.anonymityDescription"
+                              id="dataHandling.storage"
+                              name="dataHandling.storage"
                               rows={3}
-                              value={formData.dataHandling.anonymityDescription}
-                              onChange={handleChange}
-                            />
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="dataHandling.storage">
-                            Data Storage Method <span className="text-red-500">*</span>
-                          </Label>
-                          <Textarea
-                            id="dataHandling.storage"
-                            name="dataHandling.storage"
-                            rows={3}
-                            value={formData.dataHandling.storage}
-                            onChange={handleChange}
-                            required
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="dataHandling.retentionPeriod">
-                            Data Retention Period <span className="text-red-500">*</span>
-                          </Label>
-                          <Input
-                            id="dataHandling.retentionPeriod"
-                            name="dataHandling.retentionPeriod"
-                            placeholder="e.g., 5 years after study completion"
-                            value={formData.dataHandling.retentionPeriod}
-                            onChange={handleChange}
-                            required
-                          />
-                          <p className="text-xs text-muted-foreground">
-                            GDPR Article 5(1)(e) - Storage limitation
-                          </p>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="dataHandling.dataAccess">
-                            Who Can Access the Data
-                          </Label>
-                          <Textarea
-                            id="dataHandling.dataAccess"
-                            name="dataHandling.dataAccess"
-                            rows={2}
-                            value={formData.dataHandling.dataAccess}
-                            onChange={handleChange}
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="dataHandling.securityMeasures">
-                            Security Measures
-                          </Label>
-                          <Textarea
-                            id="dataHandling.securityMeasures"
-                            name="dataHandling.securityMeasures"
-                            rows={3}
-                            value={formData.dataHandling.securityMeasures}
-                            onChange={handleChange}
-                          />
-                          <p className="text-xs text-muted-foreground">
-                            GDPR Article 32 - Security of processing
-                          </p>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="withdrawalRights.withdrawalProcedure">
-                            Withdrawal Procedure <span className="text-red-500">*</span>
-                          </Label>
-                          <Textarea
-                            id="withdrawalRights.withdrawalProcedure"
-                            name="withdrawalRights.withdrawalProcedure"
-                            rows={3}
-                            value={formData.withdrawalRights.withdrawalProcedure}
-                            onChange={handleChange}
-                            required
-                          />
-                          <p className="text-xs text-muted-foreground">
-                            GDPR Article 7(3) - Right to withdraw consent
-                          </p>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="withdrawalRights.dataDeletionPolicy">
-                            Data Deletion Policy
-                          </Label>
-                          <Textarea
-                            id="withdrawalRights.dataDeletionPolicy"
-                            name="withdrawalRights.dataDeletionPolicy"
-                            rows={3}
-                            value={formData.withdrawalRights.dataDeletionPolicy}
-                            onChange={handleChange}
-                          />
-                          <p className="text-xs text-muted-foreground">
-                            GDPR Article 17 - Right to erasure
-                          </p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-
-                  {/* Contact Information Tab */}
-                  <TabsContent value="contact" className="space-y-4 mt-4">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Contact Information</CardTitle>
-                        <CardDescription>
-                          Researcher and ethics committee contacts
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="space-y-3 p-4 border rounded-lg">
-                          <h4 className="font-semibold text-sm">Researcher Information</h4>
-                          
-                          <div className="space-y-2">
-                            <Label htmlFor="contactInfo.researcherName">
-                              Researcher Name <span className="text-red-500">*</span>
-                            </Label>
-                            <Input
-                              id="contactInfo.researcherName"
-                              name="contactInfo.researcherName"
-                              value={formData.contactInfo.researcherName}
+                              value={formData.dataHandling.storage}
                               onChange={handleChange}
                               required
                             />
                           </div>
 
                           <div className="space-y-2">
-                            <Label htmlFor="contactInfo.researcherEmail">
-                              Researcher Email <span className="text-red-500">*</span>
+                            <Label htmlFor="dataHandling.retentionPeriod">
+                              Data Retention Period <span className="text-red-500">*</span>
                             </Label>
                             <Input
-                              id="contactInfo.researcherEmail"
-                              name="contactInfo.researcherEmail"
-                              type="email"
-                              value={formData.contactInfo.researcherEmail}
+                              id="dataHandling.retentionPeriod"
+                              name="dataHandling.retentionPeriod"
+                              placeholder="e.g., 5 years after study completion"
+                              value={formData.dataHandling.retentionPeriod}
                               onChange={handleChange}
                               required
                             />
+                            <p className="text-xs text-muted-foreground">
+                              GDPR Article 5(1)(e) - Storage limitation
+                            </p>
                           </div>
 
                           <div className="space-y-2">
-                            <Label htmlFor="contactInfo.researcherPhone">
-                              Researcher Phone (Optional)
+                            <Label htmlFor="dataHandling.dataAccess">
+                              Who Can Access the Data
                             </Label>
-                            <Input
-                              id="contactInfo.researcherPhone"
-                              name="contactInfo.researcherPhone"
-                              type="tel"
-                              placeholder="+1 (555) 123-4567"
-                              value={formData.contactInfo.researcherPhone}
+                            <Textarea
+                              id="dataHandling.dataAccess"
+                              name="dataHandling.dataAccess"
+                              rows={2}
+                              value={formData.dataHandling.dataAccess}
                               onChange={handleChange}
                             />
                           </div>
-                        </div>
 
-                        <div className="space-y-3 p-4 border rounded-lg">
-                          <h4 className="font-semibold text-sm">Institution Information</h4>
-                          
                           <div className="space-y-2">
-                            <Label htmlFor="contactInfo.institution">
-                              Institution <span className="text-red-500">*</span>
+                            <Label htmlFor="dataHandling.securityMeasures">
+                              Security Measures
                             </Label>
-                            <Input
-                              id="contactInfo.institution"
-                              name="contactInfo.institution"
-                              placeholder="e.g., Massachusetts Institute of Technology"
-                              value={formData.contactInfo.institution}
+                            <Textarea
+                              id="dataHandling.securityMeasures"
+                              name="dataHandling.securityMeasures"
+                              rows={3}
+                              value={formData.dataHandling.securityMeasures}
+                              onChange={handleChange}
+                            />
+                            <p className="text-xs text-muted-foreground">
+                              GDPR Article 32 - Security of processing
+                            </p>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="withdrawalRights.withdrawalProcedure">
+                              Withdrawal Procedure <span className="text-red-500">*</span>
+                            </Label>
+                            <Textarea
+                              id="withdrawalRights.withdrawalProcedure"
+                              name="withdrawalRights.withdrawalProcedure"
+                              rows={3}
+                              value={formData.withdrawalRights.withdrawalProcedure}
                               onChange={handleChange}
                               required
                             />
+                            <p className="text-xs text-muted-foreground">
+                              GDPR Article 7(3) - Right to withdraw consent
+                            </p>
                           </div>
 
                           <div className="space-y-2">
-                            <Label htmlFor="contactInfo.department">
-                              Department
+                            <Label htmlFor="withdrawalRights.dataDeletionPolicy">
+                              Data Deletion Policy
                             </Label>
-                            <Input
-                              id="contactInfo.department"
-                              name="contactInfo.department"
-                              placeholder="e.g., Psychology Department"
-                              value={formData.contactInfo.department}
+                            <Textarea
+                              id="withdrawalRights.dataDeletionPolicy"
+                              name="withdrawalRights.dataDeletionPolicy"
+                              rows={3}
+                              value={formData.withdrawalRights.dataDeletionPolicy}
                               onChange={handleChange}
                             />
+                            <p className="text-xs text-muted-foreground">
+                              GDPR Article 17 - Right to erasure
+                            </p>
                           </div>
-                        </div>
+                        </CardContent>
+                      </Card>
+                    </TabsContent>
 
-                        <div className="space-y-3 p-4 border rounded-lg">
-                          <h4 className="font-semibold text-sm">Ethics Committee / IRB</h4>
-                          
-                          <div className="space-y-2">
-                            <Label htmlFor="contactInfo.ethicsCommitteeName">
-                              Committee Name
-                            </Label>
-                            <Input
-                              id="contactInfo.ethicsCommitteeName"
-                              name="contactInfo.ethicsCommitteeName"
-                              placeholder="e.g., Institutional Review Board"
-                              value={formData.contactInfo.ethicsCommitteeName}
-                              onChange={handleChange}
-                            />
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label htmlFor="contactInfo.ethicsCommitteeEmail">
-                              Committee Email
-                            </Label>
-                            <Input
-                              id="contactInfo.ethicsCommitteeEmail"
-                              name="contactInfo.ethicsCommitteeEmail"
-                              type="email"
-                              placeholder="irb@institution.edu"
-                              value={formData.contactInfo.ethicsCommitteeEmail}
-                              onChange={handleChange}
-                            />
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label htmlFor="contactInfo.ethicsCommitteePhone">
-                              Committee Phone
-                            </Label>
-                            <Input
-                              id="contactInfo.ethicsCommitteePhone"
-                              name="contactInfo.ethicsCommitteePhone"
-                              type="tel"
-                              value={formData.contactInfo.ethicsCommitteePhone}
-                              onChange={handleChange}
-                            />
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-
-                  {/* Ethics Approval Tab */}
-                  <TabsContent value="ethics" className="space-y-4 mt-4">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>IRB / Ethics Approval</CardTitle>
-                        <CardDescription>
-                          Institutional review board approval details
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="flex items-center space-x-2 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
-                          <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                          <span className="text-sm text-amber-800 dark:text-amber-200">
-                            Ensure you have proper IRB approval before publishing your study
-                          </span>
-                        </div>
-
-                        <div className="space-y-3 p-4 border rounded-lg">
-                          <div className="flex items-center space-x-2">
-                            <input
-                              type="checkbox"
-                              id="irbApproval.approved"
-                              name="irbApproval.approved"
-                              checked={formData.irbApproval.approved}
-                              onChange={handleChange}
-                              className="rounded"
-                            />
-                            <Label htmlFor="irbApproval.approved" className="cursor-pointer font-semibold">
-                              This study has IRB/Ethics approval
-                            </Label>
-                          </div>
-
-                          {formData.irbApproval.approved && (
-                            <div className="space-y-4 mt-4">
-                              <div className="space-y-2">
-                                <Label htmlFor="irbApproval.approvalNumber">
-                                  IRB Approval Number
-                                </Label>
-                                <Input
-                                  id="irbApproval.approvalNumber"
-                                  name="irbApproval.approvalNumber"
-                                  placeholder="e.g., IRB-2024-001"
-                                  value={formData.irbApproval.approvalNumber}
-                                  onChange={handleChange}
-                                />
-                              </div>
-
-                              <div className="space-y-2">
-                                <Label htmlFor="irbApproval.institution">
-                                  Approving Institution
-                                </Label>
-                                <Input
-                                  id="irbApproval.institution"
-                                  name="irbApproval.institution"
-                                  placeholder="e.g., MIT IRB"
-                                  value={formData.irbApproval.institution}
-                                  onChange={handleChange}
-                                />
-                              </div>
+                    {/* Contact Information Tab */}
+                    <TabsContent value="contact" className="space-y-4 mt-4">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Contact Information</CardTitle>
+                          <CardDescription>
+                            Researcher and ethics committee contacts
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="space-y-3 p-4 border rounded-lg">
+                            <h4 className="font-semibold text-sm">Researcher Information</h4>
+                            
+                            <div className="space-y-2">
+                              <Label htmlFor="contactInfo.researcherName">
+                                Researcher Name <span className="text-red-500">*</span>
+                              </Label>
+                              <Input
+                                id="contactInfo.researcherName"
+                                name="contactInfo.researcherName"
+                                value={formData.contactInfo.researcherName}
+                                onChange={handleChange}
+                                required
+                              />
                             </div>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-                </Tabs>
-              </div>
 
+                            <div className="space-y-2">
+                              <Label htmlFor="contactInfo.researcherEmail">
+                                Researcher Email <span className="text-red-500">*</span>
+                              </Label>
+                              <Input
+                                id="contactInfo.researcherEmail"
+                                name="contactInfo.researcherEmail"
+                                type="email"
+                                value={formData.contactInfo.researcherEmail}
+                                onChange={handleChange}
+                                required
+                              />
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label htmlFor="contactInfo.researcherPhone">
+                                Researcher Phone (Optional)
+                              </Label>
+                              <Input
+                                id="contactInfo.researcherPhone"
+                                name="contactInfo.researcherPhone"
+                                type="tel"
+                                placeholder="+1 (555) 123-4567"
+                                value={formData.contactInfo.researcherPhone}
+                                onChange={handleChange}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-3 p-4 border rounded-lg">
+                            <h4 className="font-semibold text-sm">Institution Information</h4>
+                            
+                            <div className="space-y-2">
+                              <Label htmlFor="contactInfo.institution">
+                                Institution <span className="text-red-500">*</span>
+                              </Label>
+                              <Input
+                                id="contactInfo.institution"
+                                name="contactInfo.institution"
+                                placeholder="e.g., Massachusetts Institute of Technology"
+                                value={formData.contactInfo.institution}
+                                onChange={handleChange}
+                                required
+                              />
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label htmlFor="contactInfo.department">
+                                Department
+                              </Label>
+                              <Input
+                                id="contactInfo.department"
+                                name="contactInfo.department"
+                                placeholder="e.g., Psychology Department"
+                                value={formData.contactInfo.department}
+                                onChange={handleChange}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-3 p-4 border rounded-lg">
+                            <h4 className="font-semibold text-sm">Ethics Committee / IRB</h4>
+                            
+                            <div className="space-y-2">
+                              <Label htmlFor="contactInfo.ethicsCommitteeName">
+                                Committee Name
+                              </Label>
+                              <Input
+                                id="contactInfo.ethicsCommitteeName"
+                                name="contactInfo.ethicsCommitteeName"
+                                placeholder="e.g., Institutional Review Board"
+                                value={formData.contactInfo.ethicsCommitteeName}
+                                onChange={handleChange}
+                              />
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label htmlFor="contactInfo.ethicsCommitteeEmail">
+                                Committee Email
+                              </Label>
+                              <Input
+                                id="contactInfo.ethicsCommitteeEmail"
+                                name="contactInfo.ethicsCommitteeEmail"
+                                type="email"
+                                placeholder="irb@institution.edu"
+                                value={formData.contactInfo.ethicsCommitteeEmail}
+                                onChange={handleChange}
+                              />
+                            </div>
+
+                            <div className="space-y-2">
+                              <Label htmlFor="contactInfo.ethicsCommitteePhone">
+                                Committee Phone
+                              </Label>
+                              <Input
+                                id="contactInfo.ethicsCommitteePhone"
+                                name="contactInfo.ethicsCommitteePhone"
+                                type="tel"
+                                value={formData.contactInfo.ethicsCommitteePhone}
+                                onChange={handleChange}
+                              />
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </TabsContent>
+
+                    {/* Ethics Approval Tab */}
+                    <TabsContent value="ethics" className="space-y-4 mt-4">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>IRB / Ethics Approval</CardTitle>
+                          <CardDescription>
+                            Institutional review board approval details
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="flex items-center space-x-2 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+                            <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                            <span className="text-sm text-amber-800 dark:text-amber-200">
+                              Ensure you have proper IRB approval before publishing your study
+                            </span>
+                          </div>
+
+                          <div className="space-y-3 p-4 border rounded-lg">
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                id="irbApproval.approved"
+                                name="irbApproval.approved"
+                                checked={formData.irbApproval.approved}
+                                onChange={handleChange}
+                                className="rounded"
+                              />
+                              <Label htmlFor="irbApproval.approved" className="cursor-pointer font-semibold">
+                                This study has IRB/Ethics approval
+                              </Label>
+                            </div>
+
+                            {formData.irbApproval.approved && (
+                              <div className="space-y-4 mt-4">
+                                <div className="space-y-2">
+                                  <Label htmlFor="irbApproval.approvalNumber">
+                                    IRB Approval Number
+                                  </Label>
+                                  <Input
+                                    id="irbApproval.approvalNumber"
+                                    name="irbApproval.approvalNumber"
+                                    placeholder="e.g., IRB-2024-001"
+                                    value={formData.irbApproval.approvalNumber}
+                                    onChange={handleChange}
+                                  />
+                                </div>
+
+                                <div className="space-y-2">
+                                  <Label htmlFor="irbApproval.institution">
+                                    Approving Institution
+                                  </Label>
+                                  <Input
+                                    id="irbApproval.institution"
+                                    name="irbApproval.institution"
+                                    placeholder="e.g., MIT IRB"
+                                    value={formData.irbApproval.institution}
+                                    onChange={handleChange}
+                                  />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </TabsContent>
+                  </Tabs>
+                </div>
+              </div>
               {/* Live Preview */}
               {showPreview && (
                 <div className="lg:sticky lg:top-6 h-fit">
