@@ -4,7 +4,7 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
-import { SidebarProvider, SidebarTrigger } from '../../components/ui/sidebar';
+import { SidebarProvider, SidebarInset, SidebarTrigger } from '../../components/ui/sidebar';
 import AppSidebar from '../../components/user/AppSidebar';
 
 const Profile = () => {
@@ -89,6 +89,7 @@ const Profile = () => {
     }
 
     console.log('[Profile] Verifying ORCID:', formData.orcId);
+    console.log('[Profile] User name:', user?.name);
     setVerifying(true);
     setMessage({ type: '', text: '' });
 
@@ -98,7 +99,10 @@ const Profile = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ orcId: formData.orcId })
+        body: JSON.stringify({ 
+          orcId: formData.orcId,
+          userName: user?.name // Pass user's name for verification
+        })
       });
 
       console.log('[Profile] ORCID verify URL:', `${API_URL}/api/researchers/verify-orcid`);
@@ -108,13 +112,28 @@ const Profile = () => {
 
       if (response.ok && data.success) {
         console.log('[Profile] ORCID verified successfully:', data.data);
+        let successMessage = `ORCID verified! Name: ${data.data.givenName} ${data.data.familyName}`;
+        
+        if (data.nameMatch) {
+          successMessage += ` (${data.nameMatch.similarity}% match with your name)`;
+        }
+        
         setMessage({ 
           type: 'success', 
-          text: `ORCID verified! Name: ${data.data.givenName} ${data.data.familyName}` 
+          text: successMessage
         });
       } else {
         console.log('[Profile] ORCID verification failed:', data.error);
-        setMessage({ type: 'error', text: data.error || 'ORCID verification failed' });
+        
+        // Handle name mismatch error
+        let errorMessage = data.error || 'ORCID verification failed';
+        
+        if (data.details) {
+          console.log('[Profile] Name mismatch details:', data.details);
+          errorMessage += `\n\nYour name: ${data.details.userName}\nORCID name: ${data.details.orcIdName}\nSimilarity: ${data.details.similarity}%`;
+        }
+        
+        setMessage({ type: 'error', text: errorMessage });
       }
     } catch (error) {
       console.error('[Profile] Error verifying ORCID:', error);
@@ -169,7 +188,20 @@ const Profile = () => {
         });
       } else {
         console.log('[Profile] Failed to save profile:', data.message);
-        setMessage({ type: 'error', text: data.message || 'Failed to save profile' });
+        
+        // Handle name verification error
+        let errorMessage = data.message || 'Failed to save profile';
+        
+        if (data.error) {
+          errorMessage += '\n\n' + data.error;
+        }
+        
+        if (data.details) {
+          console.log('[Profile] Name mismatch details:', data.details);
+          errorMessage += `\n\nYour name: ${data.details.userName}\nORCID name: ${data.details.orcIdName}\nSimilarity: ${data.details.similarity}%\n\nPlease verify your ORCID before creating profile.`;
+        }
+        
+        setMessage({ type: 'error', text: errorMessage });
       }
     } catch (error) {
       console.error('[Profile] Error saving profile:', error);
@@ -181,27 +213,22 @@ const Profile = () => {
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen w-full overflow-hidden">
-        <AppSidebar />
-        <main className="flex-1 overflow-y-auto">
-          <div className="container mx-auto p-6 max-w-4xl">
-            <div className="flex items-center gap-4 mb-6">
-              <SidebarTrigger />
-              <div>
-                <h1 className="text-3xl font-bold">Researcher Profile</h1>
-                <p className="text-muted-foreground">
-                  {researcherProfile ? 'Update your research profile' : 'Create your researcher profile'}
-                </p>
-              </div>
-            </div>
-
+      <AppSidebar />
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarTrigger className="-ml-1" />
+          <h1 className="text-xl font-semibold text-foreground">Researcher Profile</h1>
+        </header>
+        
+        <main className="flex-1 overflow-y-auto p-6">
+          <div className="w-full space-y-6">
             {message.text && (
-              <div className={`mb-6 p-4 rounded-md ${
+              <div className={`p-4 rounded-md ${
                 message.type === 'success' 
                   ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
                   : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
               }`}>
-                {message.text}
+                <pre className="whitespace-pre-wrap font-sans text-sm">{message.text}</pre>
               </div>
             )}
 
@@ -209,11 +236,66 @@ const Profile = () => {
               <CardHeader>
                 <CardTitle>Profile Information</CardTitle>
                 <CardDescription>
-                  Fill in your research details below
+                  {researcherProfile ? 'Update your research details below' : 'Fill in your research details to create your profile'}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* Show existing profile info as non-editable if profile exists */}
+                  {researcherProfile && (
+                    <div className="p-4 bg-muted/50 rounded-lg border border-border space-y-4">
+                      <h3 className="font-semibold text-sm text-foreground mb-3">Current Profile Information</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Institution</Label>
+                          <p className="text-sm font-medium text-foreground">{researcherProfile.institution}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Designation</Label>
+                          <p className="text-sm font-medium text-foreground">{researcherProfile.designation}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Field of Study</Label>
+                          <p className="text-sm font-medium text-foreground">{researcherProfile.fieldOfStudy}</p>
+                        </div>
+                        {researcherProfile.orcId && (
+                          <div className="space-y-1">
+                            <Label className="text-xs text-muted-foreground">ORCID</Label>
+                            <p className="text-sm font-medium font-mono text-foreground">{researcherProfile.orcId}</p>
+                          </div>
+                        )}
+                      </div>
+                      {researcherProfile.bio && (
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Bio</Label>
+                          <p className="text-sm text-foreground">{researcherProfile.bio}</p>
+                        </div>
+                      )}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-border">
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Created</Label>
+                          <p className="text-sm text-foreground">
+                            {new Date(researcherProfile.createdAt).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })}
+                          </p>
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Last Updated</Label>
+                          <p className="text-sm text-foreground">
+                            {new Date(researcherProfile.updatedAt).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Institution */}
                     <div className="space-y-2">
@@ -308,52 +390,9 @@ const Profile = () => {
                 </form>
               </CardContent>
             </Card>
-
-            {/* Display existing profile info */}
-            {researcherProfile && (
-              <Card className="mt-6">
-                <CardHeader>
-                  <CardTitle>Current Profile</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <dl className="space-y-2">
-                    <div>
-                      <dt className="font-semibold">Institution:</dt>
-                      <dd className="text-muted-foreground">{researcherProfile.institution}</dd>
-                    </div>
-                    <div>
-                      <dt className="font-semibold">Designation:</dt>
-                      <dd className="text-muted-foreground">{researcherProfile.designation}</dd>
-                    </div>
-                    <div>
-                      <dt className="font-semibold">Field of Study:</dt>
-                      <dd className="text-muted-foreground">{researcherProfile.fieldOfStudy}</dd>
-                    </div>
-                    {researcherProfile.bio && (
-                      <div>
-                        <dt className="font-semibold">Bio:</dt>
-                        <dd className="text-muted-foreground">{researcherProfile.bio}</dd>
-                      </div>
-                    )}
-                    {researcherProfile.orcId && (
-                      <div>
-                        <dt className="font-semibold">ORCID:</dt>
-                        <dd className="text-muted-foreground">{researcherProfile.orcId}</dd>
-                      </div>
-                    )}
-                    <div>
-                      <dt className="font-semibold">Created:</dt>
-                      <dd className="text-muted-foreground">
-                        {new Date(researcherProfile.createdAt).toLocaleDateString()}
-                      </dd>
-                    </div>
-                  </dl>
-                </CardContent>
-              </Card>
-            )}
           </div>
         </main>
-      </div>
+      </SidebarInset>
     </SidebarProvider>
   );
 };

@@ -3,6 +3,127 @@ const User = require('../models/User');
 const axios = require('axios');
 
 /**
+ * Calculate similarity between two strings using Levenshtein distance
+ * @param {string} str1 - First string
+ * @param {string} str2 - Second string
+ * @returns {number} - Similarity percentage (0-100)
+ */
+const calculateSimilarity = (str1, str2) => {
+  if (!str1 || !str2) return 0;
+  
+  // Normalize strings: lowercase and remove extra spaces
+  const s1 = str1.toLowerCase().trim();
+  const s2 = str2.toLowerCase().trim();
+  
+  // Exact match
+  if (s1 === s2) return 100;
+  
+  // Calculate Levenshtein distance
+  const matrix = [];
+  
+  for (let i = 0; i <= s2.length; i++) {
+    matrix[i] = [i];
+  }
+  
+  for (let j = 0; j <= s1.length; j++) {
+    matrix[0][j] = j;
+  }
+  
+  for (let i = 1; i <= s2.length; i++) {
+    for (let j = 1; j <= s1.length; j++) {
+      if (s2.charAt(i - 1) === s1.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1, // substitution
+          matrix[i][j - 1] + 1,     // insertion
+          matrix[i - 1][j] + 1      // deletion
+        );
+      }
+    }
+  }
+  
+  const maxLength = Math.max(s1.length, s2.length);
+  const distance = matrix[s2.length][s1.length];
+  const similarity = ((maxLength - distance) / maxLength) * 100;
+  
+  return Math.round(similarity);
+};
+
+/**
+ * Check if two names are similar (at least 70% match)
+ * @param {string} userName - User's name from profile
+ * @param {string} orcIdGivenName - Given name from ORCID
+ * @param {string} orcIdFamilyName - Family name from ORCID
+ * @param {string} orcIdCreditName - Credit name from ORCID
+ * @returns {Object} - Match result
+ */
+const checkNameMatch = (userName, orcIdGivenName, orcIdFamilyName, orcIdCreditName) => {
+  console.log('[checkNameMatch] Comparing names:');
+  console.log('[checkNameMatch] User name:', userName);
+  console.log('[checkNameMatch] ORCID given name:', orcIdGivenName);
+  console.log('[checkNameMatch] ORCID family name:', orcIdFamilyName);
+  console.log('[checkNameMatch] ORCID credit name:', orcIdCreditName);
+  
+  if (!userName) {
+    return { isMatch: false, similarity: 0, message: 'User name not found' };
+  }
+  
+  // Construct full name from ORCID
+  const orcIdFullName = `${orcIdGivenName} ${orcIdFamilyName}`.trim();
+  
+  // Calculate similarity with different name combinations
+  const similarities = [];
+  
+  // Compare with full name (given + family)
+  if (orcIdFullName) {
+    const sim1 = calculateSimilarity(userName, orcIdFullName);
+    similarities.push({ name: orcIdFullName, similarity: sim1 });
+    console.log('[checkNameMatch] Similarity with full name:', sim1 + '%');
+  }
+  
+  // Compare with credit name
+  if (orcIdCreditName) {
+    const sim2 = calculateSimilarity(userName, orcIdCreditName);
+    similarities.push({ name: orcIdCreditName, similarity: sim2 });
+    console.log('[checkNameMatch] Similarity with credit name:', sim2 + '%');
+  }
+  
+  // Compare with reversed name (family + given)
+  const reversedName = `${orcIdFamilyName} ${orcIdGivenName}`.trim();
+  if (reversedName && reversedName !== orcIdFullName) {
+    const sim3 = calculateSimilarity(userName, reversedName);
+    similarities.push({ name: reversedName, similarity: sim3 });
+    console.log('[checkNameMatch] Similarity with reversed name:', sim3 + '%');
+  }
+  
+  // Find the best match
+  const bestMatch = similarities.reduce((prev, current) => 
+    (current.similarity > prev.similarity) ? current : prev
+  , { similarity: 0, name: '' });
+  
+  console.log('[checkNameMatch] Best match:', bestMatch);
+  
+  const SIMILARITY_THRESHOLD = 70; // 70% similarity required
+  
+  if (bestMatch.similarity >= SIMILARITY_THRESHOLD) {
+    return {
+      isMatch: true,
+      similarity: bestMatch.similarity,
+      matchedName: bestMatch.name,
+      message: `Name matched with ${bestMatch.similarity}% similarity`
+    };
+  } else {
+    return {
+      isMatch: false,
+      similarity: bestMatch.similarity,
+      matchedName: bestMatch.name,
+      message: `Name does not match. Your name "${userName}" does not match ORCID name "${bestMatch.name}" (${bestMatch.similarity}% similarity). Minimum 70% similarity required.`
+    };
+  }
+};
+
+/**
  * Verify ORCID using ORCID's Public API
  * @param {string} orcId - The ORCID to verify
  * @returns {Promise<Object>} - Verification result with researcher data
@@ -104,18 +225,50 @@ const createOrUpdateProfile = async (req, res) => {
       });
     }
 
+    console.log('[createOrUpdateProfile] User found:', userExists);
+
     // Verify ORCID if provided
     let orcIdVerification = null;
     if (orcId) {
+      console.log('[createOrUpdateProfile] Verifying ORCID:', orcId);
       orcIdVerification = await verifyOrcId(orcId);
       
       if (!orcIdVerification.isValid) {
+        console.log('[createOrUpdateProfile] ORCID verification failed');
         return res.status(400).json({
           success: false,
           message: 'ORCID verification failed',
           error: orcIdVerification.error
         });
       }
+
+      console.log('[createOrUpdateProfile] ORCID verified, checking name match');
+      
+      // Check if the user's name matches the ORCID name
+      const nameMatchResult = checkNameMatch(
+        userExists.name,
+        orcIdVerification.orcIdData.givenName,
+        orcIdVerification.orcIdData.familyName,
+        orcIdVerification.orcIdData.creditName
+      );
+
+      console.log('[createOrUpdateProfile] Name match result:', nameMatchResult);
+
+      if (!nameMatchResult.isMatch) {
+        console.log('[createOrUpdateProfile] Name does not match');
+        return res.status(400).json({
+          success: false,
+          message: 'Name verification failed',
+          error: nameMatchResult.message,
+          details: {
+            userName: userExists.name,
+            orcIdName: nameMatchResult.matchedName,
+            similarity: nameMatchResult.similarity
+          }
+        });
+      }
+
+      console.log('[createOrUpdateProfile] Name matched successfully with ' + nameMatchResult.similarity + '% similarity');
     }
 
     // Check if researcher profile already exists
@@ -260,7 +413,9 @@ const getAllResearchers = async (req, res) => {
  */
 const verifyOrcIdEndpoint = async (req, res) => {
   try {
-    const { orcId } = req.body;
+    const { orcId, userName } = req.body;
+
+    console.log('[verifyOrcIdEndpoint] Request body:', { orcId, userName });
 
     if (!orcId) {
       return res.status(400).json({
@@ -272,10 +427,41 @@ const verifyOrcIdEndpoint = async (req, res) => {
     const verification = await verifyOrcId(orcId);
 
     if (verification.isValid) {
+      // If userName is provided, check name match
+      let nameMatchResult = null;
+      if (userName) {
+        console.log('[verifyOrcIdEndpoint] Checking name match for:', userName);
+        nameMatchResult = checkNameMatch(
+          userName,
+          verification.orcIdData.givenName,
+          verification.orcIdData.familyName,
+          verification.orcIdData.creditName
+        );
+
+        console.log('[verifyOrcIdEndpoint] Name match result:', nameMatchResult);
+
+        if (!nameMatchResult.isMatch) {
+          return res.status(400).json({
+            success: false,
+            message: 'Name verification failed',
+            error: nameMatchResult.message,
+            details: {
+              userName: userName,
+              orcIdName: nameMatchResult.matchedName,
+              similarity: nameMatchResult.similarity
+            },
+            orcIdData: verification.orcIdData
+          });
+        }
+      }
+
       return res.status(200).json({
         success: true,
-        message: 'ORCID verified successfully',
-        data: verification.orcIdData
+        message: nameMatchResult 
+          ? `ORCID verified successfully! Name matched with ${nameMatchResult.similarity}% similarity.` 
+          : 'ORCID verified successfully',
+        data: verification.orcIdData,
+        nameMatch: nameMatchResult
       });
     } else {
       return res.status(400).json({
