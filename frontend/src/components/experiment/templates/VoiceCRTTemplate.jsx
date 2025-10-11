@@ -37,16 +37,16 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
     {
       id: "q1_bat_ball",
       text: "A bat and a ball cost one hundred and ten rupees in total. The bat costs one hundred rupees more than the ball. How much does the ball cost?",
-      correctKeywords: ["10", "ten", "10 rupees", "ten rupees"],
-      correctAnswer: "10 rupees",
-      explanation: "The intuitive answer is 10, but the correct answer is 5 rupees (ball = 5, bat = 105, total = 110)"
+      correctKeywords: ["five", "5", "5 rupees", "five rupees"],
+      correctAnswer: "5 rupees",
+      explanation: "If the ball costs X, then the bat costs X + 100. Together: X + (X + 100) = 110. So 2X + 100 = 110, meaning X = 5 rupees."
     },
     {
       id: "q2_machines",
       text: "If it takes five machines five minutes to make five widgets, how long would it take one hundred machines to make one hundred widgets?",
       correctKeywords: ["five", "5", "5 minutes", "five minutes"],
       correctAnswer: "5 minutes",
-      explanation: "Each machine makes 1 widget in 5 minutes, so 100 machines make 100 widgets in 5 minutes"
+      explanation: "Each machine makes 1 widget in 5 minutes. So 100 machines make 100 widgets in the same 5 minutes (working in parallel)."
     },
     {
       id: "q3_lotus",
@@ -57,14 +57,27 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
     }
   ];
 
-  // Settings
+  // Settings - INCREASED TIMEOUTS
   const settings = {
     language: 'en-IN',
-    maxTrialDurationMs: 8000,
+    maxTrialDurationMs: 15000,
     interTrialIntervalMs: 2000,
-    speechTimeoutMs: 6000,
-    allowTypedFallback: true
+    speechTimeoutMs: 12000,
+    allowTypedFallback: true,
+    continuous: false,
+    interimResults: false
   };
+
+  // Validate props on mount
+  useEffect(() => {
+    if (!participantId || !experimentId) {
+      console.error("❌ Missing required props: participantId or experimentId");
+      console.log("participantId:", participantId);
+      console.log("experimentId:", experimentId);
+    } else {
+      console.log("✅ Props received:", { participantId, experimentId });
+    }
+  }, [participantId, experimentId]);
 
   // 1. Initialize Voice Manager
   useEffect(() => {
@@ -72,16 +85,7 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
       setIsVoiceSupported(true);
-      try {
-        voiceManagerRef.current = new VoiceManager({
-          lang: settings.language,
-          interimResults: false
-        });
-        console.log("✅ Voice Manager initialized");
-      } catch (error) {
-        console.error("❌ Voice Manager error:", error);
-        setIsVoiceSupported(false);
-      }
+      console.log("✅ Web Speech API supported");
     } else {
       console.warn("⚠️ Web Speech API not supported");
       setIsVoiceSupported(false);
@@ -107,6 +111,19 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
         stream.getTracks().forEach(track => track.stop()); // Stop immediately, just checking permission
         setIsMicPermissionGranted(true);
         console.log("✅ Microphone permission granted");
+        
+        // Initialize VoiceManager after permission granted
+        try {
+          voiceManagerRef.current = new VoiceManager({
+            lang: settings.language,
+            interimResults: settings.interimResults,
+            continuous: settings.continuous
+          });
+          console.log("✅ Voice Manager initialized with settings:", settings);
+        } catch (error) {
+          console.error("❌ Voice Manager initialization error:", error);
+          setFallbackMode(true);
+        }
       } catch (error) {
         console.error("❌ Microphone permission denied:", error);
         setFallbackMode(true);
@@ -124,6 +141,14 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
 
   // 3. Start experiment
   const handleStartExperiment = () => {
+    // Validate props before starting
+    if (!participantId || !experimentId) {
+      console.error("❌ Cannot start experiment: Missing participantId or experimentId");
+      alert("Error: Missing experiment configuration. Please try again.");
+      return;
+    }
+
+    console.log("✅ Starting experiment with:", { participantId, experimentId });
     setPhase('ready');
     setTimeout(() => {
       startTrial();
@@ -154,56 +179,123 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
     }, 2000);
   };
 
-  // 5. Start listening
+  // 5. Start listening - FIXED VERSION
   const startListening = () => {
-    if (!voiceManagerRef.current) return;
+    if (!voiceManagerRef.current) {
+      console.error("❌ Voice Manager not initialized");
+      setFallbackMode(true);
+      setPhase('listening');
+      return;
+    }
 
+    console.log("🎤 Starting to listen...");
     setPhase('listening');
     setIsListening(true);
     speechStartTimeRef.current = performance.now();
 
+    // Clear any existing timeout
+    if (speechTimeoutRef.current) {
+      clearTimeout(speechTimeoutRef.current);
+      speechTimeoutRef.current = null;
+    }
+
     // Start speech recognition
     voiceManagerRef.current.start(
       // onResult callback
-      async ({ transcript: voiceTranscript, confidence: voiceConfidence }) => {
-        console.log("🎤 Speech detected:", voiceTranscript, "Confidence:", voiceConfidence);
+      async ({ transcript: voiceTranscript, confidence: voiceConfidence, isFinal }) => {
+        console.log("🎤 Speech detected:", voiceTranscript, "Confidence:", voiceConfidence, "isFinal:", isFinal);
         
-        const speechEndTime = performance.now();
-        const reactionTime = Math.round(speechEndTime - trialStartTimeRef.current);
-        
-        setTranscript(voiceTranscript);
-        setConfidence(voiceConfidence);
-        setIsListening(false);
+        // Only process if we have a transcript
+        if (voiceTranscript && voiceTranscript.trim()) {
+          const speechEndTime = performance.now();
+          const reactionTime = Math.round(speechEndTime - trialStartTimeRef.current);
+          
+          setTranscript(voiceTranscript);
+          setConfidence(voiceConfidence);
+          
+          // Stop listening
+          setIsListening(false);
+          voiceManagerRef.current.stop();
 
+          // Clear timeout
+          if (speechTimeoutRef.current) {
+            clearTimeout(speechTimeoutRef.current);
+            speechTimeoutRef.current = null;
+          }
+
+          // Process result
+          await processTrialResult(voiceTranscript, voiceConfidence, reactionTime, speechEndTime);
+        }
+      },
+      // onEnd callback - DON'T immediately restart
+      () => {
+        console.log("🎤 Speech recognition ended");
+        
+        // Only handle if we're still in listening phase and haven't got a result
+        if (isListening && !transcript) {
+          console.log("⚠️ Recognition ended without transcript");
+          // Don't automatically restart - let user see what happened
+          setIsListening(false);
+        }
+      },
+      // onError callback
+      (error) => {
+        console.error("❌ Speech recognition error:", error);
+        setIsListening(false);
+        
         // Clear timeout
         if (speechTimeoutRef.current) {
           clearTimeout(speechTimeoutRef.current);
           speechTimeoutRef.current = null;
         }
-
-        // Process result
-        await processTrialResult(voiceTranscript, voiceConfidence, reactionTime, speechEndTime);
-      },
-      // onEnd callback
-      () => {
-        console.log("🎤 Speech recognition ended");
-        setIsListening(false);
+        
+        // Switch to fallback mode
+        if (error.error === 'not-allowed' || error.error === 'service-not-allowed') {
+          alert("Microphone access was denied. Switching to typed input mode.");
+          setFallbackMode(true);
+          setPhase('listening');
+        }
       }
     );
 
-    // Set timeout
+    // Set timeout - only if no response received
     speechTimeoutRef.current = setTimeout(() => {
-      if (isListening) {
-        console.log("⏱️ Speech timeout");
-        voiceManagerRef.current.stop();
+      if (isListening && !transcript) {
+        console.log("⏱️ Speech timeout - no response received");
+        if (voiceManagerRef.current) {
+          voiceManagerRef.current.stop();
+        }
         setIsListening(false);
-        processTrialResult("", 0, settings.speechTimeoutMs, performance.now());
+        
+        // Offer to switch to typing
+        if (confirm("No speech detected. Would you like to type your answer instead?")) {
+          setFallbackMode(true);
+          setPhase('listening');
+        } else {
+          // Record empty response
+          processTrialResult("", 0, settings.speechTimeoutMs, performance.now());
+        }
       }
     }, settings.speechTimeoutMs);
   };
 
-  // 6. Process trial result
+  // 6. Retry listening button
+  const handleRetryListening = () => {
+    setTranscript('');
+    setConfidence(0);
+    startListening();
+  };
+
+  // 7. Process trial result
   const processTrialResult = async (voiceTranscript, voiceConfidence, reactionTime, speechEndTime) => {
+    // Validate props before processing
+    if (!participantId || !experimentId) {
+      console.error("❌ Cannot process result: Missing participantId or experimentId");
+      console.log("Current props:", { participantId, experimentId });
+      alert("Error: Missing experiment configuration. Results cannot be saved.");
+      return;
+    }
+
     const question = questions[currentTrial];
     
     // Check if answer is correct
@@ -228,15 +320,19 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
       createdAt: new Date().toISOString()
     };
 
+    console.log("📊 Trial result:", result);
+
     setCurrentResult(result);
     setResults(prev => [...prev, result]);
 
     // Save to backend
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/voice-responses`, result);
-      console.log("✅ Voice response saved to backend");
+      console.log("💾 Saving to backend:", result);
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/voice-responses`, result);
+      console.log("✅ Voice response saved to backend:", response.data);
     } catch (error) {
       console.error("❌ Error saving voice response:", error);
+      console.error("Error details:", error.response?.data);
     }
 
     // Show feedback
@@ -248,26 +344,30 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
     }, settings.interTrialIntervalMs);
   };
 
-  // 7. Handle typed fallback
-  const handleTypedSubmit = () => {
-    if (!typedAnswer.trim()) return;
-
+  // 8. Handle typed submission (fallback mode)
+  const handleSubmitTyped = () => {
     const reactionTime = Math.round(performance.now() - trialStartTimeRef.current);
     processTrialResult(typedAnswer, 1.0, reactionTime, performance.now());
   };
 
-  // 8. Finish experiment
+  // 9. Finish experiment
   const finishExperiment = () => {
     setPhase('complete');
-
+    
+    // Calculate summary
+    const correctAnswers = results.filter(r => r.isCorrect === 1).length;
+    const totalReactionTime = results.reduce((sum, r) => sum + r.reactionTimeMs, 0);
+    
     const summary = {
       totalTrials: results.length,
-      correctAnswers: results.filter(r => r.isCorrect === 1).length,
-      accuracy: ((results.filter(r => r.isCorrect === 1).length / results.length) * 100).toFixed(1) + '%',
-      averageReactionTime: Math.round(results.reduce((sum, r) => sum + r.reactionTimeMs, 0) / results.length) + 'ms',
-      mode: fallbackMode ? 'Typed Input' : 'Voice Recognition'
+      correctAnswers,
+      accuracy: results.length > 0 ? Math.round((correctAnswers / results.length) * 100) : 0,
+      averageReactionTime: results.length > 0 ? Math.round(totalReactionTime / results.length) : 0
     };
 
+    console.log("🎉 Experiment complete:", summary);
+
+    // Call onComplete callback if provided
     if (onComplete) {
       onComplete({
         results,
@@ -293,6 +393,28 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
   }, [currentTrial, phase]);
 
   // === RENDER ===
+
+  // Show loading if props not ready
+  if (!participantId || !experimentId) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
+        <Card className="max-w-md w-full">
+          <CardHeader>
+            <CardTitle>Loading...</CardTitle>
+            <CardDescription>Initializing experiment</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            </div>
+            <p className="text-center text-sm text-muted-foreground">
+              Setting up experiment session...
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   // Consent Modal
   if (showConsentModal) {
@@ -378,6 +500,7 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
                   <>
                     <li>When you see "🎤 LISTENING", speak your answer clearly</li>
                     <li>Your speech will be automatically converted to text</li>
+                    <li>If recognition fails, you can retry or type your answer</li>
                   </>
                 ) : (
                   <>
@@ -510,6 +633,39 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
                     </p>
                   </div>
                 )}
+                
+                {/* Retry and Fallback buttons */}
+                {isListening && (
+                  <div className="flex gap-3 justify-center mt-6">
+                    <Button 
+                      onClick={() => {
+                        if (voiceManagerRef.current) {
+                          voiceManagerRef.current.stop();
+                        }
+                        setIsListening(false);
+                        setTimeout(() => handleRetryListening(), 500);
+                      }}
+                      variant="outline"
+                      size="sm"
+                    >
+                      Retry
+                    </Button>
+                    <Button 
+                      onClick={() => {
+                        if (voiceManagerRef.current) {
+                          voiceManagerRef.current.stop();
+                        }
+                        setIsListening(false);
+                        setFallbackMode(true);
+                        setPhase('listening');
+                      }}
+                      variant="outline"
+                      size="sm"
+                    >
+                      Type Instead
+                    </Button>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="space-y-4">
@@ -521,12 +677,21 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
                   type="text"
                   value={typedAnswer}
                   onChange={(e) => setTypedAnswer(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleTypedSubmit()}
                   placeholder="Enter your answer here..."
-                  className="text-lg h-14"
+                  className="text-lg p-6"
                   autoFocus
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && typedAnswer.trim()) {
+                      handleSubmitTyped();
+                    }
+                  }}
                 />
-                <Button onClick={handleTypedSubmit} className="w-full" size="lg">
+                <Button 
+                  onClick={handleSubmitTyped} 
+                  disabled={!typedAnswer.trim()}
+                  className="w-full"
+                  size="lg"
+                >
                   Submit Answer
                 </Button>
               </div>
@@ -537,15 +702,25 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
     );
   }
 
-  // Feedback phase
-  if (phase === 'feedback' && currentResult) {
+  // FIXED: Check if currentResult exists before rendering feedback
+  if (phase === 'feedback') {
+    if (!currentResult) {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      );
+    }
+
     const question = questions[currentTrial];
+    const isCorrect = currentResult.isCorrect === 1;
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
         <Card className="max-w-3xl w-full">
           <CardHeader>
             <CardTitle className="text-xl flex items-center gap-2">
-              {currentResult.isCorrect ? (
+              {isCorrect ? (
                 <>
                   <CheckCircle2 className="w-6 h-6 text-green-600" />
                   <span className="text-green-600">Correct!</span>
@@ -588,20 +763,8 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
                   <Clock className="w-4 h-4" />
                   <span>Response Time: {currentResult.reactionTimeMs}ms</span>
                 </div>
-                {!fallbackMode && (
-                  <div>
-                    Confidence: {(currentResult.transcriptConfidence * 100).toFixed(0)}%
-                  </div>
-                )}
+                <span>Score: {results.filter(r => r.isCorrect === 1).length} / {currentTrial + 1}</span>
               </div>
-            </div>
-
-            <div className="text-center text-muted-foreground text-sm">
-              {currentTrial < questions.length - 1 ? (
-                <p className="animate-pulse">Next question in {Math.round(settings.interTrialIntervalMs / 1000)} seconds...</p>
-              ) : (
-                <p className="animate-pulse">Finishing experiment...</p>
-              )}
             </div>
           </CardContent>
         </Card>
@@ -609,13 +772,15 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
     );
   }
 
-  // Complete phase
   if (phase === 'complete') {
+    const correctAnswers = results.filter(r => r.isCorrect === 1).length;
+    const totalReactionTime = results.reduce((sum, r) => sum + r.reactionTimeMs, 0);
+    
     const summary = {
       totalTrials: results.length,
-      correctAnswers: results.filter(r => r.isCorrect === 1).length,
-      accuracy: ((results.filter(r => r.isCorrect === 1).length / results.length) * 100).toFixed(1),
-      averageReactionTime: Math.round(results.reduce((sum, r) => sum + r.reactionTimeMs, 0) / results.length)
+      correctAnswers,
+      accuracy: results.length > 0 ? Math.round((correctAnswers / results.length) * 100) : 0,
+      averageReactionTime: results.length > 0 ? Math.round(totalReactionTime / results.length) : 0
     };
 
     return (
