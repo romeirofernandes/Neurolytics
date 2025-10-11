@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useParticipant } from '../../context/ParticipantContext';
 import { Button } from '../../components/ui/button';
@@ -16,18 +16,77 @@ const ParticipantRegister = () => {
     education: '',
     city: ''
   });
+  const [citiesData, setCitiesData] = useState({});
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const [participantId, setParticipantId] = useState('');
   const [participantData, setParticipantData] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [cityInput, setCityInput] = useState('');
+  const [showCityDropdown, setShowCityDropdown] = useState(false);
+  const [filteredCities, setFilteredCities] = useState([]);
   
   const navigate = useNavigate();
   const { login } = useParticipant();
 
+  // Load cities data from JSON
+  useEffect(() => {
+    fetch('/cities.json')
+      .then(response => response.json())
+      .then(data => {
+        setCitiesData(data);
+        // Create a flat list of all cities with their states
+        const allCities = [];
+        Object.keys(data).forEach(state => {
+          data[state].forEach(city => {
+            allCities.push({ city, state, display: `${city}, ${state}` });
+          });
+        });
+        setFilteredCities(allCities);
+      })
+      .catch(error => console.error('Error loading cities:', error));
+  }, []);
+
+  // Filter cities based on input
+  const handleCityInputChange = (e) => {
+    const value = e.target.value;
+    setCityInput(value);
+    setShowCityDropdown(true);
+    
+    if (value === '') {
+      // Show all cities when input is empty
+      const allCities = [];
+      Object.keys(citiesData).forEach(state => {
+        citiesData[state].forEach(city => {
+          allCities.push({ city, state, display: `${city}, ${state}` });
+        });
+      });
+      setFilteredCities(allCities);
+      setFormData(prev => ({ ...prev, city: '' }));
+    } else {
+      // Filter cities based on input
+      const filtered = [];
+      Object.keys(citiesData).forEach(state => {
+        citiesData[state].forEach(city => {
+          if (city.toLowerCase().includes(value.toLowerCase())) {
+            filtered.push({ city, state, display: `${city}, ${state}` });
+          }
+        });
+      });
+      setFilteredCities(filtered);
+    }
+  };
+
+  const selectCity = (cityData) => {
+    setCityInput(cityData.display);
+    setFormData(prev => ({ ...prev, city: cityData.display }));
+    setShowCityDropdown(false);
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
+    
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -56,7 +115,7 @@ const ParticipantRegister = () => {
     setSuccess('');
     setLoading(true);
     // Validate required fields
-    if (!formData.password || !formData.age || !formData.gender || !formData.education) {
+    if (!formData.password || !formData.age || !formData.gender || !formData.education || !formData.city) {
       setError('Please fill in all required fields');
       setLoading(false);
       return;
@@ -81,7 +140,7 @@ const ParticipantRegister = () => {
       age: parseInt(formData.age),
       gender: formData.gender,
       education: formData.education,
-      city: formData.city || undefined
+      city: formData.city
     };
 
     try {
@@ -125,6 +184,7 @@ const ParticipantRegister = () => {
         education: '',
         city: ''
       });
+      setCityInput('');
     } catch (err) {
       console.error('❌ ERROR during registration:', err);
       console.error('Error message:', err.message);
@@ -221,16 +281,40 @@ const ParticipantRegister = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="city">City (Optional)</Label>
-              <Input
-                id="city"
-                name="city"
-                type="text"
-                placeholder="Enter your city"
-                value={formData.city}
-                onChange={handleChange}
-                disabled={loading}
-              />
+              <Label htmlFor="city">City *</Label>
+              <div className="relative">
+                <Input
+                  id="city"
+                  name="city"
+                  type="text"
+                  placeholder="Type city name (e.g., Mumbai)"
+                  value={cityInput}
+                  onChange={handleCityInputChange}
+                  onFocus={() => setShowCityDropdown(true)}
+                  onBlur={() => setTimeout(() => setShowCityDropdown(false), 200)}
+                  disabled={loading}
+                  required
+                  autoComplete="off"
+                />
+                {showCityDropdown && filteredCities.length > 0 && (
+                  <div className="absolute z-10 w-full mt-1 bg-background border border-input rounded-md shadow-lg max-h-60 overflow-auto">
+                    {filteredCities.slice(0, 50).map((cityData, index) => (
+                      <div
+                        key={`${cityData.city}-${cityData.state}-${index}`}
+                        className="px-3 py-2 cursor-pointer hover:bg-accent hover:text-accent-foreground"
+                        onClick={() => selectCity(cityData)}
+                      >
+                        {cityData.display}
+                      </div>
+                    ))}
+                    {filteredCities.length > 50 && (
+                      <div className="px-3 py-2 text-sm text-muted-foreground italic">
+                        ... and {filteredCities.length - 50} more. Keep typing to narrow results.
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
             {error && (
               <div className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md">
