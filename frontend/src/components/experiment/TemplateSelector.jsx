@@ -6,9 +6,20 @@ import { StroopTemplate } from './templates/StroopTemplate';
 import { PosnerTemplate } from './templates/PosnerTemplate';
 import { ABBATemplate } from './templates/ABBATemplate';
 import { TowerHanoiTemplate } from './templates/TowerHanoiTemplate';
+import { FlankerTemplate } from './templates/FlankerTemplate';
+import { GoNoGoTemplate } from './templates/GoNoGoTemplate';
+import { NBackTemplate } from './templates/NBackTemplate';
+import { SimonTemplate } from './templates/SimonTemplate';
+import { DigitSpanTemplate } from './templates/DigitSpanTemplate';
+import { VisualSearchTemplate } from './templates/VisualSearchTemplate';
 import EmotionTracker from './templates/EmotionTracker';
-import { Loader2, ArrowLeft, Brain, Target, Zap, Layers, Puzzle, Camera, AlertCircle } from 'lucide-react';
+import { Loader2, ArrowLeft, Brain, Target, Zap, Layers, Puzzle, Download, Filter, Hand, RefreshCw, Move, Hash, Search, Camera, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const templates = [
 	{
@@ -31,8 +42,8 @@ const templates = [
 		fullName: 'Balloon Analogue Risk Task',
 		description: 'Measures risk-taking behavior and decision-making under uncertainty',
 		details: 'Participants pump up virtual balloons to earn money. Each pump increases earnings but also explosion risk. Used to assess risk propensity in clinical and behavioral research.',
-		duration: '~15 minutes',
-		trials: '90 trials (3 training)',
+		duration: '~2 minutes',
+		trials: '33 trials (3 training)',
 		measures: ['Risk-taking propensity', 'Reward sensitivity', 'Decision-making strategy'],
 		component: BARTTemplate,
 		icon: Brain,
@@ -44,34 +55,112 @@ const templates = [
 		fullName: 'Stroop Color-Word Task',
 		description: 'Measures selective attention, processing speed, and cognitive control',
 		details: 'Classic cognitive interference task where participants identify the color of words while ignoring their meaning. Demonstrates automatic processing and executive function.',
-		duration: '~8 minutes',
-		trials: '40 trials (10 training)',
+		duration: '~1-2 minutes',
+		trials: '20 trials (5 training)',
 		measures: ['Selective attention', 'Response inhibition', 'Processing speed', 'Stroop effect magnitude'],
 		component: StroopTemplate,
 		icon: Target,
 		color: 'from-purple-500 to-pink-500'
 	},
+  {
+    id: 'flanker',
+    name: 'Flanker Task',
+    fullName: 'Eriksen Flanker Task',
+    description: 'Measures selective attention and response inhibition',
+    details: 'Participants respond to a central target letter while ignoring flanking distractors. Compatible and incompatible trials reveal cognitive control mechanisms.',
+    duration: '~1-2 minutes',
+    trials: '20 trials (5 training)',
+    measures: ['Selective attention', 'Cognitive control', 'Interference suppression', 'Flanker effect'],
+    component: FlankerTemplate,
+    icon: Filter,
+    color: 'from-orange-500 to-red-500'
+  },
 	{
 		id: 'posner',
 		name: 'Posner Cueing',
 		fullName: 'Posner Spatial Cueing Task',
 		description: 'Assesses spatial attention orienting and visual processing',
 		details: 'Participants respond to targets appearing in cued or uncued locations. Measures the cost and benefit of spatial attention shifting, fundamental to understanding attentional mechanisms.',
-		duration: '~12 minutes',
-		trials: '100 trials',
+		duration: '~2 minutes',
+		trials: '40 trials',
 		measures: ['Spatial attention', 'Cueing effects', 'Attentional orienting', 'Response time benefits'],
 		component: PosnerTemplate,
 		icon: Zap,
 		color: 'from-yellow-500 to-orange-500'
 	},
+  {
+    id: 'simon',
+    name: 'Simon Task',
+    fullName: 'Simon Stimulus-Response Compatibility',
+    description: 'Measures stimulus-response compatibility and spatial attention',
+    details: 'Respond to word meaning while ignoring spatial position. Compatible vs incompatible spatial mapping reveals automatic processing of irrelevant location information.',
+    duration: '~1-2 minutes',
+    trials: '24 trials (5 training)',
+    measures: ['S-R compatibility', 'Spatial interference', 'Automatic processing', 'Simon effect'],
+    component: SimonTemplate,
+    icon: Move,
+    color: 'from-teal-500 to-cyan-500'
+  },
+  {
+    id: 'gonogo',
+    name: 'Go/No-Go',
+    fullName: 'Go/No-Go Inhibition Task',
+    description: 'Measures response inhibition and impulse control',
+    details: 'Respond quickly to frequent Go signals but withhold responses to rare No-Go signals. Assesses inhibitory control critical for self-regulation.',
+    duration: '~1-2 minutes',
+    trials: '30 trials',
+    measures: ['Response inhibition', 'Impulse control', 'Commission errors', 'Reaction time'],
+    component: GoNoGoTemplate,
+    icon: Hand,
+    color: 'from-rose-500 to-pink-500'
+  },
+  {
+    id: 'nback',
+    name: 'N-Back (2-Back)',
+    fullName: '2-Back Working Memory Task',
+    description: 'Measures working memory capacity and updating',
+    details: 'Monitor a sequence of letters and respond when the current letter matches one shown 2 positions back. Classic working memory paradigm used in cognitive training.',
+    duration: '~1-2 minutes',
+    trials: '30 trials (2 blocks)',
+    measures: ['Working memory', 'Updating ability', 'Sustained attention', 'Executive function'],
+    component: NBackTemplate,
+    icon: RefreshCw,
+    color: 'from-violet-500 to-purple-500'
+  },
+  {
+    id: 'digitspan',
+    name: 'Digit Span',
+    fullName: 'Digit Span Memory Test',
+    description: 'Measures short-term memory capacity',
+    details: 'Remember and recall increasingly long sequences of digits. Classic measure of memory span, typically 7±2 digits for adults.',
+    duration: '~1-2 minutes',
+    trials: 'Adaptive (until 2 errors)',
+    measures: ['Short-term memory', 'Memory span', 'Recall accuracy', 'Sequential processing'],
+    component: DigitSpanTemplate,
+    icon: Hash,
+    color: 'from-emerald-500 to-green-500'
+  },
+  {
+    id: 'visualsearch',
+    name: 'Visual Search',
+    fullName: 'Conjunction Visual Search',
+    description: 'Measures visual attention and search efficiency',
+    details: 'Find an orange upright T among rotated Ts and colored Ts. Search time increases with set size, revealing serial vs parallel processing.',
+    duration: '~1-2 minutes',
+    trials: '20 trials (3 training)',
+    measures: ['Visual attention', 'Search slopes', 'Feature integration', 'Processing efficiency'],
+    component: VisualSearchTemplate,
+    icon: Search,
+    color: 'from-indigo-500 to-blue-500'
+  },
 	{
 		id: 'abba',
 		name: 'ABBA Task',
 		fullName: 'Action-Based Backward Activation',
 		description: 'Examines action planning and response compatibility effects',
 		details: 'Tests the reversed-compatibility effect where participants plan one response and execute another. Critical for understanding motor planning and cognitive control interactions.',
-		duration: '~10 minutes',
-		trials: '100 trials',
+		duration: '~2 minutes',
+		trials: '40 trials',
 		measures: ['Action planning', 'Response compatibility', 'Motor control', 'Cognitive flexibility'],
 		component: ABBATemplate,
 		icon: Layers,
