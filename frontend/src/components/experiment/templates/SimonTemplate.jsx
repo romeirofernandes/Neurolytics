@@ -182,3 +182,5 @@ export const SimonTemplate = ({ onComplete }) => {
     </Card>
   );
 };
+
+export default SimonTemplate; // Default export for consistency

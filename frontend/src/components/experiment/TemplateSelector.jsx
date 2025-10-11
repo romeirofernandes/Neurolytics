@@ -10,795 +10,606 @@ import {
   Clock, 
   Target, 
   ChevronRight,
-  Mic
+  Mic,
+  Camera,
+  Filter,
+  Move,
+  Hand,
+  RefreshCw,
+  Hash,
+  Search,
+  Layers,
+  Puzzle,
+  MessageSquare,
+  Image as ImageIcon,
+  List,
+  MousePointer,
+  CheckCircle2
 } from 'lucide-react';
 
-// Import template components
+// Import ALL working template components
 import StroopTaskTemplate from './templates/StroopTaskTemplate';
 import EmotionTracker from './templates/EmotionTracker';
 import VoiceCRTTemplate from './templates/VoiceCRTTemplate';
+import { ABBATemplate } from './templates/ABBATemplate';
+import { BARTTemplate } from './templates/BARTTemplate';
+import { DigitSpanTemplate } from './templates/DigitSpanTemplate';
+import { FlankerTemplate } from './templates/FlankerTemplate';
+import { GoNoGoTemplate } from './templates/GoNoGoTemplate';
+import { NBackTemplate } from './templates/NBackTemplate';
+import { PosnerTemplate } from './templates/PosnerTemplate';
+import { SimonTemplate } from './templates/SimonTemplate';
+import { TowerHanoiTemplate } from './templates/TowerHanoiTemplate';
+import { VisualSearchTemplate } from './templates/VisualSearchTemplate';
+
+// Placeholder component for templates not yet created
+const ComingSoonTemplate = ({ templateName }) => (
+  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+    <Card className="max-w-md w-full">
+      <CardHeader>
+        <CardTitle>Coming Soon</CardTitle>
+        <CardDescription>{templateName} is under development</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <p className="text-muted-foreground">This template will be available soon. Check back later!</p>
+      </CardContent>
+    </Card>
+  </div>
+);
 
 const TemplateSelector = ({ onSelectTemplate }) => {
   const [selectedCategory, setSelectedCategory] = useState('all');
 
-const templates = [
-	{
-		id: 'stroop-emotion',
-		name: 'Stroop + Emotions',
-		fullName: 'Stroop Task with Emotion Tracking',
-		description: 'Measures selective attention and cognitive control while tracking facial emotions',
-		details: 'Combines the classic Stroop color-word interference task with real-time facial emotion recognition. Tracks how emotions change during cognitive conflict and processing.',
-		duration: '~8 minutes',
-		trials: '50 trials (10 training, 40 test)',
-		measures: ['Selective attention', 'Cognitive control', 'Emotional responses', 'Stroop effect', 'Affect during conflict'],
-		component: EmotionTracker,
-		icon: Camera,
-		color: 'from-indigo-500 to-purple-500',
-		requiresCamera: true,
-	},
-	{
-		id: 'bart',
-		name: 'BART',
-		fullName: 'Balloon Analogue Risk Task',
-		description: 'Measures risk-taking behavior and decision-making under uncertainty',
-		details: 'Participants pump up virtual balloons to earn money. Each pump increases earnings but also explosion risk. Used to assess risk propensity in clinical and behavioral research.',
-		duration: '~2 minutes',
-		trials: '33 trials (3 training)',
-		measures: ['Risk-taking propensity', 'Reward sensitivity', 'Decision-making strategy'],
-		component: BARTTemplate,
-		icon: Brain,
-		color: 'from-blue-500 to-cyan-500'
-	},
-	{
-		id: 'stroop',
-		name: 'Stroop Task',
-		fullName: 'Stroop Color-Word Task',
-		description: 'Measures selective attention, processing speed, and cognitive control',
-		details: 'Classic cognitive interference task where participants identify the color of words while ignoring their meaning. Demonstrates automatic processing and executive function.',
-		duration: '~1-2 minutes',
-		trials: '20 trials (5 training)',
-		measures: ['Selective attention', 'Response inhibition', 'Processing speed', 'Stroop effect magnitude'],
-		component: StroopTemplate,
-		icon: Target,
-		color: 'from-purple-500 to-pink-500'
-	},
-  {
-    id: 'flanker',
-    name: 'Flanker Task',
-    fullName: 'Eriksen Flanker Task',
-    description: 'Measures selective attention and response inhibition',
-    details: 'Participants respond to a central target letter while ignoring flanking distractors. Compatible and incompatible trials reveal cognitive control mechanisms.',
-    duration: '~1-2 minutes',
-    trials: '20 trials (5 training)',
-    measures: ['Selective attention', 'Cognitive control', 'Interference suppression', 'Flanker effect'],
-    component: FlankerTemplate,
-    icon: Filter,
-    color: 'from-orange-500 to-red-500'
-  },
-	{
-		id: 'posner',
-		name: 'Posner Cueing',
-		fullName: 'Posner Spatial Cueing Task',
-		description: 'Assesses spatial attention orienting and visual processing',
-		details: 'Participants respond to targets appearing in cued or uncued locations. Measures the cost and benefit of spatial attention shifting, fundamental to understanding attentional mechanisms.',
-		duration: '~2 minutes',
-		trials: '40 trials',
-		measures: ['Spatial attention', 'Cueing effects', 'Attentional orienting', 'Response time benefits'],
-		component: PosnerTemplate,
-		icon: Zap,
-		color: 'from-yellow-500 to-orange-500'
-	},
-  {
-    id: 'simon',
-    name: 'Simon Task',
-    fullName: 'Simon Stimulus-Response Compatibility',
-    description: 'Measures stimulus-response compatibility and spatial attention',
-    details: 'Respond to word meaning while ignoring spatial position. Compatible vs incompatible spatial mapping reveals automatic processing of irrelevant location information.',
-    duration: '~1-2 minutes',
-    trials: '24 trials (5 training)',
-    measures: ['S-R compatibility', 'Spatial interference', 'Automatic processing', 'Simon effect'],
-    component: SimonTemplate,
-    icon: Move,
-    color: 'from-teal-500 to-cyan-500'
-  },
-  {
-    id: 'gonogo',
-    name: 'Go/No-Go',
-    fullName: 'Go/No-Go Inhibition Task',
-    description: 'Measures response inhibition and impulse control',
-    details: 'Respond quickly to frequent Go signals but withhold responses to rare No-Go signals. Assesses inhibitory control critical for self-regulation.',
-    duration: '~1-2 minutes',
-    trials: '30 trials',
-    measures: ['Response inhibition', 'Impulse control', 'Commission errors', 'Reaction time'],
-    component: GoNoGoTemplate,
-    icon: Hand,
-    color: 'from-rose-500 to-pink-500'
-  },
-  {
-    id: 'nback',
-    name: 'N-Back (2-Back)',
-    fullName: '2-Back Working Memory Task',
-    description: 'Measures working memory capacity and updating',
-    details: 'Monitor a sequence of letters and respond when the current letter matches one shown 2 positions back. Classic working memory paradigm used in cognitive training.',
-    duration: '~1-2 minutes',
-    trials: '30 trials (2 blocks)',
-    measures: ['Working memory', 'Updating ability', 'Sustained attention', 'Executive function'],
-    component: NBackTemplate,
-    icon: RefreshCw,
-    color: 'from-violet-500 to-purple-500'
-  },
-  {
-    id: 'digitspan',
-    name: 'Digit Span',
-    fullName: 'Digit Span Memory Test',
-    description: 'Measures short-term memory capacity',
-    details: 'Remember and recall increasingly long sequences of digits. Classic measure of memory span, typically 7±2 digits for adults.',
-    duration: '~1-2 minutes',
-    trials: 'Adaptive (until 2 errors)',
-    measures: ['Short-term memory', 'Memory span', 'Recall accuracy', 'Sequential processing'],
-    component: DigitSpanTemplate,
-    icon: Hash,
-    color: 'from-emerald-500 to-green-500'
-  },
-  {
-    id: 'visualsearch',
-    name: 'Visual Search',
-    fullName: 'Conjunction Visual Search',
-    description: 'Measures visual attention and search efficiency',
-    details: 'Find an orange upright T among rotated Ts and colored Ts. Search time increases with set size, revealing serial vs parallel processing.',
-    duration: '~1-2 minutes',
-    trials: '20 trials (3 training)',
-    measures: ['Visual attention', 'Search slopes', 'Feature integration', 'Processing efficiency'],
-    component: VisualSearchTemplate,
-    icon: Search,
-    color: 'from-indigo-500 to-blue-500'
-  },
-	{
-		id: 'abba',
-		name: 'ABBA Task',
-		fullName: 'Action-Based Backward Activation',
-		description: 'Examines action planning and response compatibility effects',
-		details: 'Tests the reversed-compatibility effect where participants plan one response and execute another. Critical for understanding motor planning and cognitive control interactions.',
-		duration: '~2 minutes',
-		trials: '40 trials',
-		measures: ['Action planning', 'Response compatibility', 'Motor control', 'Cognitive flexibility'],
-		component: ABBATemplate,
-		icon: Layers,
-		color: 'from-green-500 to-emerald-500'
-	},
-	{
-		id: 'hanoi',
-		name: 'Tower of Hanoi',
-		fullName: 'Tower of Hanoi Puzzle',
-		description: 'Evaluates planning, problem-solving, and executive function',
-		details: 'Classic problem-solving task requiring participants to move discs between pegs following specific rules. Assesses planning ability, working memory, and strategic thinking.',
-		duration: '~5 minutes',
-		trials: '1 puzzle (3 discs)',
-		measures: ['Planning ability', 'Problem-solving efficiency', 'Working memory', 'Strategic thinking'],
-		component: TowerHanoiTemplate,
-		icon: Puzzle,
-		color: 'from-red-500 to-rose-500'
-	}
-];
+  const templates = [
+    // Attention Tasks
+    {
+      id: 'stroop-task',
+      name: 'Stroop Task',
+      fullName: 'Classic Stroop Color-Word Interference Test',
+      description: 'Measure selective attention and cognitive flexibility using color-word interference',
+      details: 'Participants identify the ink color of words while ignoring the word meaning. Measures reaction time and accuracy in congruent vs incongruent conditions.',
+      duration: '~8 minutes',
+      trials: '10 practice + 40 test',
+      measures: ['Selective attention', 'Inhibitory control', 'Processing speed', 'Cognitive flexibility'],
+      component: StroopTaskTemplate,
+      icon: Brain,
+      color: 'from-blue-500 to-cyan-500',
+      requiresCamera: false,
+      category: 'Attention'
+    },
+    {
+      id: 'flanker-task',
+      name: 'Flanker Task',
+      fullName: 'Eriksen Flanker Task',
+      description: 'Assess response inhibition and selective attention with distractor stimuli',
+      details: 'Participants respond to a central arrow while ignoring flanking arrows that may be congruent or incongruent.',
+      duration: '~6 minutes',
+      trials: '8 practice + 32 test',
+      measures: ['Response inhibition', 'Selective attention', 'Conflict resolution'],
+      component: FlankerTemplate,
+      icon: Filter,
+      color: 'from-cyan-500 to-teal-500',
+      requiresCamera: false,
+      category: 'Attention'
+    },
+    {
+      id: 'posner-cueing',
+      name: 'Posner Cueing',
+      fullName: 'Posner Spatial Cueing Task',
+      description: 'Investigate spatial attention and orienting using visual cues',
+      details: 'Measures how spatial cues affect reaction time to detect targets in different locations.',
+      duration: '~10 minutes',
+      trials: '16 practice + 80 test',
+      measures: ['Spatial attention', 'Orienting', 'Cue validity effects'],
+      component: PosnerTemplate,
+      icon: Target,
+      color: 'from-teal-500 to-emerald-500',
+      requiresCamera: false,
+      category: 'Attention'
+    },
+    {
+      id: 'simon-task',
+      name: 'Simon Task',
+      fullName: 'Simon Spatial Compatibility Task',
+      description: 'Measure spatial compatibility effects and response conflict',
+      details: 'Participants respond to stimulus color while ignoring irrelevant spatial location.',
+      duration: '~7 minutes',
+      trials: '10 practice + 60 test',
+      measures: ['Spatial compatibility', 'Response conflict', 'Interference control'],
+      component: SimonTemplate,
+      icon: Move,
+      color: 'from-emerald-500 to-green-500',
+      requiresCamera: false,
+      category: 'Attention'
+    },
 
-const TemplateSelector = ({ onTemplateSelect }) => {
-	const [selectedTemplate, setSelectedTemplate] = useState(null);
-	const [isRunning, setIsRunning] = useState(false);
-	const [showResults, setShowResults] = useState(false);
-	const [results, setResults] = useState(null);
-	const [isAnalyzing, setIsAnalyzing] = useState(false);
-	const [error, setError] = useState(null);
-	const [participantId] = useState(`participant-${Date.now()}`);
-	const [experimentId] = useState(`experiment-${Date.now()}`);
+    // Emotion Tasks
+    {
+      id: 'emotion-tracker',
+      name: 'Emotion Tracker',
+      fullName: 'Stroop Task with Real-Time Emotion Recognition',
+      description: 'Combines Stroop task with live facial emotion tracking using AI',
+      details: 'Performs the classic Stroop task while simultaneously tracking facial expressions using face-api.js. Correlates emotional states with cognitive performance.',
+      duration: '~8 minutes',
+      trials: '10 practice + 40 test',
+      measures: ['Selective attention', 'Emotional responses', 'Stress patterns', 'Performance under emotion'],
+      component: EmotionTracker,
+      icon: Eye,
+      color: 'from-purple-500 to-pink-500',
+      requiresCamera: true,
+      category: 'Emotion'
+    },
+    {
+      id: 'facial-expression-recognition',
+      name: 'Facial Recognition',
+      fullName: 'Facial Expression Recognition Task',
+      description: 'Assess ability to identify emotional expressions in faces',
+      details: 'Participants view images of faces and identify the displayed emotion.',
+      duration: '~7 minutes',
+      trials: '40 trials',
+      measures: ['Emotion recognition', 'Social cognition', 'Face processing'],
+      component: (props) => <ComingSoonTemplate templateName="Facial Recognition" {...props} />,
+      icon: Camera,
+      color: 'from-pink-500 to-rose-500',
+      requiresCamera: false,
+      category: 'Emotion'
+    },
+    {
+      id: 'emotional-stroop',
+      name: 'Emotional Stroop',
+      fullName: 'Emotional Stroop Task',
+      description: 'Modified Stroop task using emotionally charged words',
+      details: 'Measures attentional bias and emotional interference using emotional vs neutral words.',
+      duration: '~8 minutes',
+      trials: '10 practice + 60 test',
+      measures: ['Emotional interference', 'Attentional bias', 'Emotion regulation'],
+      component: (props) => <ComingSoonTemplate templateName="Emotional Stroop" {...props} />,
+      icon: Brain,
+      color: 'from-rose-500 to-orange-500',
+      requiresCamera: false,
+      category: 'Emotion'
+    },
 
-	const handleTemplateClick = (templateId) => {
-		const template = templates.find(t => t.id === templateId);
-		
-		// Check if template requires camera
-		if (template?.requiresCamera) {
-			// Show warning and request permission
-			if (confirm('⚠️ This experiment requires camera access for emotion tracking.\n\nCamera permissions will be requested when you start the experiment.\n\nClick OK to continue.')) {
-				setSelectedTemplate(templateId);
-			}
-		} else {
-			setSelectedTemplate(templateId);
-		}
-	};
+    // Reasoning Tasks
+    {
+      id: 'voice-crt',
+      name: 'Voice CRT',
+      fullName: 'Voice-Based Cognitive Reflection Test',
+      description: 'Reasoning test using voice responses to measure intuitive vs reflective thinking',
+      details: 'Participants answer classic cognitive reflection questions using voice input. The Web Speech API converts speech to text, measuring both accuracy and response time to assess analytical reasoning.',
+      duration: '~5 minutes',
+      trials: '3 questions',
+      measures: ['Analytical reasoning', 'Response inhibition', 'Voice fluency', 'Reaction time'],
+      component: VoiceCRTTemplate,
+      icon: Mic,
+      color: 'from-rose-500 to-pink-500',
+      requiresCamera: false,
+      category: 'Reasoning'
+    },
+    {
+      id: 'ravens-matrices',
+      name: "Raven's Matrices",
+      fullName: "Raven's Progressive Matrices",
+      description: 'Non-verbal intelligence test using abstract visual patterns',
+      details: 'Participants complete patterns to assess abstract reasoning and fluid intelligence.',
+      duration: '~15 minutes',
+      trials: '12-36 items',
+      measures: ['Fluid intelligence', 'Pattern recognition', 'Abstract reasoning'],
+      component: (props) => <ComingSoonTemplate templateName="Raven's Matrices" {...props} />,
+      icon: Puzzle,
+      color: 'from-violet-500 to-purple-500',
+      requiresCamera: false,
+      category: 'Reasoning'
+    },
+    {
+      id: 'tower-of-hanoi',
+      name: 'Tower of Hanoi',
+      fullName: 'Tower of Hanoi Problem Solving Task',
+      description: 'Classic problem-solving task measuring planning and executive function',
+      details: 'Participants move disks between pegs following specific rules to reach a goal state.',
+      duration: '~10 minutes',
+      trials: '5-10 problems',
+      measures: ['Planning', 'Problem solving', 'Executive function', 'Working memory'],
+      component: TowerHanoiTemplate,
+      icon: Layers,
+      color: 'from-indigo-500 to-blue-500',
+      requiresCamera: false,
+      category: 'Reasoning'
+    },
 
-	const handleRunTemplate = () => {
-		setIsRunning(true);
-	};
+    // Memory Tasks
+    {
+      id: 'n-back',
+      name: 'N-Back Task',
+      fullName: 'N-Back Working Memory Task',
+      description: 'Measure working memory capacity using continuous performance',
+      details: 'Participants monitor a sequence and indicate when the current item matches one from N steps back.',
+      duration: '~10 minutes',
+      trials: '1-back, 2-back blocks',
+      measures: ['Working memory', 'Updating', 'Sustained attention'],
+      component: NBackTemplate,
+      icon: RefreshCw,
+      color: 'from-blue-500 to-indigo-500',
+      requiresCamera: false,
+      category: 'Memory'
+    },
+    {
+      id: 'digit-span',
+      name: 'Digit Span',
+      fullName: 'Digit Span Task',
+      description: 'Test working memory capacity with digit sequences',
+      details: 'Participants recall sequences of digits in forward or backward order.',
+      duration: '~5 minutes',
+      trials: 'Adaptive length',
+      measures: ['Working memory span', 'Short-term memory', 'Attention'],
+      component: DigitSpanTemplate,
+      icon: Hash,
+      color: 'from-indigo-500 to-violet-500',
+      requiresCamera: false,
+      category: 'Memory'
+    },
+    {
+      id: 'spatial-memory',
+      name: 'Spatial Memory',
+      fullName: 'Spatial Memory Grid Task',
+      description: 'Assess visuospatial working memory using grid locations',
+      details: 'Participants remember and reproduce sequences of highlighted grid positions.',
+      duration: '~8 minutes',
+      trials: 'Adaptive difficulty',
+      measures: ['Spatial working memory', 'Visual memory', 'Pattern memory'],
+      component: (props) => <ComingSoonTemplate templateName="Spatial Memory" {...props} />,
+      icon: Move,
+      color: 'from-violet-500 to-fuchsia-500',
+      requiresCamera: false,
+      category: 'Memory'
+    },
 
-	const handleComplete = async (data) => {
-		console.log('Template completed with data:', data);
-		setIsRunning(false);
-		setIsAnalyzing(true);
-		setError(null);
-		
-		try {
-			const response = await fetch(`${import.meta.env.VITE_API_URL}/api/analysis/analyze`, {
-				method: 'POST',
-				headers: { 
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({
-					templateId: selectedTemplate,
-					results: data
-				})
-			});
-			
-			if (!response.ok) {
-				throw new Error(`HTTP error! status: ${response.status}`);
-			}
-			
-			const analysisData = await response.json();
-			
-			if (analysisData.success) {
-				setResults({ rawData: data, analysis: analysisData.analysis });
-				setShowResults(true);
-			} else {
-				throw new Error(analysisData.message || 'Analysis failed');
-			}
-		} catch (error) {
-			console.error('Analysis error:', error);
-			setError(error.message);
-			setResults({ rawData: data, analysis: null });
-			setShowResults(true);
-		} finally {
-			setIsAnalyzing(false);
-		}
-	};
+    // Perception Tasks
+    {
+      id: 'visual-search',
+      name: 'Visual Search',
+      fullName: 'Visual Search Task',
+      description: 'Measure visual attention and search efficiency',
+      details: 'Participants locate target items among distractors with varying set sizes.',
+      duration: '~8 minutes',
+      trials: '60 trials',
+      measures: ['Visual attention', 'Search efficiency', 'Feature integration'],
+      component: VisualSearchTemplate,
+      icon: Search,
+      color: 'from-emerald-500 to-green-500',
+      requiresCamera: false,
+      category: 'Perception'
+    },
+    {
+      id: 'change-detection',
+      name: 'Change Detection',
+      fullName: 'Change Detection Task',
+      description: 'Assess visual working memory through change detection',
+      details: 'Participants detect whether visual displays have changed after a brief delay.',
+      duration: '~10 minutes',
+      trials: '80 trials',
+      measures: ['Visual working memory', 'Change detection', 'Visual attention'],
+      component: (props) => <ComingSoonTemplate templateName="Change Detection" {...props} />,
+      icon: Eye,
+      color: 'from-green-500 to-lime-500',
+      requiresCamera: false,
+      category: 'Perception'
+    },
+    {
+      id: 'mental-rotation',
+      name: 'Mental Rotation',
+      fullName: 'Mental Rotation Task',
+      description: 'Measure spatial visualization and mental rotation ability',
+      details: 'Participants determine if rotated 3D objects are the same or mirror images.',
+      duration: '~12 minutes',
+      trials: '20-40 trials',
+      measures: ['Spatial reasoning', 'Mental rotation', 'Visual processing'],
+      component: (props) => <ComingSoonTemplate templateName="Mental Rotation" {...props} />,
+      icon: RefreshCw,
+      color: 'from-lime-500 to-yellow-500',
+      requiresCamera: false,
+      category: 'Perception'
+    },
 
-	const handleBack = () => {
-		setSelectedTemplate(null);
-		setIsRunning(false);
-		setShowResults(false);
-		setResults(null);
-		setError(null);
-	};
+    // Response Time Tasks
+    {
+      id: 'simple-rt',
+      name: 'Simple RT',
+      fullName: 'Simple Reaction Time Task',
+      description: 'Measure basic reaction time to a single stimulus',
+      details: 'Participants press a key as quickly as possible when a stimulus appears.',
+      duration: '~3 minutes',
+      trials: '30 trials',
+      measures: ['Processing speed', 'Motor response', 'Alertness'],
+      component: (props) => <ComingSoonTemplate templateName="Simple RT" {...props} />,
+      icon: Zap,
+      color: 'from-yellow-500 to-orange-500',
+      requiresCamera: false,
+      category: 'Response Time'
+    },
+    {
+      id: 'choice-rt',
+      name: 'Choice RT',
+      fullName: 'Choice Reaction Time Task',
+      description: 'Measure decision-making speed with multiple response options',
+      details: 'Participants make quick decisions between 2 or more response alternatives.',
+      duration: '~5 minutes',
+      trials: '60 trials',
+      measures: ['Decision speed', 'Response selection', 'Processing speed'],
+      component: (props) => <ComingSoonTemplate templateName="Choice RT" {...props} />,
+      icon: Hand,
+      color: 'from-orange-500 to-red-500',
+      requiresCamera: false,
+      category: 'Response Time'
+    },
+    {
+      id: 'go-nogo',
+      name: 'Go/No-Go',
+      fullName: 'Go/No-Go Task',
+      description: 'Assess response inhibition and impulse control',
+      details: 'Participants respond to "go" trials but withhold responses on "no-go" trials.',
+      duration: '~7 minutes',
+      trials: '120 trials (80% go, 20% no-go)',
+      measures: ['Response inhibition', 'Impulse control', 'Sustained attention'],
+      component: GoNoGoTemplate,
+      icon: Hand,
+      color: 'from-red-500 to-pink-500',
+      requiresCamera: false,
+      category: 'Response Time'
+    },
 
-	// Analyzing state - show loading spinner
-	if (isAnalyzing) {
-		return (
-			<div className="flex items-center justify-center min-h-[400px]">
-				<Card className="w-full max-w-md">
-					<CardContent className="pt-6">
-						<div className="flex flex-col items-center gap-4">
-							<Loader2 className="h-12 w-12 animate-spin text-primary" />
-							<h3 className="text-lg font-semibold">Analyzing Results...</h3>
-							<p className="text-sm text-muted-foreground text-center">
-								Our AI is processing your experiment data and generating insights.
-							</p>
-						</div>
-					</CardContent>
-				</Card>
-			</div>
-		);
-	}
+    // Decision Making Tasks
+    {
+      id: 'bart',
+      name: 'BART',
+      fullName: 'Balloon Analogue Risk Task',
+      description: 'Assess risk-taking behavior and decision-making under uncertainty',
+      details: 'Participants inflate virtual balloons to earn money, balancing risk and reward.',
+      duration: '~10 minutes',
+      trials: '30 balloons',
+      measures: ['Risk taking', 'Decision making', 'Reward sensitivity', 'Impulse control'],
+      component: BARTTemplate,
+      icon: Target,
+      color: 'from-pink-500 to-red-500',
+      requiresCamera: false,
+      category: 'Decision Making'
+    },
+    {
+      id: 'abba',
+      name: 'ABBA Task',
+      fullName: 'Approach-Avoidance Conflict Task',
+      description: 'Measure approach and avoidance tendencies in decision making',
+      details: 'Participants make choices involving conflicting approach and avoidance motivations.',
+      duration: '~8 minutes',
+      trials: '40 trials',
+      measures: ['Approach behavior', 'Avoidance behavior', 'Conflict resolution', 'Decision making'],
+      component: ABBATemplate,
+      icon: Move,
+      color: 'from-amber-500 to-orange-500',
+      requiresCamera: false,
+      category: 'Decision Making'
+    },
 
-	// Results state - show analysis with PDF download
-	if (showResults) {
-		const template = templates.find(t => t.id === selectedTemplate);
-		
-		return (
-			<div className="space-y-6">
-				<Button onClick={handleBack} variant="outline" className="gap-2">
-					<ArrowLeft className="h-4 w-4" />
-					Back to Templates
-				</Button>
+    // Questionnaires
+    {
+      id: 'big-five',
+      name: 'Big Five',
+      fullName: 'Big Five Personality Inventory',
+      description: 'Assess personality traits across five major dimensions',
+      details: 'Measures openness, conscientiousness, extraversion, agreeableness, and neuroticism.',
+      duration: '~10 minutes',
+      trials: '44 items',
+      measures: ['Personality traits', 'Individual differences'],
+      component: (props) => <ComingSoonTemplate templateName="Big Five" {...props} />,
+      icon: Users,
+      color: 'from-fuchsia-500 to-purple-500',
+      requiresCamera: false,
+      category: 'Questionnaires'
+    },
+    {
+      id: 'cognitive-reflection',
+      name: 'CRT',
+      fullName: 'Cognitive Reflection Test',
+      description: 'Measure analytical thinking vs intuitive responses',
+      details: 'Classic questions designed to elicit intuitive but incorrect answers.',
+      duration: '~5 minutes',
+      trials: '3-7 questions',
+      measures: ['Analytical thinking', 'Cognitive reflection', 'Decision making'],
+      component: (props) => <ComingSoonTemplate templateName="CRT" {...props} />,
+      icon: Brain,
+      color: 'from-purple-500 to-indigo-500',
+      requiresCamera: false,
+      category: 'Questionnaires'
+    },
+    {
+      id: 'survey-likert',
+      name: 'Likert Survey',
+      fullName: 'Custom Likert Scale Survey',
+      description: 'Create custom surveys with Likert scale responses',
+      details: 'Flexible survey builder for attitudes, opinions, and ratings.',
+      duration: 'Variable',
+      trials: 'Custom',
+      measures: ['Attitudes', 'Opinions', 'Self-report'],
+      component: (props) => <ComingSoonTemplate templateName="Likert Survey" {...props} />,
+      icon: List,
+      color: 'from-sky-500 to-blue-500',
+      requiresCamera: false,
+      category: 'Questionnaires'
+    },
+  ];
 
-				<Card>
-					<CardHeader>
-						<CardTitle className="flex items-center gap-2">
-							<template.icon className="h-6 w-6" />
-							{template.fullName} - Results
-						</CardTitle>
-						<CardDescription>
-							Comprehensive analysis of your performance
-						</CardDescription>
-					</CardHeader>
-					<CardContent className="space-y-6">
-						{error && (
-							<Alert variant="destructive">
-								<AlertDescription>
-									Error during analysis: {error}. Showing raw data only.
-								</AlertDescription>
-							</Alert>
-						)}
+  const categories = [
+    { id: 'all', name: 'All Templates', icon: Target },
+    { id: 'Attention', name: 'Attention', icon: Filter },
+    { id: 'Emotion', name: 'Emotion', icon: Eye },
+    { id: 'Reasoning', name: 'Reasoning', icon: Puzzle },
+    { id: 'Memory', name: 'Memory', icon: RefreshCw },
+    { id: 'Perception', name: 'Perception', icon: Search },
+    { id: 'Response Time', name: 'Response Time', icon: Zap },
+    { id: 'Decision Making', name: 'Decision Making', icon: Target },
+    { id: 'Questionnaires', name: 'Questionnaires', icon: List },
+  ];
 
-						{results?.analysis ? (
-							<div className="prose prose-slate dark:prose-invert max-w-none prose-headings:font-bold prose-h2:text-2xl prose-h2:mt-8 prose-h2:mb-4 prose-h2:border-b prose-h2:pb-2 prose-h3:text-xl prose-h3:mt-6 prose-h3:mb-3 prose-p:text-base prose-p:leading-7 prose-li:text-base prose-table:text-sm prose-th:bg-muted prose-th:p-3 prose-td:p-3 prose-strong:text-foreground prose-strong:font-semibold">
-								<ReactMarkdown 
-									remarkPlugins={[remarkGfm]} 
-									rehypePlugins={[rehypeRaw]}
-									components={{
-										h2: ({node, ...props}) => <h2 className="text-2xl font-bold mt-8 mb-4 pb-2 border-b border-border text-foreground" {...props} />,
-										h3: ({node, ...props}) => <h3 className="text-xl font-semibold mt-6 mb-3 text-foreground" {...props} />,
-										p: ({node, ...props}) => <p className="text-base leading-7 mb-4 text-foreground/90" {...props} />,
-										ul: ({node, ...props}) => <ul className="my-4 ml-6 list-disc space-y-2" {...props} />,
-										ol: ({node, ...props}) => <ol className="my-4 ml-6 list-decimal space-y-2" {...props} />,
-										li: ({node, ...props}) => <li className="text-base text-foreground/90" {...props} />,
-										table: ({node, ...props}) => (
-											<div className="my-6 overflow-x-auto">
-												<table className="w-full border-collapse border border-border rounded-lg overflow-hidden" {...props} />
-											</div>
-										),
-										thead: ({node, ...props}) => <thead className="bg-muted" {...props} />,
-										th: ({node, ...props}) => <th className="border border-border p-3 text-left font-semibold text-foreground" {...props} />,
-										td: ({node, ...props}) => <td className="border border-border p-3 text-foreground/90" {...props} />,
-										strong: ({node, ...props}) => <strong className="font-semibold text-foreground" {...props} />,
-										em: ({node, ...props}) => <em className="italic text-foreground/80" {...props} />,
-										code: ({node, inline, ...props}) => 
-											inline 
-												? <code className="bg-muted px-1.5 py-0.5 rounded text-sm font-mono" {...props} />
-												: <code className="block bg-muted p-4 rounded-lg my-4 overflow-x-auto text-sm font-mono" {...props} />,
-										blockquote: ({node, ...props}) => (
-											<blockquote className="border-l-4 border-primary pl-4 my-4 italic text-foreground/80" {...props} />
-										),
-									}}
-								>
-									{results.analysis}
-								</ReactMarkdown>
-							</div>
-						) : (
-							<div className="space-y-4">
-								<h3 className="font-semibold">Raw Data</h3>
-								<pre className="bg-muted p-4 rounded-lg overflow-auto max-h-96 text-xs">
-									{JSON.stringify(results?.rawData, null, 2)}
-								</pre>
-							</div>
-						)}
+  // List of all working template IDs
+  const workingTemplateIds = [
+    'stroop-task',
+    'emotion-tracker',
+    'voice-crt',
+    'flanker-task',
+    'posner-cueing',
+    'simon-task',
+    'n-back',
+    'digit-span',
+    'visual-search',
+    'go-nogo',
+    'tower-of-hanoi',
+    'bart',
+    'abba'
+  ];
 
-						<div className="flex gap-4">
-							<Button onClick={handleBack} className="flex-1">
-								Try Another Experiment
-							</Button>
-							<Button 
-								onClick={() => {
-									try {
-										const doc = new jsPDF();
-										const pageWidth = doc.internal.pageSize.getWidth();
-										const pageHeight = doc.internal.pageSize.getHeight();
-										const margin = 20;
-										const maxWidth = pageWidth - (margin * 2);
-										let yPosition = margin;
+  const filteredTemplates = selectedCategory === 'all' 
+    ? templates 
+    : templates.filter(t => t.category === selectedCategory);
 
-										// Title
-										doc.setFontSize(20);
-										doc.setFont('helvetica', 'bold');
-										doc.setTextColor(26, 26, 26);
-										doc.text(`${template.fullName}`, margin, yPosition);
-										yPosition += 10;
-										
-										doc.setFontSize(16);
-										doc.text('Experiment Results', margin, yPosition);
-										yPosition += 15;
+  // Count ready templates
+  const readyCount = templates.filter(t => workingTemplateIds.includes(t.id)).length;
 
-										// Date
-										doc.setFontSize(10);
-										doc.setFont('helvetica', 'normal');
-										doc.setTextColor(102, 102, 102);
-										doc.text(`Generated: ${new Date().toLocaleString()}`, margin, yPosition);
-										yPosition += 15;
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-6">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="text-center space-y-4">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+            Experiment Templates
+          </h1>
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+            Choose from our comprehensive library of validated cognitive experiments
+          </p>
+          <div className="flex items-center justify-center gap-4 text-sm">
+            <Badge variant="outline" className="gap-1">
+              <CheckCircle2 className="w-3 h-3 text-green-600" />
+              {readyCount} Ready to Use
+            </Badge>
+            <Badge variant="outline" className="gap-1">
+              <Clock className="w-3 h-3 text-blue-600" />
+              {templates.length - readyCount} Coming Soon
+            </Badge>
+          </div>
+        </div>
 
-										// Add a line separator
-										doc.setDrawColor(59, 130, 246);
-										doc.setLineWidth(0.5);
-										doc.line(margin, yPosition, pageWidth - margin, yPosition);
-										yPosition += 10;
+        {/* Category Filter */}
+        <div className="flex flex-wrap gap-2 justify-center">
+          {categories.map((category) => {
+            const Icon = category.icon;
+            const count = templates.filter(t => t.category === category.name).length;
+            return (
+              <Button
+                key={category.id}
+                variant={selectedCategory === category.id ? 'default' : 'outline'}
+                onClick={() => setSelectedCategory(category.id)}
+                className="gap-2"
+              >
+                <Icon className="w-4 h-4" />
+                {category.name}
+                {category.id !== 'all' && (
+                  <Badge variant="secondary" className="ml-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
+                    {count}
+                  </Badge>
+                )}
+              </Button>
+            );
+          })}
+        </div>
 
-										if (results?.analysis) {
-											// Helper function to parse inline markdown formatting
-											const parseInlineMarkdown = (text) => {
-												const segments = [];
-												let remaining = text;
-												
-												const pattern = /(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g;
-												let match;
-												let lastIndex = 0;
-												
-												while ((match = pattern.exec(remaining)) !== null) {
-													if (match.index > lastIndex) {
-														segments.push({
-															text: remaining.substring(lastIndex, match.index),
-															style: 'normal'
-														});
-													}
-													
-													const matched = match[0];
-													if (matched.startsWith('**') && matched.endsWith('**')) {
-														segments.push({
-															text: matched.slice(2, -2),
-															style: 'bold'
-														});
-													} else if (matched.startsWith('*') && matched.endsWith('*') && !matched.startsWith('**')) {
-														segments.push({
-															text: matched.slice(1, -1),
-															style: 'italic'
-														});
-													} else if (matched.startsWith('`') && matched.endsWith('`')) {
-														segments.push({
-															text: matched.slice(1, -1),
-															style: 'code'
-														});
-													}
-													
-													lastIndex = pattern.lastIndex;
-												}
-												
-												if (lastIndex < remaining.length) {
-													segments.push({
-														text: remaining.substring(lastIndex),
-														style: 'normal'
-													});
-												}
-												
-												return segments;
-											};
-											
-											// Helper function to render text with formatting
-											const renderFormattedText = (text, x, y, maxW) => {
-												const segments = parseInlineMarkdown(text);
-												let currentX = x;
-												const lineHeight = 6;
-												let currentY = y;
-												
-												for (const segment of segments) {
-													if (segment.style === 'bold') {
-														doc.setFont('helvetica', 'bold');
-														doc.setTextColor(26, 26, 26);
-													} else if (segment.style === 'italic') {
-														doc.setFont('helvetica', 'italic');
-														doc.setTextColor(55, 65, 81);
-													} else if (segment.style === 'code') {
-														doc.setFont('courier', 'normal');
-														doc.setFontSize(10);
-														doc.setTextColor(79, 70, 229);
-													} else {
-														doc.setFont('helvetica', 'normal');
-														doc.setFontSize(11);
-														doc.setTextColor(55, 65, 81);
-													}
-													
-													const words = segment.text.split(' ');
-													for (let w = 0; w < words.length; w++) {
-														const word = words[w] + (w < words.length - 1 ? ' ' : '');
-														const wordWidth = doc.getTextWidth(word);
-														
-														if (currentX + wordWidth > x + maxW) {
-															currentY += lineHeight;
-															currentX = x;
-															
-															if (currentY > pageHeight - 30) {
-																doc.addPage();
-																currentY = margin;
-															}
-														}
-														
-														doc.text(word, currentX, currentY);
-														currentX += wordWidth;
-													}
-												}
-												
-												doc.setFont('helvetica', 'normal');
-												doc.setFontSize(11);
-												doc.setTextColor(55, 65, 81);
-												
-												return currentY + lineHeight + 2;
-											};
-											
-											const lines = results.analysis.split('\n');
-											
-											for (let i = 0; i < lines.length; i++) {
-												const line = lines[i].trim();
-												
-												if (yPosition > pageHeight - 30) {
-													doc.addPage();
-													yPosition = margin;
-												}
+        {/* Templates Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredTemplates.map((template) => {
+            const Icon = template.icon;
+            const isReady = workingTemplateIds.includes(template.id);
+            
+            return (
+              <Card 
+                key={template.id} 
+                className={`group hover:shadow-xl transition-all duration-300 cursor-pointer border-2 hover:border-primary/50 overflow-hidden ${!isReady ? 'opacity-75' : ''}`}
+              >
+                {/* Gradient Header */}
+                <div className={`h-2 bg-gradient-to-r ${template.color}`} />
+                
+                <CardHeader className="space-y-3">
+                  <div className="flex items-start justify-between">
+                    <div className={`p-3 rounded-xl bg-gradient-to-br ${template.color} text-white shadow-lg`}>
+                      <Icon className="w-6 h-6" />
+                    </div>
+                    <div className="flex gap-2">
+                      {template.requiresCamera && (
+                        <Badge variant="secondary" className="gap-1">
+                          <Camera className="w-3 h-3" />
+                          Camera
+                        </Badge>
+                      )}
+                      {!isReady && (
+                        <Badge variant="outline" className="gap-1 text-amber-600 border-amber-300">
+                          Coming Soon
+                        </Badge>
+                      )}
+                      {isReady && (
+                        <Badge variant="outline" className="gap-1 text-green-600 border-green-300">
+                          ✓ Ready
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <CardTitle className="text-xl group-hover:text-primary transition-colors">
+                      {template.name}
+                    </CardTitle>
+                    <CardDescription className="mt-2 line-clamp-2">
+                      {template.description}
+                    </CardDescription>
+                  </div>
+                </CardHeader>
 
-												if (line.startsWith('## ')) {
-													yPosition += 5;
-													doc.setFontSize(16);
-													doc.setFont('helvetica', 'bold');
-													doc.setTextColor(30, 64, 175);
-													const text = line.substring(3);
-													doc.text(text, margin, yPosition);
-													yPosition += 8;
-													
-													doc.setDrawColor(219, 234, 254);
-													doc.setLineWidth(0.5);
-													doc.line(margin, yPosition, pageWidth - margin, yPosition);
-													yPosition += 8;
-												} else if (line.startsWith('### ')) {
-													yPosition += 4;
-													doc.setFontSize(14);
-													doc.setFont('helvetica', 'bold');
-													doc.setTextColor(30, 64, 175);
-													const text = line.substring(4);
-													doc.text(text, margin, yPosition);
-													yPosition += 7;
-												} else if (line.startsWith('- ') || line.startsWith('* ')) {
-													const text = line.substring(2);
-													doc.setFontSize(11);
-													doc.setFont('helvetica', 'normal');
-													doc.setTextColor(55, 65, 81);
-													doc.text('•', margin + 2, yPosition);
-													yPosition = renderFormattedText(text, margin + 7, yPosition, maxWidth - 7);
-												} else if (line.startsWith('> ')) {
-													yPosition += 2;
-													doc.setDrawColor(59, 130, 246);
-													doc.setLineWidth(2);
-													doc.line(margin, yPosition - 3, margin, yPosition + 8);
-													
-													const text = line.substring(2);
-													doc.setFontSize(11);
-													doc.setFont('helvetica', 'italic');
-													doc.setTextColor(75, 85, 99);
-													yPosition = renderFormattedText(text, margin + 6, yPosition, maxWidth - 6);
-													yPosition += 2;
-												} else if (line.includes('|') && line.trim().length > 0) {
-													const tableLines = [line];
-													let j = i + 1;
-													while (j < lines.length && lines[j].includes('|')) {
-														tableLines.push(lines[j].trim());
-														j++;
-													}
-													
-													if (tableLines.length > 2) {
-														const headers = tableLines[0].split('|').filter(c => c.trim()).map(c => c.trim());
-														const data = tableLines.slice(2).map(row => 
-															row.split('|').filter(c => c.trim()).map(c => c.trim())
-														);
-														
-														autoTable(doc, {
-															startY: yPosition,
-															head: [headers],
-															body: data,
-															theme: 'grid',
-															headStyles: { 
-																fillColor: [249, 250, 251],
-																textColor: [26, 26, 26],
-																fontStyle: 'bold',
-																lineWidth: 0.1,
-																lineColor: [209, 213, 219]
-															},
-															bodyStyles: {
-																textColor: [55, 65, 81],
-																lineWidth: 0.1,
-																lineColor: [209, 213, 219]
-															},
-															margin: { left: margin, right: margin },
-															styles: { fontSize: 10 }
-														});
-														
-														yPosition = doc.lastAutoTable.finalY + 10;
-														i = j - 1;
-													}
-												} else if (line.length > 0) {
-													yPosition = renderFormattedText(line, margin, yPosition, maxWidth);
-												}
-											}
-										} else {
-											doc.setFontSize(11);
-											doc.setTextColor(102, 102, 102);
-											doc.text('No analysis available.', margin, yPosition);
-										}
+                <CardContent className="space-y-4">
+                  {/* Details */}
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Clock className="w-4 h-4" />
+                      <span>{template.duration}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Target className="w-4 h-4" />
+                      <span>{template.trials}</span>
+                    </div>
+                  </div>
 
-										doc.save(`${template.id}-results-${Date.now()}.pdf`);
-									} catch (error) {
-										console.error('PDF generation error:', error);
-										alert('Failed to generate PDF. Please try again.');
-									}
-								}}
-								variant="outline"
-								className="gap-2"
-							>
-								<Download className="h-4 w-4" />
-								Download PDF Report
-							</Button>
-						</div>
-					</CardContent>
-				</Card>
-			</div>
-		);
-	}
-
-	// Running state - full screen experiment
-	if (isRunning && selectedTemplate) {
-		const template = templates.find(t => t.id === selectedTemplate);
-		const TemplateComponent = template?.component;
-		
-		if (!TemplateComponent) {
-			return (
-				<div className="flex items-center justify-center min-h-screen">
-					<Alert variant="destructive">
-						<AlertCircle className="h-4 w-4" />
-						<AlertDescription>
-							Error: Template component not found
-						</AlertDescription>
-					</Alert>
-				</div>
-			);
-		}
-		
-		return (
-			<div className="fixed inset-0 z-50 bg-background">
-				<TemplateComponent 
-					onComplete={handleComplete}
-					participantId={participantId}
-					experimentId={experimentId}
-				/>
-			</div>
-		);
-	}
-
-	// Detail view - show template details and start button
-	if (selectedTemplate) {
-		const template = templates.find(t => t.id === selectedTemplate);
-		
-		if (!template) {
-			return (
-				<div className="space-y-6">
-					<Button onClick={handleBack} variant="outline" className="gap-2">
-						<ArrowLeft className="h-4 w-4" />
-						Back to Templates
-					</Button>
-					<Alert variant="destructive">
-						<AlertCircle className="h-4 w-4" />
-						<AlertDescription>
-							Template not found
-						</AlertDescription>
-					</Alert>
-				</div>
-			);
-		}
-
-		const Icon = template.icon;
-
-		return (
-			<div className="space-y-6 max-w-4xl mx-auto">
-				<Button onClick={handleBack} variant="outline" className="gap-2">
-					<ArrowLeft className="h-4 w-4" />
-					Back to Templates
-				</Button>
-
-				<Card className="border-2">
-					<div className={`h-3 bg-gradient-to-r ${template.color}`} />
-					<CardHeader className="space-y-6">
-						<div className="flex items-start gap-6">
-							<div className={`p-4 rounded-xl bg-gradient-to-br ${template.color} text-white shadow-lg`}>
-								<Icon className="h-10 w-10" />
-							</div>
-							<div className="flex-1">
-								<CardTitle className="text-3xl mb-2">{template.fullName}</CardTitle>
-								<CardDescription className="text-base">{template.description}</CardDescription>
-							</div>
-						</div>
-
-						{template.requiresCamera && (
-							<Alert className="border-amber-500 bg-amber-50 dark:bg-amber-900/20">
-								<Camera className="h-4 w-4 text-amber-600" />
-								<AlertDescription className="text-amber-800 dark:text-amber-200">
-									<strong>Camera Required:</strong> This experiment uses facial emotion tracking. You will be asked for camera permission.
-								</AlertDescription>
-							</Alert>
-						)}
-					</CardHeader>
-
-					<CardContent className="space-y-8">
-						{/* Details */}
-						<div>
-							<h3 className="font-semibold text-lg mb-3">About This Task</h3>
-							<p className="text-muted-foreground leading-relaxed">{template.details}</p>
-						</div>
-
-						{/* Info Grid */}
-						<div className="grid grid-cols-2 gap-4">
-							<div className="bg-secondary/50 rounded-lg p-4">
-								<div className="text-sm text-muted-foreground mb-1">Duration</div>
-								<div className="text-xl font-semibold">{template.duration}</div>
-							</div>
-							<div className="bg-secondary/50 rounded-lg p-4">
-								<div className="text-sm text-muted-foreground mb-1">Trials</div>
-								<div className="text-xl font-semibold">{template.trials}</div>
-							</div>
-						</div>
-
-						{/* Measures */}
-						<div>
-							<h3 className="font-semibold text-lg mb-3">What This Measures</h3>
-							<div className="flex flex-wrap gap-2">
-								{template.measures.map((measure, idx) => (
-									<span 
-										key={idx} 
-										className="text-sm bg-primary/10 text-primary px-3 py-1.5 rounded-full font-medium"
-									>
-										{measure}
-									</span>
-								))}
-							</div>
-						</div>
-
-						{/* Start Button */}
-						<div className="flex gap-4 pt-4">
-							<Button 
-								onClick={handleRunTemplate}
-								size="lg"
-								className="flex-1 h-14 text-lg gap-2"
-							>
-								{template.requiresCamera && <Camera className="h-5 w-5" />}
-								Start Experiment
-							</Button>
-						</div>
-					</CardContent>
-				</Card>
-			</div>
-		);
-	}
-
-	// Grid view - show all templates
-	return (
-		<div className="space-y-6">
-			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-				{templates.map((template) => {
-					const Icon = template.icon;
-					return (
-						<Card 
-							key={template.id} 
-							className="group hover:shadow-xl transition-all duration-300 border-2 hover:border-primary/50 cursor-pointer overflow-hidden"
-							onClick={() => handleTemplateClick(template.id)}
-						>
-							<div className={`h-2 bg-gradient-to-r ${template.color}`} />
-							<CardHeader className="space-y-4">
-								<div className="flex items-start justify-between">
-									<div className={`p-3 rounded-lg bg-gradient-to-br ${template.color} text-white shadow-md`}>
-										<Icon className="h-6 w-6" />
-									</div>
-									<div className="text-right text-xs text-muted-foreground space-y-1">
-										<div className="font-medium">{template.duration}</div>
-										<div>{template.trials}</div>
-										{template.requiresCamera && (
-											<div className="flex items-center gap-1 text-amber-600">
-												<Camera className="h-3 w-3" />
-												<span>Camera</span>
-											</div>
-										)}
-									</div>
-								</div>
-								<div>
-									<CardTitle className="text-xl group-hover:text-primary transition-colors">
-										{template.fullName}
-									</CardTitle>
-									<CardDescription className="mt-2 line-clamp-2">
-										{template.description}
-									</CardDescription>
-								</div>
-							</CardHeader>
-							<CardContent className="space-y-4">
-								<div className="flex flex-wrap gap-1">
-									{template.measures.slice(0, 3).map((measure, idx) => (
-										<span 
-											key={idx} 
-											className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded-full"
-										>
-											{measure}
-										</span>
-									))}
-									{template.measures.length > 3 && (
-										<span className="text-xs text-muted-foreground px-2 py-1">
-											+{template.measures.length - 3} more
-										</span>
-									)}
-								</div>
+                  {/* Measures */}
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                      Measures
+                    </p>
+                    <div className="flex flex-wrap gap-1">
+                      {template.measures.slice(0, 3).map((measure, idx) => (
+                        <Badge key={idx} variant="secondary" className="text-xs">
+                          {measure}
+                        </Badge>
+                      ))}
+                      {template.measures.length > 3 && (
+                        <Badge variant="secondary" className="text-xs">
+                          +{template.measures.length - 3}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
 
                   {/* Action Button */}
                   <Button 
                     onClick={() => onSelectTemplate(template)}
                     className="w-full group-hover:shadow-md transition-shadow gap-2"
+                    disabled={!isReady}
                   >
-                    Select Template
-                    <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    {isReady ? 'Select Template' : 'Coming Soon'}
+                    {isReady && <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />}
                   </Button>
                 </CardContent>
               </Card>
@@ -827,7 +638,7 @@ const TemplateSelector = ({ onTemplateSelect }) => {
               </p>
               <p className="text-sm text-blue-800 dark:text-blue-200">
                 Contact our team to create a custom experiment tailored to your research needs. 
-                We support various cognitive tasks, questionnaires, and interactive paradigms.
+                We support various cognitive tasks, questionnaires, and interactive paradigms. More templates coming soon!
               </p>
             </div>
           </div>
