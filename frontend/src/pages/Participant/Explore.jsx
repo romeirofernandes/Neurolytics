@@ -7,26 +7,27 @@ import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { Input } from '../../components/ui/input';
 import { 
-  Brain, Target, Zap, Layers, Puzzle, Filter, Hand, 
-  RefreshCw, Move, Hash, Search, Camera, Clock, Award,
-  BookOpen, ArrowRight, TrendingUp
-} from 'lucide-react';
+  FaBrain, FaBullseye, FaBolt, FaLayerGroup, FaPuzzlePiece, 
+  FaFilter, FaHandPaper, FaSyncAlt, FaArrowsAlt, FaHashtag, 
+  FaSearch, FaCamera, FaClock, FaTrophy, FaBook, 
+  FaArrowRight, FaChartLine
+} from 'react-icons/fa';
 import templatesData from '../../../templates.json';
 
 // Icon mapping for templates
 const iconMap = {
-  Brain,
-  Target,
-  Zap,
-  Layers,
-  Puzzle,
-  Filter,
-  Hand,
-  RefreshCw,
-  Move,
-  Hash,
-  Search,
-  Camera
+  Brain: FaBrain,
+  Target: FaBullseye,
+  Zap: FaBolt,
+  Layers: FaLayerGroup,
+  Puzzle: FaPuzzlePiece,
+  Filter: FaFilter,
+  Hand: FaHandPaper,
+  RefreshCw: FaSyncAlt,
+  Move: FaArrowsAlt,
+  Hash: FaHashtag,
+  Search: FaSearch,
+  Camera: FaCamera
 };
 
 const ParticipantExplore = () => {
@@ -85,7 +86,7 @@ const ParticipantExplore = () => {
                       <p className="text-sm text-muted-foreground">Available Experiments</p>
                       <p className="text-2xl font-bold">{templatesData.length}</p>
                     </div>
-                    <BookOpen className="h-8 w-8 text-primary" />
+                    <FaBook className="h-8 w-8 text-primary" />
                   </div>
                 </CardContent>
               </Card>
@@ -96,7 +97,7 @@ const ParticipantExplore = () => {
                       <p className="text-sm text-muted-foreground">Research Areas</p>
                       <p className="text-2xl font-bold">{categories.length - 1}</p>
                     </div>
-                    <TrendingUp className="h-8 w-8 text-primary" />
+                    <FaChartLine className="h-8 w-8 text-primary" />
                   </div>
                 </CardContent>
               </Card>
@@ -107,7 +108,7 @@ const ParticipantExplore = () => {
                       <p className="text-sm text-muted-foreground">Avg. Duration</p>
                       <p className="text-2xl font-bold">~2 min</p>
                     </div>
-                    <Clock className="h-8 w-8 text-primary" />
+                    <FaClock className="h-8 w-8 text-primary" />
                   </div>
                 </CardContent>
               </Card>
@@ -145,7 +146,7 @@ const ParticipantExplore = () => {
             {/* Templates Grid */}
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {filteredTemplates.map((template) => {
-                const Icon = iconMap[template.icon] || Brain;
+                const Icon = iconMap[template.icon] || FaBrain;
                 return (
                   <Card 
                     key={template.id}
@@ -154,8 +155,8 @@ const ParticipantExplore = () => {
                   >
                     <CardHeader>
                       <div className="flex items-start justify-between mb-3">
-                        <div className={`p-3 rounded-lg bg-gradient-to-br ${template.color} text-white`}>
-                          <Icon className="h-6 w-6" />
+                        <div className="p-3 rounded-lg bg-primary/10">
+                          <Icon className="h-6 w-6 text-primary" />
                         </div>
                         <Badge 
                           variant="outline" 
@@ -178,18 +179,18 @@ const ParticipantExplore = () => {
                       
                       <div className="flex items-center gap-4 text-xs text-muted-foreground">
                         <div className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
+                          <FaClock className="h-3 w-3" />
                           {template.duration}
                         </div>
                         <div className="flex items-center gap-1">
-                          <Award className="h-3 w-3" />
+                          <FaTrophy className="h-3 w-3" />
                           {template.trials}
                         </div>
                       </div>
 
                       {template.requiresCamera && (
                         <Badge variant="secondary" className="text-xs">
-                          <Camera className="h-3 w-3 mr-1" />
+                          <FaCamera className="h-3 w-3 mr-1" />
                           Camera Required
                         </Badge>
                       )}
@@ -204,7 +205,7 @@ const ParticipantExplore = () => {
                           className="group-hover:text-primary"
                         >
                           View Details
-                          <ArrowRight className="ml-2 h-4 w-4" />
+                          <FaArrowRight className="ml-2 h-4 w-4" />
                         </Button>
                       </div>
                     </CardContent>
@@ -217,7 +218,7 @@ const ParticipantExplore = () => {
             {filteredTemplates.length === 0 && (
               <Card>
                 <CardContent className="py-12 text-center">
-                  <Filter className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <FaFilter className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                   <h3 className="text-lg font-semibold mb-2">No experiments found</h3>
                   <p className="text-muted-foreground">
                     Try adjusting your search or filter criteria
