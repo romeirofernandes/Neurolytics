@@ -29,7 +29,7 @@ export const SimonTemplate = ({ onComplete }) => {
   }, [phase, startTime]);
 
   const startTrial = () => {
-    const totalTrials = isTraining ? 10 : 60;
+    const totalTrials = isTraining ? 5 : 24; // Reduced from 10/60 to 5/24
     if (currentTrial >= totalTrials) {
       if (isTraining) {
         setIsTraining(false);
@@ -109,8 +109,8 @@ export const SimonTemplate = ({ onComplete }) => {
         <CardTitle>Simon Task</CardTitle>
         <CardDescription>
           {isTraining 
-            ? `Training Trial ${currentTrial + 1} of 10` 
-            : `Trial ${currentTrial + 1} of 60`}
+            ? `Training Trial ${currentTrial + 1} of 5` 
+            : `Trial ${currentTrial + 1} of 24`}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">

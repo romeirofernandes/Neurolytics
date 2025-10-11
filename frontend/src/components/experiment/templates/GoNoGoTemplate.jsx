@@ -10,7 +10,7 @@ export const GoNoGoTemplate = ({ onComplete }) => {
   const [feedback, setFeedback] = useState('');
   const [responded, setResponded] = useState(false);
 
-  const totalTrials = 60; // 80% go trials, 20% no-go trials
+  const totalTrials = 30; // Reduced from 60 to 30 (~1.5 minutes)
 
   useEffect(() => {
     startTrial();

@@ -40,422 +40,269 @@ const analyzeExperiment = async (req, res) => {
 };
 
 function generatePromptForTemplate(templateId, results) {
-  const basePrompt = `You are a psychology research expert. Analyze the following experimental data and provide detailed insights in well-formatted MARKDOWN.
+  const basePrompt = `You are a cognitive psychology expert. Analyze this experimental data concisely and professionally.
 
-Use the following MARKDOWN formatting:
-- Use ## for main section headings (h2)
-- Use ### for subsection headings (h3)
-- Use **bold** for emphasis
-- Use tables for statistical summaries (use | for columns)
-- Use bullet points (- or *) for lists
-- Use > for important callouts/quotes
-- Use \`code\` for numerical values and metrics
+FORMAT RULES (CRITICAL):
+- Use ## for main headings
+- Use **bold** for metrics and key terms
+- Use markdown tables with | separators
+- Use bullet points with -
+- Keep it concise but informative
+- NO HTML tags, ONLY markdown
 
-Make the analysis:
-- Professional and comprehensive
-- Easy to understand for researchers and participants
-- Include clear interpretations
-- Provide actionable insights
-- Use proper scientific terminology
-- Include statistical summaries in table format
-
-IMPORTANT: Return ONLY markdown text. Do NOT use HTML tags.`;
+Structure: Brief intro → Key metrics table → Performance rating → 2-3 actionable insights`;
 
   switch (templateId) {
     case 'bart':
       return `${basePrompt}
 
-This is data from a Balloon Analogue Risk Task (BART) experiment. The BART measures risk-taking behavior through a balloon-pumping paradigm.
+**BART (Balloon Analogue Risk Task)** - Measures risk-taking behavior
 
-Data: ${JSON.stringify(results, null, 2)}
+DATA: ${JSON.stringify(results, null, 2)}
 
-Please provide a comprehensive analysis including:
+Provide:
+## Performance Summary
+Calculate: BART Score (avg pumps on unexploded balloons), total earnings, explosion rate
 
-## 1. Overall BART Performance
-- Calculate and report the BART score (average pumps on non-exploded balloons)
-- Total trials completed and completion rate
-- Total earnings and efficiency metrics
+## Statistics Table
+| Metric | Value | Interpretation |
+|--------|-------|----------------|
+| BART Score | X | Low/Medium/High risk-taker |
+| Total Earnings | $X | Efficiency rating |
+| Explosion Rate | X% | Risk tolerance |
 
-## 2. Risk-Taking Pattern Analysis
-- Break down performance by balloon color (blue, yellow, orange)
-- Identify risk-taking strategies
-- Compare adjusted vs unadjusted pumps
-
-## 3. Statistical Summary
-Create a table showing:
-- Mean pumps per color
-- Explosion rate per color
-- Average earnings per trial
-- Standard deviations
-
-## 4. Clinical Interpretation
-- Compare to normative data (typical BART scores range from 30-45)
-- Assess risk propensity (conservative, moderate, or high risk-taker)
-- Discuss implications for real-world decision-making
-
-## 5. Recommendations
-- Suggestions for improving decision-making
-- Pattern observations
-- Any notable behavioral tendencies`;
+## Key Insights
+- Risk-taking pattern (conservative/balanced/aggressive)
+- Decision strategy observations
+- Real-world implications`;
 
     case 'stroop':
       return `${basePrompt}
 
-This is data from a Stroop Task experiment measuring selective attention and cognitive control.
+**Stroop Task** - Measures selective attention and cognitive control
 
-Data: ${JSON.stringify(results, null, 2)}
+DATA: ${JSON.stringify(results, null, 2)}
 
-Please provide a comprehensive analysis including:
+Provide:
+## Performance Summary
+Calculate: Stroop Effect (incompatible RT - compatible RT), overall accuracy
 
-## 1. Reaction Time Analysis
-- Average RT for compatible trials
-- Average RT for incompatible trials
-- Calculate the Stroop effect (incompatible RT - compatible RT)
+## Statistics Table
+| Condition | Avg RT (ms) | Accuracy | Effect Size |
+|-----------|-------------|----------|-------------|
+| Compatible | X | X% | - |
+| Incompatible | X | X% | Xms |
 
-## 2. Accuracy Analysis
-- Overall accuracy rate
-- Accuracy for compatible vs incompatible trials
-- Error patterns and types
-
-## 3. Statistical Summary
-Create a table comparing:
-- Compatible vs incompatible trial performance
-- Training vs main task performance
-- RT distributions
-
-## 4. Cognitive Interpretation
-- Assess attentional control (typical Stroop effect is 50-100ms)
-- Evaluate processing speed
-- Discuss automaticity vs controlled processing
-
-## 5. Clinical Relevance
-- Compare to typical adult performance
-- Implications for executive function
-- Suggestions for cognitive training`;
-
-    case 'posner':
-      return `${basePrompt}
-
-This is data from a Posner Cueing Task measuring spatial attention and orienting mechanisms.
-
-Data: ${JSON.stringify(results, null, 2)}
-
-Please provide a comprehensive analysis including:
-
-## 1. Cueing Effect Analysis
-- Average RT for valid cues
-- Average RT for invalid cues
-- Calculate cueing benefit (valid RT benefit)
-- Calculate cueing cost (invalid RT cost)
-
-## 2. Accuracy and Performance
-- Overall accuracy rate
-- Accuracy for valid vs invalid trials
-- Spatial biases (left vs right)
-
-## 3. Statistical Summary
-Create a table showing:
-- Valid vs invalid cue performance
-- Cueing effect magnitude
-- Lateralization effects
-
-## 4. Attentional Interpretation
-- Assess attentional orienting efficiency (typical cueing effect: 20-40ms)
-- Evaluate spatial attention distribution
-- Discuss endogenous vs exogenous attention
-
-## 5. Research Implications
-- Compare to established norms
-- Relevance for attention disorders
-- Practical applications`;
-
-    case 'abba':
-      return `${basePrompt}
-
-This is data from an ABBA Task measuring action planning and response compatibility effects.
-
-Data: ${JSON.stringify(results, null, 2)}
-
-Please provide a comprehensive analysis including:
-
-## 1. Response Compatibility Analysis
-- Average RT for compatible trials (same response planned and executed)
-- Average RT for incompatible trials (different responses)
-- Calculate reversed-compatibility effect
-
-## 2. Action Planning Efficiency
-- Response A execution accuracy
-- Response B reaction times
-- Planning vs execution dissociation
-
-## 3. Statistical Summary
-Create a table comparing:
-- Compatible vs incompatible performance
-- Single vs double response trials
-- Planning accuracy
-
-## 4. Cognitive Control Interpretation
-- Assess motor planning ability
-- Evaluate cognitive flexibility
-- Discuss the reversed-compatibility phenomenon
-
-## 5. Implications
-- Compare to typical ABBA effects
-- Relevance for motor control research
-- Applications in skill learning`;
-
-    case 'hanoi':
-      return `${basePrompt}
-
-This is data from a Tower of Hanoi puzzle measuring planning and problem-solving abilities.
-
-Data: ${JSON.stringify(results, null, 2)}
-
-Please provide a comprehensive analysis including:
-
-## 1. Performance Metrics
-- Total moves to solution
-- Comparison to optimal solution (7 moves)
-- Total time to completion
-- Efficiency ratio (optimal/actual moves)
-
-## 2. Error Analysis
-- Number of rule violations (larger on smaller disc)
-- Invalid move attempts
-- Error patterns over time
-
-## 3. Problem-Solving Strategy
-- Identify solution approach (trial-and-error vs systematic)
-- Planning depth assessment
-- Strategy efficiency
-
-## 4. Cognitive Interpretation
-- Assess planning ability (excellent: 7-9 moves, good: 10-15, needs improvement: >15)
-- Working memory demands
-- Executive function evaluation
-
-## 5. Recommendations
-- Suggestions for improving problem-solving
-- Strategy optimization tips
-- Training implications
-- Comparison to age norms`;
+## Key Insights
+- Attention control rating (Excellent: <50ms, Good: 50-100ms, Needs work: >100ms)
+- Processing speed assessment
+- Practical recommendations`;
 
     case 'flanker':
       return `${basePrompt}
 
-This is data from an Eriksen Flanker Task measuring selective attention and cognitive control.
+**Flanker Task** - Measures selective attention and interference control
 
-Data: ${JSON.stringify(results, null, 2)}
+DATA: ${JSON.stringify(results, null, 2)}
 
-Please provide a comprehensive analysis including:
+Provide:
+## Performance Summary
+Calculate: Flanker Effect (incongruent RT - congruent RT), accuracy rates
 
-<h2>1. Reaction Time Analysis</h2>
-- Average RT for congruent trials (flankers match target)
-- Average RT for incongruent trials (flankers mismatch target)
-- Calculate the Flanker effect (incongruent RT - congruent RT)
+## Statistics Table
+| Condition | Avg RT (ms) | Accuracy | Effect |
+|-----------|-------------|----------|--------|
+| Congruent | X | X% | - |
+| Incongruent | X | X% | Xms |
 
-<h2>2. Accuracy Analysis</h2>
-- Overall accuracy rate
-- Accuracy for congruent vs incongruent trials
-- Error patterns and response mapping
+## Key Insights
+- Interference control (Excellent: <40ms, Good: 40-60ms, Needs work: >60ms)
+- Error pattern analysis
+- Attention training suggestions`;
 
-<h2>3. Statistical Summary</h2>
-Create a table comparing:
-- Congruent vs incongruent trial performance
-- Training vs main task performance
-- Response-specific errors (A vs L key)
+    case 'posner':
+      return `${basePrompt}
 
-<h2>4. Cognitive Interpretation</h2>
-- Assess selective attention capacity (typical Flanker effect: 30-60ms)
-- Evaluate interference suppression ability
-- Discuss cognitive control efficiency
+**Posner Cueing Task** - Measures spatial attention orienting
 
-<h2>5. Clinical Relevance</h2>
-- Compare to normative data
-- Implications for ADHD or executive dysfunction
-- Suggestions for attention training`;
+DATA: ${JSON.stringify(results, null, 2)}
+
+Provide:
+## Performance Summary
+Calculate: Cueing benefit (valid RT), cueing cost (invalid RT), overall accuracy
+
+## Statistics Table
+| Cue Type | Avg RT (ms) | Accuracy | Effect |
+|----------|-------------|----------|--------|
+| Valid | X | X% | Benefit: Xms |
+| Invalid | X | X% | Cost: Xms |
+
+## Key Insights
+- Attention orienting efficiency (Typical: 20-40ms benefit)
+- Spatial bias detection
+- Clinical relevance`;
+
+    case 'abba':
+      return `${basePrompt}
+
+**ABBA Task** - Measures action planning and motor control
+
+DATA: ${JSON.stringify(results, null, 2)}
+
+Provide:
+## Performance Summary
+Calculate: Compatibility effect, planning accuracy, execution RT
+
+## Statistics Table
+| Trial Type | Avg RT (ms) | Accuracy | Effect |
+|------------|-------------|----------|--------|
+| Compatible | X | X% | - |
+| Incompatible | X | X% | Xms |
+
+## Key Insights
+- Motor planning efficiency
+- Cognitive flexibility rating
+- Skill learning implications`;
+
+    case 'hanoi':
+      return `${basePrompt}
+
+**Tower of Hanoi** - Measures planning and problem-solving
+
+DATA: ${JSON.stringify(results, null, 2)}
+
+Provide:
+## Performance Summary
+Moves used vs optimal (7), time taken, efficiency ratio
+
+## Statistics Table
+| Metric | Value | Rating |
+|--------|-------|--------|
+| Total Moves | X | Excellent/Good/Fair (7-9/10-15/>15) |
+| Time | Xs | - |
+| Efficiency | X% | - |
+
+## Key Insights
+- Planning strategy (systematic vs trial-and-error)
+- Problem-solving recommendations
+- Cognitive skill assessment`;
 
     case 'gonogo':
       return `${basePrompt}
 
-This is data from a Go/No-Go Task measuring response inhibition and impulse control.
+**Go/No-Go Task** - Measures response inhibition and impulse control
 
-Data: ${JSON.stringify(results, null, 2)}
+DATA: ${JSON.stringify(results, null, 2)}
 
-Please provide a comprehensive analysis including:
+Provide:
+## Performance Summary
+Go accuracy, No-Go accuracy, commission error rate, mean RT
 
-<h2>1. Performance Metrics</h2>
-- Go trial accuracy and mean RT
-- No-Go trial accuracy (correct withholds)
-- Commission errors (false alarms on No-Go)
-- Omission errors (misses on Go trials)
+## Statistics Table
+| Measure | Value | Rating |
+|---------|-------|--------|
+| Go Accuracy | X% | - |
+| No-Go Accuracy | X% | - |
+| Commission Errors | X% | Excellent/Good/Needs work (<5%/5-10%/>10%) |
+| Avg RT | Xms | - |
 
-<h2>2. Inhibitory Control Analysis</h2>
-- Commission error rate (typical: <10%)
-- RT variability on Go trials
-- Speed-accuracy tradeoff patterns
-
-<h2>3. Statistical Summary</h2>
-Create a table showing:
-- Go vs No-Go performance
-- Error types and frequencies
-- RT distribution and variability
-
-<h2>4. Clinical Interpretation</h2>
-- Assess impulse control (excellent: <5% errors, good: 5-10%, needs work: >10%)
-- Compare to ADHD and control populations
-- Evaluate sustained attention
-
-<h2>5. Implications and Recommendations</h2>
-- Suggestions for improving inhibitory control
-- Relevance for real-world impulsivity
-- Training recommendations`;
+## Key Insights
+- Impulse control assessment
+- Speed-accuracy tradeoff
+- Practical implications`;
 
     case 'nback':
       return `${basePrompt}
 
-This is data from a 2-Back Working Memory Task.
+**2-Back Task** - Measures working memory and updating
 
-Data: ${JSON.stringify(results, null, 2)}
+DATA: ${JSON.stringify(results, null, 2)}
 
-Please provide a comprehensive analysis including:
+Provide:
+## Performance Summary
+Overall accuracy, hit rate, false alarm rate, d-prime
 
-<h2>1. Performance Metrics</h2>
-- Overall accuracy across all blocks
-- Hit rate (correctly identified matches)
-- False alarm rate (incorrectly identified non-matches)
-- Calculate d-prime sensitivity index
+## Statistics Table
+| Block | Accuracy | Hits | False Alarms | d' |
+|-------|----------|------|--------------|-----|
+| 1 | X% | X | X | X |
+| 2 | X% | X | X | X |
+| 3 | X% | X | X | X |
 
-<h2>2. Block-by-Block Analysis</h2>
-- Performance across 3 blocks (learning/fatigue effects)
-- Consistency of performance
-- Best vs worst block comparison
-
-<h2>3. Response Pattern Analysis</h2>
-Create a table showing:
-- Hits, Misses, False Alarms, Correct Rejections per block
-- Response times for each category
-- Accuracy trends over time
-
-<h2>4. Working Memory Interpretation</h2>
-- Assess WM capacity (excellent: >80% accuracy, good: 60-80%, needs work: <60%)
-- Evaluate updating efficiency
-- Compare to normative 2-back data
-
-<h2>5. Cognitive Training Implications</h2>
-- Suggestions for WM improvement
-- Pattern of errors (conservative vs liberal responding)
-- Relevance for academic/occupational performance`;
+## Key Insights
+- Working memory capacity (Excellent: >80%, Good: 60-80%, Fair: <60%)
+- Performance trend across blocks
+- Training recommendations`;
 
     case 'simon':
       return `${basePrompt}
 
-This is data from a Simon Task measuring stimulus-response compatibility effects.
+**Simon Task** - Measures stimulus-response compatibility
 
-Data: ${JSON.stringify(results, null, 2)}
+DATA: ${JSON.stringify(results, null, 2)}
 
-Please provide a comprehensive analysis including:
+Provide:
+## Performance Summary
+Simon effect size, compatibility conditions, accuracy
 
-<h2>1. Compatibility Effect Analysis</h2>
-- Average RT for compatible trials (word position matches word meaning)
-- Average RT for incompatible trials (word position mismatches meaning)
-- Calculate the Simon effect (incompatible RT - compatible RT)
+## Statistics Table
+| Condition | Avg RT (ms) | Accuracy | Effect |
+|-----------|-------------|----------|--------|
+| Compatible | X | X% | - |
+| Incompatible | X | X% | Xms |
 
-<h2>2. Accuracy Analysis</h2>
-- Overall accuracy rate
-- Accuracy for compatible vs incompatible trials
-- Spatial bias (left vs right errors)
-
-<h2>3. Statistical Summary</h2>
-Create a table comparing:
-- Compatible vs incompatible performance
-- Training vs main task differences
-- Left vs right stimulus/response patterns
-
-<h2>4. Cognitive Interpretation</h2>
-- Assess automatic spatial processing (typical Simon effect: 20-40ms)
-- Evaluate spatial attention control
-- Discuss stimulus-response compatibility mechanisms
-
-<h2>5. Research and Clinical Relevance</h2>
-- Compare to established norms
-- Implications for aging and neurological conditions
-- Practical applications in interface design`;
+## Key Insights
+- Spatial interference control (Typical: 20-40ms)
+- Automatic processing efficiency
+- Practical applications`;
 
     case 'digitspan':
       return `${basePrompt}
 
-This is data from a Digit Span Task measuring short-term memory capacity.
+**Digit Span** - Measures short-term memory capacity
 
-Data: ${JSON.stringify(results, null, 2)}
+DATA: ${JSON.stringify(results, null, 2)}
 
-Please provide a comprehensive analysis including:
+Provide:
+## Performance Summary
+Maximum span achieved, trials completed, success patterns
 
-<h2>1. Memory Span Results</h2>
-- Maximum digit span achieved
-- Number of trials completed
-- Progression through span lengths
-- Final vs best performance
+## Statistics Table
+| Span Length | Attempts | Success Rate | Rating |
+|-------------|----------|--------------|--------|
+| 3-4 | X | X% | Below Average |
+| 5-6 | X | X% | Average |
+| 7-8 | X | X% | Good |
+| 9+ | X | X% | Excellent |
 
-<h2>2. Performance Pattern Analysis</h2>
-- Success rate at each span length
-- Learning effects across trials
-- Consistency of recall
-
-<h2>3. Detailed Breakdown</h2>
-Create a table showing:
-- Span length attempted
-- Trials at each length
-- Success rate per length
-- Common error patterns
-
-<h2>4. Cognitive Interpretation</h2>
-- Assess memory capacity (excellent: 8-9 digits, good: 7 digits, average: 5-6, below average: <5)
-- Compare to Miller's "magical number 7±2"
-- Evaluate sequential processing ability
-
-<h2>5. Clinical and Practical Implications</h2>
-- Compare to age-appropriate norms
-- Relevance for learning and cognitive function
-- Strategies for memory improvement
-- Implications for daily functioning`;
+## Key Insights
+- Memory capacity vs norm (7±2 digits)
+- Recall strategy effectiveness
+- Memory improvement tips`;
 
     case 'visualsearch':
       return `${basePrompt}
 
-This is data from a Visual Search Task measuring attentional processing.
+**Visual Search** - Measures attentional processing efficiency
 
-Data: ${JSON.stringify(results, null, 2)}
+DATA: ${JSON.stringify(results, null, 2)}
 
-Please provide a comprehensive analysis including:
+Provide:
+## Performance Summary
+Search slope (ms/item), accuracy, target detection rate
 
-<h2>1. Search Efficiency Analysis</h2>
-- Average RT by set size (5, 10, 15, 20 items)
-- Calculate search slope (ms per item)
-- Target present vs absent RT comparison
+## Statistics Table
+| Set Size | Avg RT (ms) | Accuracy | Slope |
+|----------|-------------|----------|-------|
+| 5 items | X | X% | - |
+| 10 items | X | X% | Xms/item |
+| 15 items | X | X% | Xms/item |
+| 20 items | X | X% | Xms/item |
 
-<h2>2. Accuracy Analysis</h2>
-- Overall detection accuracy
-- False alarm rate (responding when target absent)
-- Miss rate (not responding when target present)
-- Performance by set size
-
-<h2>3. Statistical Summary</h2>
-Create a table showing:
-- RT and accuracy for each set size
-- Search slope calculation
-- Target detection sensitivity (d-prime)
-
-<h2>4. Attentional Interpretation</h2>
-- Assess search efficiency (efficient: <10ms/item, inefficient: >20ms/item)
-- Evaluate parallel vs serial processing
-- Discuss feature integration theory implications
-
-<h2>5. Research Applications</h2>
-- Compare to conjunction search norms
-- Relevance for real-world visual tasks
-- Training implications for attention
-- Age and expertise effects`;
+## Key Insights
+- Search efficiency (Efficient: <10ms/item, Inefficient: >20ms/item)
+- Parallel vs serial processing
+- Real-world attention implications`;
 
     default:
       return `${basePrompt}\n\nData: ${JSON.stringify(results, null, 2)}\n\nProvide a comprehensive analysis of this experimental data.`;

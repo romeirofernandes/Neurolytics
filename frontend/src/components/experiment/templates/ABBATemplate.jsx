@@ -16,7 +16,7 @@ export const ABBATemplate = ({ onComplete }) => {
   }, [currentTrial]);
 
   const startTrial = () => {
-    if (currentTrial >= 100) {
+    if (currentTrial >= 40) { // Reduced from 100 to 40
       onComplete?.(results);
       return;
     }
@@ -74,7 +74,7 @@ export const ABBATemplate = ({ onComplete }) => {
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
         <CardTitle>ABBA Task</CardTitle>
-        <CardDescription>Trial {currentTrial + 1} of 100</CardDescription>
+        <CardDescription>Trial {currentTrial + 1} of 40</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="text-center text-sm text-muted-foreground">

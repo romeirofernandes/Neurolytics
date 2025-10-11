@@ -12,7 +12,7 @@ export const VisualSearchTemplate = ({ onComplete }) => {
   const [feedback, setFeedback] = useState('');
   const [isTraining, setIsTraining] = useState(true);
 
-  const totalTrials = 50;
+  const totalTrials = 20; // Reduced from 50 to 20
   const setSizes = [5, 10, 15, 20];
   
   // Target: Upright orange T
@@ -39,7 +39,7 @@ export const VisualSearchTemplate = ({ onComplete }) => {
   }, [phase, startTime]);
 
   const startTrial = () => {
-    if (currentTrial >= (isTraining ? 5 : totalTrials)) {
+    if (currentTrial >= (isTraining ? 3 : totalTrials)) { // Reduced training from 5 to 3
       if (isTraining) {
         setIsTraining(false);
         setCurrentTrial(0);
@@ -156,7 +156,7 @@ export const VisualSearchTemplate = ({ onComplete }) => {
         <CardTitle>Visual Search Task</CardTitle>
         <CardDescription>
           {isTraining 
-            ? `Training Trial ${currentTrial + 1} of 5` 
+            ? `Training Trial ${currentTrial + 1} of 3` 
             : `Trial ${currentTrial + 1} of ${totalTrials}`}
         </CardDescription>
       </CardHeader>

@@ -55,11 +55,11 @@ export const StroopTemplate = ({ onComplete }) => {
     setResults([...results, result]);
 
     const nextTrial = currentTrial + 1;
-    if (isTraining && nextTrial >= 10) {
+    if (isTraining && nextTrial >= 5) { // Reduced from 10 to 5
       setIsTraining(false);
       setCurrentTrial(0);
       generateTrial();
-    } else if (!isTraining && nextTrial >= 40) {
+    } else if (!isTraining && nextTrial >= 20) { // Reduced from 40 to 20
       onComplete?.(results);
     } else {
       setCurrentTrial(nextTrial);
@@ -72,7 +72,7 @@ export const StroopTemplate = ({ onComplete }) => {
       <CardHeader>
         <CardTitle>Stroop Task</CardTitle>
         <CardDescription>
-          {isTraining ? 'Training Mode' : `Trial ${currentTrial + 1} of 40`}
+          {isTraining ? 'Training Mode' : `Trial ${currentTrial + 1} of 20`}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">

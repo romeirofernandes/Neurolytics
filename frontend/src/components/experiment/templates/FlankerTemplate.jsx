@@ -34,7 +34,7 @@ export const FlankerTemplate = ({ onComplete }) => {
   }, [phase, stimulus, startTime]);
 
   const startTrial = () => {
-    const totalTrials = isTraining ? 10 : 50;
+    const totalTrials = isTraining ? 5 : 20; // Reduced from 10/50 to 5/20
     if (currentTrial >= totalTrials) {
       if (isTraining) {
         setIsTraining(false);
@@ -142,8 +142,8 @@ export const FlankerTemplate = ({ onComplete }) => {
         <CardTitle>Flanker Task (Eriksen)</CardTitle>
         <CardDescription>
           {isTraining 
-            ? `Training Trial ${currentTrial + 1} of 10` 
-            : `Trial ${currentTrial + 1} of 50`}
+            ? `Training Trial ${currentTrial + 1} of 5` 
+            : `Trial ${currentTrial + 1} of 20`}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">

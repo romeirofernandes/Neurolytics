@@ -15,8 +15,8 @@ export const NBackTemplate = ({ onComplete }) => {
   const [blockStats, setBlockStats] = useState({ hits: 0, misses: 0, falseAlarms: 0, correctRejections: 0 });
 
   const letters = ['A', 'B', 'C', 'D', 'E', 'H', 'I', 'K', 'L', 'M', 'O', 'P', 'R', 'S', 'T'];
-  const trialsPerBlock = 25;
-  const totalBlocks = 3;
+  const trialsPerBlock = 15; // Reduced from 25 to 15
+  const totalBlocks = 2; // Reduced from 3 to 2 blocks
   const nBack = 2; // 2-back task
 
   useEffect(() => {
