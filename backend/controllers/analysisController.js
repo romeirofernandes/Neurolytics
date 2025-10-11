@@ -40,17 +40,7 @@ const analyzeExperiment = async (req, res) => {
 };
 
 function generatePromptForTemplate(templateId, results) {
-  const basePrompt = `You are a cognitive psychology expert. Analyze this experimental data concisely and professionally.
-
-FORMAT RULES (CRITICAL):
-- Use ## for main headings
-- Use **bold** for metrics and key terms
-- Use markdown tables with | separators
-- Use bullet points with -
-- Keep it concise but informative
-- NO HTML tags, ONLY markdown
-
-Structure: Brief intro → Key metrics table → Performance rating → 2-3 actionable insights`;
+  const basePrompt = `Analyze the following experimental data and provide insights in a clear, structured format.`;
 
   switch (templateId) {
     case 'bart':
@@ -303,6 +293,30 @@ Search slope (ms/item), accuracy, target detection rate
 - Search efficiency (Efficient: <10ms/item, Inefficient: >20ms/item)
 - Parallel vs serial processing
 - Real-world attention implications`;
+
+    case 'voice-crt':
+      return `${basePrompt}
+
+**Voice-Based Cognitive Reflection Test** - Measures analytical vs intuitive thinking
+
+DATA: ${JSON.stringify(results, null, 2)}
+
+Provide:
+## Performance Summary
+Calculate: Accuracy (correct answers), average response time, response quality
+
+## Statistics Table
+| Question | Your Answer | Correct | Time (ms) | Confidence |
+|----------|-------------|---------|-----------|------------|
+| Q1 (Bat-Ball) | X | ✓/✗ | Xms | X% |
+| Q2 (Machines) | X | ✓/✗ | Xms | X% |
+| Q3 (Lotus) | X | ✓/✗ | Xms | X% |
+
+## Key Insights
+- Cognitive reflection level (Analytical/Intuitive/Mixed)
+- Response time pattern (Fast intuitive vs slow deliberate)
+- Speech clarity and confidence analysis
+- Recommendations for cognitive training`;
 
     default:
       return `${basePrompt}\n\nData: ${JSON.stringify(results, null, 2)}\n\nProvide a comprehensive analysis of this experimental data.`;

@@ -9,6 +9,7 @@ const experimentRoutes = require('./routes/experimentRoutes');
 const researcherRoutes = require('./routes/researcherRoutes');
 const analysisRoutes = require('./routes/analysisRoutes');
 const emotionsRoutes = require('./routes/emotionsRoutes');
+const voiceResponsesRoutes = require('./routes/voiceResponses'); // Changed from import to require
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use('/api/consent-forms', consentFormRoutes);
 app.use('/api/experiments', experimentRoutes);
 app.use('/api/analysis', analysisRoutes);
 app.use('/api/emotions', emotionsRoutes);
+app.use('/api/voice-responses', voiceResponsesRoutes);
 
 // Health check
 app.get('/', (req, res) => {
