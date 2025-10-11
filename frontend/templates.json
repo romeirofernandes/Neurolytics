@@ -1,0 +1,337 @@
+[
+  {
+    "id": "stroop-emotion",
+    "name": "Stroop + Emotions",
+    "fullName": "Stroop Task with Emotion Tracking",
+    "shortDescription": "Measures selective attention and cognitive control while tracking facial emotions",
+    "detailedDescription": "The Stroop Task with Emotion Tracking combines the classic Stroop color-word interference task with cutting-edge real-time facial emotion recognition technology. This innovative experiment allows researchers to track how emotional states change during cognitive conflict and processing challenges.\n\nThe traditional Stroop effect demonstrates the interference that occurs when the meaning of a word (e.g., \"RED\") conflicts with the color in which it is displayed (e.g., blue). This experiment extends that paradigm by continuously monitoring participants' facial expressions throughout the task, providing insights into the emotional responses triggered by cognitive conflict.\n\n**Research Applications:**\n- Understanding emotion-cognition interactions\n- Studying stress responses during cognitive tasks\n- Clinical research in anxiety and mood disorders\n- Individual differences in emotional regulation\n\n**Technical Features:**\n- Real-time facial emotion detection using face-api.js\n- High-precision reaction time measurement\n- Comprehensive data export including emotion timeseries\n- Training trials with performance feedback",
+    "duration": "~8 minutes",
+    "trials": "50 trials (10 training, 40 test)",
+    "difficulty": "Advanced",
+    "category": "Cognitive Control",
+    "measures": [
+      "Selective attention",
+      "Cognitive control",
+      "Emotional responses",
+      "Stroop effect",
+      "Affect during conflict",
+      "Reaction time variability"
+    ],
+    "icon": "Camera",
+    "color": "from-indigo-500 to-purple-500",
+    "requiresCamera": true,
+    "keywords": ["stroop", "emotion", "facial recognition", "cognitive control", "attention", "interference"],
+    "researchAreas": ["Cognitive Psychology", "Affective Neuroscience", "Clinical Psychology"],
+    "publications": [
+      "MacLeod, C. M. (1991). Half a century of research on the Stroop effect",
+      "Ekman, P., & Friesen, W. V. (1978). Facial Action Coding System"
+    ]
+  },
+  {
+    "id": "bart",
+    "name": "BART",
+    "fullName": "Balloon Analogue Risk Task",
+    "shortDescription": "Measures risk-taking behavior and decision-making under uncertainty",
+    "detailedDescription": "The Balloon Analogue Risk Task (BART) is a widely-used behavioral measure of risk-taking propensity developed by Lejuez et al. (2002). In this computerized task, participants are presented with a series of virtual balloons that they can inflate by pressing a button.\n\nEach pump temporarily inflates the balloon and adds money to a temporary bank. At any point, participants can stop pumping and collect their earnings, transferring money from the temporary to the permanent bank. However, each balloon has an explosion point - if participants pump too much, the balloon explodes and they lose all money in the temporary bank for that trial.\n\n**Why BART is Important:**\nThe BART has excellent ecological validity and correlates with real-world risk behaviors including substance use, gambling, unsafe sexual practices, and delinquency. Unlike traditional questionnaire measures of risk-taking, BART involves actual behavior with tangible consequences, making it a superior predictor of real-world risk behaviors.\n\n**Clinical Applications:**\n- Addiction research and treatment evaluation\n- Impulse control disorder assessment\n- Adolescent risk behavior prediction\n- Decision-making in psychiatric populations\n\n**Key Metrics:**\n- Average pumps per balloon (risk-taking propensity)\n- Total money earned (risk-reward optimization)\n- Explosion frequency (risk calibration)\n- Pump variability (consistency of risk strategy)",
+    "duration": "~2 minutes",
+    "trials": "33 trials (3 training)",
+    "difficulty": "Beginner",
+    "category": "Decision Making",
+    "measures": [
+      "Risk-taking propensity",
+      "Reward sensitivity",
+      "Decision-making strategy",
+      "Loss aversion",
+      "Behavioral inhibition"
+    ],
+    "icon": "Brain",
+    "color": "from-blue-500 to-cyan-500",
+    "requiresCamera": false,
+    "keywords": ["risk", "decision-making", "reward", "gambling", "impulse control"],
+    "researchAreas": ["Behavioral Economics", "Clinical Psychology", "Addiction Research"],
+    "publications": [
+      "Lejuez, C. W., et al. (2002). Evaluation of a behavioral measure of risk taking",
+      "Hunt, M. K., et al. (2005). Construct validity of the BART"
+    ]
+  },
+  {
+    "id": "stroop",
+    "name": "Stroop Task",
+    "fullName": "Stroop Color-Word Task",
+    "shortDescription": "Measures selective attention, processing speed, and cognitive control",
+    "detailedDescription": "The Stroop Color-Word Task is one of the most famous and widely-used paradigms in experimental psychology, first introduced by John Ridley Stroop in 1935. This elegant task demonstrates the automaticity of reading and the cognitive effort required to inhibit prepotent responses.\n\nParticipants are shown color words (e.g., RED, BLUE, GREEN) displayed in various ink colors. In congruent trials, the word matches its color (e.g., RED in red ink), while in incongruent trials they mismatch (e.g., RED in blue ink). The robust finding is that people are significantly slower and more error-prone on incongruent trials - the famous Stroop effect.\n\n**Why It Matters:**\nThe Stroop task is a gold-standard measure of executive function and cognitive control. It reveals fundamental aspects of how our brains process information automatically versus deliberately, making it invaluable across multiple domains of psychological research.\n\n**Clinical Significance:**\n- Diagnostic tool for ADHD, dementia, and brain injury\n- Measure of treatment efficacy in cognitive interventions\n- Predictor of academic and occupational performance\n- Marker of cognitive aging and decline\n\n**What We Learn:**\n- Executive function capacity\n- Ability to suppress automatic responses\n- Processing speed and efficiency\n- Individual differences in cognitive control\n- Effects of practice and fatigue on performance",
+    "duration": "~1-2 minutes",
+    "trials": "20 trials (5 training)",
+    "difficulty": "Beginner",
+    "category": "Cognitive Control",
+    "measures": [
+      "Selective attention",
+      "Response inhibition",
+      "Processing speed",
+      "Stroop effect magnitude",
+      "Error rate",
+      "Cognitive interference"
+    ],
+    "icon": "Target",
+    "color": "from-purple-500 to-pink-500",
+    "requiresCamera": false,
+    "keywords": ["stroop", "attention", "cognitive control", "interference", "executive function"],
+    "researchAreas": ["Cognitive Psychology", "Neuropsychology", "Clinical Psychology"],
+    "publications": [
+      "Stroop, J. R. (1935). Studies of interference in serial verbal reactions",
+      "MacLeod, C. M. (1991). Half a century of research on the Stroop effect"
+    ]
+  },
+  {
+    "id": "flanker",
+    "name": "Flanker Task",
+    "fullName": "Eriksen Flanker Task",
+    "shortDescription": "Measures selective attention and response inhibition",
+    "detailedDescription": "The Eriksen Flanker Task, developed by Barbara and Charles Eriksen in 1974, is a fundamental paradigm for studying selective attention and cognitive control. Participants must respond to a central target stimulus while ignoring surrounding 'flanker' stimuli that can be either compatible or incompatible with the target.\n\nIn a typical trial, participants see a row of letters (e.g., HHHHH or SSHSS) and must respond only to the central letter. When flankers are compatible (same as target), responses are fast and accurate. When flankers are incompatible (different from target), responses slow down and errors increase - this is the flanker effect.\n\n**Cognitive Mechanisms:**\nThe flanker task isolates the ability to focus attention on relevant information while filtering out irrelevant distractors. It measures both spatial attention (focusing on the center) and response conflict resolution (when flankers activate competing responses).\n\n**Research Applications:**\n- Developmental studies of attention (children to elderly)\n- Clinical assessment of attention deficits\n- Neuroimaging studies of cognitive control networks\n- Individual differences in distractibility\n- Effects of training and expertise\n\n**What Makes It Powerful:**\n- Simple, easy to understand and perform\n- Robust effect that replicates consistently\n- Suitable for all age groups\n- Sensitive to individual and group differences\n- Well-understood neural substrates (ACC activation)",
+    "duration": "~1-2 minutes",
+    "trials": "20 trials (5 training)",
+    "difficulty": "Beginner",
+    "category": "Attention",
+    "measures": [
+      "Selective attention",
+      "Cognitive control",
+      "Interference suppression",
+      "Flanker effect",
+      "Response conflict resolution",
+      "Spatial attention"
+    ],
+    "icon": "Filter",
+    "color": "from-orange-500 to-red-500",
+    "requiresCamera": false,
+    "keywords": ["flanker", "attention", "interference", "cognitive control", "selective attention"],
+    "researchAreas": ["Cognitive Psychology", "Developmental Psychology", "Neuroscience"],
+    "publications": [
+      "Eriksen, B. A., & Eriksen, C. W. (1974). Effects of noise letters",
+      "Botvinick, M. M., et al. (2001). Conflict monitoring and cognitive control"
+    ]
+  },
+  {
+    "id": "posner",
+    "name": "Posner Cueing",
+    "fullName": "Posner Spatial Cueing Task",
+    "shortDescription": "Assesses spatial attention orienting and visual processing",
+    "detailedDescription": "The Posner Spatial Cueing Task, developed by Michael Posner in 1980, is the cornerstone paradigm for understanding how we orient our attention in space. This elegant experiment reveals the cognitive processes involved in shifting attention, whether overtly (moving eyes) or covertly (without eye movements).\n\n**How It Works:**\nParticipants fixate on a central point while peripheral boxes appear on the left and right. One box briefly brightens (the cue), then a target appears in either the cued location (valid trial) or the opposite location (invalid trial). Participants must detect and respond to the target as quickly as possible.\n\n**The Key Finding:**\nResponses are faster when the target appears at the cued location (valid trials) compared to the uncued location (invalid trials), even though the cue doesn't predict target location. This demonstrates that attention can be shifted to a location before any eye movement occurs.\n\n**Three Components of Attention:**\nPosner identified three separable attention networks:\n1. **Alerting**: Achieving and maintaining a state of readiness\n2. **Orienting**: Selecting information from sensory input\n3. **Executive Control**: Resolving conflict among responses\n\n**Clinical Importance:**\n- Early detection of attention deficits\n- Assessment of brain injury effects\n- Understanding developmental disorders (ADHD, autism)\n- Tracking cognitive aging and dementia progression\n- Measuring rehabilitation effectiveness",
+    "duration": "~2 minutes",
+    "trials": "40 trials",
+    "difficulty": "Intermediate",
+    "category": "Attention",
+    "measures": [
+      "Spatial attention",
+      "Cueing effects",
+      "Attentional orienting",
+      "Response time benefits",
+      "Validity effect",
+      "Alerting effect"
+    ],
+    "icon": "Zap",
+    "color": "from-yellow-500 to-orange-500",
+    "requiresCamera": false,
+    "keywords": ["posner", "attention", "cueing", "spatial attention", "orienting"],
+    "researchAreas": ["Cognitive Neuroscience", "Attention Research", "Clinical Neuropsychology"],
+    "publications": [
+      "Posner, M. I. (1980). Orienting of attention",
+      "Posner, M. I., & Petersen, S. E. (1990). The attention system of the human brain"
+    ]
+  },
+  {
+    "id": "simon",
+    "name": "Simon Task",
+    "fullName": "Simon Stimulus-Response Compatibility Task",
+    "shortDescription": "Measures stimulus-response compatibility and spatial attention",
+    "detailedDescription": "The Simon Task, introduced by J. Richard Simon and colleagues in 1967, demonstrates a fascinating phenomenon: even when spatial location is completely irrelevant to the task, it still affects our responses. This reveals fundamental aspects of how our brains automatically process spatial information.\n\n**The Paradigm:**\nParticipants see stimuli (e.g., words or colors) appear on the left or right side of the screen and must respond based on a non-spatial feature (e.g., the meaning or color). For instance, respond with the left key to the word \"LEFT\" and the right key to \"RIGHT,\" regardless of where the word appears.\n\n**The Simon Effect:**\nEven though location is irrelevant, responses are faster when the stimulus location matches the response location (compatible trials: word \"LEFT\" on left side) compared to when they mismatch (incompatible trials: word \"LEFT\" on right side). This interference effect reveals automatic spatial processing.\n\n**Theoretical Importance:**\n- Demonstrates automatic activation of spatial codes\n- Reveals parallel processing of relevant and irrelevant information\n- Shows the cost of inhibiting automatically activated responses\n- Illuminates stimulus-response translation processes\n\n**Research Applications:**\n- Aging studies (Simon effect increases with age)\n- Clinical assessment (enhanced effect in ADHD, Parkinson's)\n- Action control and response selection research\n- Individual differences in cognitive flexibility\n- Cross-modal attention and integration studies",
+    "duration": "~1-2 minutes",
+    "trials": "24 trials (5 training)",
+    "difficulty": "Beginner",
+    "category": "Response Selection",
+    "measures": [
+      "S-R compatibility",
+      "Spatial interference",
+      "Automatic processing",
+      "Simon effect",
+      "Response conflict",
+      "Inhibitory control"
+    ],
+    "icon": "Move",
+    "color": "from-teal-500 to-cyan-500",
+    "requiresCamera": false,
+    "keywords": ["simon", "compatibility", "spatial", "interference", "automatic processing"],
+    "researchAreas": ["Cognitive Psychology", "Neuropsychology", "Human Factors"],
+    "publications": [
+      "Simon, J. R., & Rudell, A. P. (1967). Auditory S-R compatibility",
+      "Lu, C. H., & Proctor, R. W. (1995). The influence of irrelevant location information"
+    ]
+  },
+  {
+    "id": "gonogo",
+    "name": "Go/No-Go",
+    "fullName": "Go/No-Go Inhibition Task",
+    "shortDescription": "Measures response inhibition and impulse control",
+    "detailedDescription": "The Go/No-Go Task is a fundamental paradigm for measuring response inhibition - the ability to suppress inappropriate or unwanted actions. This simple yet powerful task reveals core aspects of executive function and self-control.\n\n**Task Structure:**\nParticipants are presented with a rapid sequence of stimuli and must respond quickly to frequent 'Go' signals (typically 70-80% of trials) while withholding responses to infrequent 'No-Go' signals. The prepotent tendency to respond must be overcome on No-Go trials, requiring active inhibition.\n\n**What It Measures:**\nThe task assesses two key aspects of cognitive control:\n1. **Commission Errors**: Responding on No-Go trials (failure to inhibit)\n2. **Omission Errors**: Not responding on Go trials (lapses of attention)\n3. **Response Time**: Speed of correct Go responses\n\n**Why It Matters:**\nResponse inhibition is a core executive function that underlies self-control in daily life. Deficits are associated with numerous clinical conditions including ADHD, addiction, OCD, and impulse control disorders.\n\n**Clinical Applications:**\n- ADHD diagnosis and treatment monitoring\n- Addiction research and relapse prediction\n- Impulse control disorder assessment\n- Developmental studies of self-control\n- Neuroimaging studies of inhibitory control networks\n\n**Neural Substrates:**\nThe task reliably activates the right inferior frontal gyrus (rIFG) and pre-supplementary motor area (pre-SMA), key nodes in the brain's inhibitory control network.",
+    "duration": "~1-2 minutes",
+    "trials": "30 trials",
+    "difficulty": "Beginner",
+    "category": "Executive Function",
+    "measures": [
+      "Response inhibition",
+      "Impulse control",
+      "Commission errors",
+      "Reaction time",
+      "Sustained attention",
+      "Motor control"
+    ],
+    "icon": "Hand",
+    "color": "from-rose-500 to-pink-500",
+    "requiresCamera": false,
+    "keywords": ["go no-go", "inhibition", "impulse control", "executive function", "self-control"],
+    "researchAreas": ["Clinical Neuropsychology", "Developmental Psychology", "Cognitive Neuroscience"],
+    "publications": [
+      "Donders, F. C. (1969). On the speed of mental processes",
+      "Simmonds, D. J., et al. (2008). Meta-analysis of Go/No-go tasks"
+    ]
+  },
+  {
+    "id": "nback",
+    "name": "N-Back (2-Back)",
+    "fullName": "2-Back Working Memory Task",
+    "shortDescription": "Measures working memory capacity and updating",
+    "detailedDescription": "The N-Back Task is one of the most widely-used paradigms for assessing working memory - our ability to temporarily hold and manipulate information. The task requires continuous updating of memory, making it an excellent measure of dynamic cognitive processing.\n\n**How It Works:**\nParticipants view a sequence of stimuli (letters, numbers, or shapes) presented one at a time. In the 2-back version, they must respond whenever the current stimulus matches the one shown TWO positions back in the sequence. For example, in the sequence A-B-A-C, participants should respond to the third item (A) because it matches the first item.\n\n**Cognitive Demands:**\nSuccessful performance requires:\n- Continuous encoding of new information\n- Maintenance of recent items in memory\n- Updating memory by replacing old items with new ones\n- Monitoring for matches\n- Response selection and execution\n\n**Why It's Important:**\nWorking memory is fundamental to virtually all complex cognition, including reasoning, learning, and comprehension. N-back performance correlates with fluid intelligence and academic achievement.\n\n**Research Applications:**\n- Cognitive training and brain plasticity studies\n- Individual differences in intelligence\n- Aging and cognitive decline research\n- Neuropsychiatric disorder assessment (schizophrenia, depression)\n- Neuroimaging studies of working memory networks\n\n**Neural Basis:**\nThe task reliably activates a frontoparietal network including dorsolateral prefrontal cortex (DLPFC) and posterior parietal cortex - the core working memory system.",
+    "duration": "~1-2 minutes",
+    "trials": "30 trials (2 blocks)",
+    "difficulty": "Intermediate",
+    "category": "Working Memory",
+    "measures": [
+      "Working memory",
+      "Updating ability",
+      "Sustained attention",
+      "Executive function",
+      "Accuracy",
+      "Response speed"
+    ],
+    "icon": "RefreshCw",
+    "color": "from-violet-500 to-purple-500",
+    "requiresCamera": false,
+    "keywords": ["n-back", "working memory", "memory", "updating", "executive function"],
+    "researchAreas": ["Cognitive Psychology", "Intelligence Research", "Cognitive Neuroscience"],
+    "publications": [
+      "Kirchner, W. K. (1958). Age differences in short-term retention",
+      "Jaeggi, S. M., et al. (2008). Improving fluid intelligence with training"
+    ]
+  },
+  {
+    "id": "digitspan",
+    "name": "Digit Span",
+    "fullName": "Digit Span Memory Test",
+    "shortDescription": "Measures short-term memory capacity",
+    "detailedDescription": "The Digit Span Test is one of the oldest and most well-established measures of short-term memory capacity, dating back to the early days of intelligence testing. It provides a simple yet reliable assessment of how much information we can hold in immediate memory.\n\n**Test Procedure:**\nParticipants are presented with sequences of digits (e.g., 3-7-5-2) and must immediately recall them in the correct order. The sequence length starts small (typically 3-4 digits) and increases progressively. Testing continues until the participant fails to correctly recall two consecutive sequences of the same length.\n\n**The Magic Number 7:**\nGeorge Miller's famous 1956 paper \"The Magical Number Seven, Plus or Minus Two\" established that human short-term memory capacity averages around 7 items (ranging from 5 to 9). The Digit Span Test directly measures this fundamental cognitive limit.\n\n**Variants:**\n- **Forward Span**: Recall digits in presented order (basic short-term memory)\n- **Backward Span**: Recall digits in reverse order (working memory and manipulation)\n\n**Clinical Significance:**\nDigit Span is a core subtest in many intelligence scales (WAIS, WISC) and neuropsychological batteries. It's sensitive to:\n- Attention and concentration problems\n- Anxiety effects on performance\n- Memory disorders and dementia\n- Learning disabilities\n- Effects of aging on cognitive capacity\n\n**What Influences Performance:**\n- Age (peaks in early adulthood)\n- Education level\n- Test anxiety\n- Language proficiency\n- Cognitive load and distraction",
+    "duration": "~1-2 minutes",
+    "trials": "Adaptive (until 2 errors)",
+    "difficulty": "Beginner",
+    "category": "Memory",
+    "measures": [
+      "Short-term memory",
+      "Memory span",
+      "Recall accuracy",
+      "Sequential processing",
+      "Attention capacity",
+      "Auditory processing"
+    ],
+    "icon": "Hash",
+    "color": "from-emerald-500 to-green-500",
+    "requiresCamera": false,
+    "keywords": ["digit span", "memory", "short-term memory", "recall", "memory capacity"],
+    "researchAreas": ["Cognitive Psychology", "Clinical Neuropsychology", "Intelligence Testing"],
+    "publications": [
+      "Miller, G. A. (1956). The magical number seven, plus or minus two",
+      "Wechsler, D. (2008). Wechsler Adult Intelligence Scale"
+    ]
+  },
+  {
+    "id": "visualsearch",
+    "name": "Visual Search",
+    "fullName": "Conjunction Visual Search Task",
+    "shortDescription": "Measures visual attention and search efficiency",
+    "detailedDescription": "The Visual Search Task is a fundamental paradigm for understanding how we find objects in cluttered visual environments. Based on Feature Integration Theory (Treisman & Gelade, 1980), this task reveals the mechanisms of visual attention and the distinction between parallel and serial processing.\n\n**Task Design:**\nParticipants search for a target among distractors. In this conjunction search version, the target is defined by a combination of features (e.g., an orange upright T) among distractors sharing one feature (orange rotated Ts and blue upright Ts). This requires binding features together, demanding focused attention.\n\n**Search Types:**\n- **Feature Search**: Target differs by single feature (parallel, fast, 'pop-out')\n- **Conjunction Search**: Target requires combining features (serial, slow, effortful)\n\n**Set Size Effects:**\nIn conjunction searches, reaction time increases linearly with the number of distractors (set size), suggesting serial item-by-item examination. The slope of this function (RT increase per item) reveals search efficiency.\n\n**Theoretical Importance:**\nVisual search tasks test fundamental theories about:\n- Pre-attentive vs attentive processing\n- Feature binding and integration\n- Capacity limits of attention\n- Top-down vs bottom-up control\n- Visual working memory\n\n**Applications:**\n- Understanding visual expertise (radiology, security screening)\n- Aging effects on visual attention\n- Developmental changes in attention\n- Individual differences in attention capacity\n- Neuropsychological assessment",
+    "duration": "~1-2 minutes",
+    "trials": "20 trials (3 training)",
+    "difficulty": "Intermediate",
+    "category": "Attention",
+    "measures": [
+      "Visual attention",
+      "Search slopes",
+      "Feature integration",
+      "Processing efficiency",
+      "Set size effects",
+      "Search accuracy"
+    ],
+    "icon": "Search",
+    "color": "from-indigo-500 to-blue-500",
+    "requiresCamera": false,
+    "keywords": ["visual search", "attention", "perception", "feature integration", "conjunction"],
+    "researchAreas": ["Cognitive Psychology", "Vision Science", "Human Factors"],
+    "publications": [
+      "Treisman, A. M., & Gelade, G. (1980). A feature-integration theory",
+      "Wolfe, J. M. (1994). Guided Search 2.0"
+    ]
+  },
+  {
+    "id": "abba",
+    "name": "ABBA Task",
+    "fullName": "Action-Based Backward Activation",
+    "shortDescription": "Examines action planning and response compatibility effects",
+    "detailedDescription": "The ABBA (Action-Based Backward Activation) Task is an innovative paradigm that explores the reversed-compatibility effect, revealing fascinating insights into how we plan and execute actions. This task demonstrates that action planning can create unique cognitive states that affect subsequent responses.\n\n**The Paradigm:**\nParticipants prepare one action (e.g., moving left) but then execute a different action (e.g., responding to a stimulus). The critical finding is that response compatibility effects reverse during action preparation - stimuli that are incompatible with the prepared action are processed faster than compatible stimuli.\n\n**Why This Matters:**\nThe reversed-compatibility effect challenges traditional views of stimulus-response compatibility. It shows that actively planning an action creates a specific cognitive context that affects how we process information, revealing deep connections between action planning and perception.\n\n**Theoretical Implications:**\n- Action planning involves active suppression of competing responses\n- Motor preparation influences perceptual processing\n- Response selection is dynamic and context-dependent\n- Evidence for embodied cognition theories\n\n**Research Applications:**\n- Understanding action control mechanisms\n- Motor planning in neurological disorders\n- Response inhibition and flexibility\n- Cognitive-motor interactions\n- Development of motor control\n\n**What We Learn:**\n- How action plans influence cognition\n- Mechanisms of response inhibition\n- Flexibility in stimulus-response mapping\n- Individual differences in motor-cognitive coupling",
+    "duration": "~2 minutes",
+    "trials": "40 trials",
+    "difficulty": "Advanced",
+    "category": "Motor Control",
+    "measures": [
+      "Action planning",
+      "Response compatibility",
+      "Motor control",
+      "Cognitive flexibility",
+      "Response inhibition",
+      "Reversed compatibility effect"
+    ],
+    "icon": "Layers",
+    "color": "from-green-500 to-emerald-500",
+    "requiresCamera": false,
+    "keywords": ["ABBA", "action planning", "motor control", "compatibility", "response selection"],
+    "researchAreas": ["Cognitive Psychology", "Motor Control", "Action Research"],
+    "publications": [
+      "Proctor, R. W., & Vu, K. P. L. (2006). Stimulus-response compatibility principles",
+      "Hommel, B. (2011). The Simon effect as tool and heuristic"
+    ]
+  },
+  {
+    "id": "hanoi",
+    "name": "Tower of Hanoi",
+    "fullName": "Tower of Hanoi Problem-Solving Task",
+    "shortDescription": "Evaluates planning, problem-solving, and executive function",
+    "detailedDescription": "The Tower of Hanoi is a classic problem-solving task that has been used in psychological research for over a century. Invented by French mathematician Édouard Lucas in 1883, it provides a pure measure of planning ability, working memory, and strategic thinking.\n\n**The Challenge:**\nParticipants must move a stack of discs from one peg to another, following two simple rules:\n1. Move only one disc at a time\n2. Never place a larger disc on top of a smaller disc\n\nWith 3 discs, the optimal solution requires 7 moves (2³-1). With 4 discs, 15 moves. The complexity grows exponentially.\n\n**Cognitive Processes Involved:**\n- **Planning**: Thinking ahead multiple moves\n- **Working Memory**: Keeping track of disc positions and goals\n- **Problem Decomposition**: Breaking the problem into subgoals\n- **Hierarchical Thinking**: Understanding nested goal structures\n- **Mental Simulation**: Imagining consequences of actions\n\n**Why It's Powerful:**\nThe Tower of Hanoi is a perfect isomorph of many real-world planning problems. Success requires:\n- Understanding recursive structure\n- Resisting impulsive moves toward the goal\n- Recognizing that sometimes you must move away from the goal to eventually achieve it\n\n**Clinical Applications:**\n- Assessment of executive dysfunction\n- Frontal lobe damage evaluation\n- Tracking cognitive development in children\n- Monitoring cognitive decline in dementia\n- Measuring effects of cognitive training\n\n**Individual Differences:**\n- Age: Performance improves through childhood, peaks in young adulthood\n- Education: Correlates with years of schooling\n- Experience: Practice effects are substantial\n- Strategy: Some use perceptual strategy, others recursive algorithm",
+    "duration": "~5 minutes",
+    "trials": "1 puzzle (3 discs)",
+    "difficulty": "Advanced",
+    "category": "Problem Solving",
+    "measures": [
+      "Planning ability",
+      "Problem-solving efficiency",
+      "Working memory",
+      "Strategic thinking",
+      "Number of moves",
+      "Solution time"
+    ],
+    "icon": "Puzzle",
+    "color": "from-red-500 to-rose-500",
+    "requiresCamera": false,
+    "keywords": ["tower of hanoi", "problem solving", "planning", "executive function", "strategy"],
+    "researchAreas": ["Cognitive Psychology", "Neuropsychology", "Developmental Psychology"],
+    "publications": [
+      "Simon, H. A. (1975). The functional equivalence of problem solving skills",
+      "Welsh, M. C., et al. (1991). Towers of Hanoi and London"
+    ]
+  }
+]

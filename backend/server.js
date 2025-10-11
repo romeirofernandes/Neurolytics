@@ -9,6 +9,7 @@ const experimentRoutes = require('./routes/experimentRoutes');
 const researcherRoutes = require('./routes/researcherRoutes');
 const analysisRoutes = require('./routes/analysisRoutes');
 const emotionsRoutes = require('./routes/emotionsRoutes');
+const aiExperimentRoutes = require('./routes/aiExperimentRoutes');
 const voiceResponsesRoutes = require('./routes/voiceResponses'); // Changed from import to require
 
 const app = express();
@@ -19,11 +20,7 @@ app.use(express.json());
 
 // Request logging middleware
 app.use((req, res, next) => {
-  console.log(`\n🌐 ${req.method} ${req.url}`);
-  console.log('Headers:', req.headers);
-  if (req.body && Object.keys(req.body).length > 0) {
-    console.log('Body:', req.body);
-  }
+  console.log(`📨 ${req.method} ${req.path}`);
   next();
 });
 
@@ -35,6 +32,7 @@ app.use('/api/consent-forms', consentFormRoutes);
 app.use('/api/experiments', experimentRoutes);
 app.use('/api/analysis', analysisRoutes);
 app.use('/api/emotions', emotionsRoutes);
+app.use('/api/ai-experiments', aiExperimentRoutes);
 app.use('/api/voice-responses', voiceResponsesRoutes);
 
 // Health check

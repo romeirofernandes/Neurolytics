@@ -42,7 +42,7 @@ const AppSidebar = () => {
 
   const items = [
     { title: "Dashboard", url: "/dashboard", icon: Home },
-    { title: "Experiments", url: "/experiment-builder", icon: FlaskConical },
+    { title: "Experiments", url: "/ai-experiment-builder", icon: FlaskConical },
     { title: "Templates", url: "/templates", icon: BookTemplate },
     { title: "Consent Forms", url: "/consent-form/create", icon: FileText },
     { title: "Profile", url: "/profile", icon: User },
