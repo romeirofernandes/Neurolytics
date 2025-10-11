@@ -18,11 +18,12 @@ import {
   Shield,
   Users,
   Clock,
-  Mail
+  Mail,
+  FlaskConical
 } from 'lucide-react';
 
 const ConsentFormBuilder = () => {
-  const { experimentId } = useParams();
+  const { experimentId: urlExperimentId } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
   
@@ -30,9 +31,12 @@ const ConsentFormBuilder = () => {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [showPreview, setShowPreview] = useState(false);
+  const [existingFormId, setExistingFormId] = useState(null);
+  const [experiments, setExperiments] = useState([]);
+  const [loadingExperiments, setLoadingExperiments] = useState(true);
 
   const [formData, setFormData] = useState({
-    experimentId: experimentId || '',
+    experimentId: urlExperimentId || '',
     researcherId: user?.mongoId || '',
     title: '',
     studyPurpose: '',
@@ -80,28 +84,87 @@ const ConsentFormBuilder = () => {
   });
 
   useEffect(() => {
-    if (experimentId) {
-      loadConsentForm();
+    if (user?.mongoId) {
+      setFormData(prev => ({
+        ...prev,
+        researcherId: user.mongoId,
+        contactInfo: {
+          ...prev.contactInfo,
+          researcherName: user.name || '',
+          researcherEmail: user.email || '',
+        }
+      }));
+      fetchExperiments();
     }
-  }, [experimentId]);
+  }, [user]);
 
-  const loadConsentForm = async () => {
+  useEffect(() => {
+    if (urlExperimentId) {
+      setFormData(prev => ({
+        ...prev,
+        experimentId: urlExperimentId
+      }));
+      loadConsentForm(urlExperimentId);
+    }
+  }, [urlExperimentId]);
+
+  const fetchExperiments = async () => {
+    try {
+      setLoadingExperiments(true);
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/experiments/researcher/${user.mongoId}`
+      );
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setExperiments(data.experiments || []);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching experiments:', error);
+      setMessage({
+        type: 'error',
+        text: 'Failed to load experiments'
+      });
+    } finally {
+      setLoadingExperiments(false);
+    }
+  };
+
+  const loadConsentForm = async (expId) => {
     try {
       setLoading(true);
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/consent-forms/experiment/${experimentId}`
+        `${import.meta.env.VITE_API_URL}/api/consent-forms/experiment/${expId}`
       );
       
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.consentForm) {
           setFormData(data.consentForm);
+          setExistingFormId(data.consentForm._id);
         }
+      } else if (response.status === 404) {
+        console.log('No existing consent form found, creating new one');
       }
     } catch (error) {
       console.error('Error loading consent form:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleExperimentChange = (e) => {
+    const selectedExpId = e.target.value;
+    setFormData(prev => ({
+      ...prev,
+      experimentId: selectedExpId
+    }));
+    
+    // Load existing consent form for this experiment if it exists
+    if (selectedExpId) {
+      loadConsentForm(selectedExpId);
     }
   };
 
@@ -127,30 +190,72 @@ const ConsentFormBuilder = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validation
+    if (!formData.experimentId || formData.experimentId === '') {
+      setMessage({ 
+        type: 'error', 
+        text: 'Please select an experiment for this consent form' 
+      });
+      return;
+    }
+
+    if (!formData.title || formData.title.trim() === '') {
+      setMessage({ 
+        type: 'error', 
+        text: 'Please provide a study title' 
+      });
+      return;
+    }
+
+    if (!formData.researcherId) {
+      setMessage({ 
+        type: 'error', 
+        text: 'Researcher ID is missing. Please log in again.' 
+      });
+      return;
+    }
+
     setSaving(true);
     setMessage({ type: '', text: '' });
 
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/consent-forms`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(formData),
-        }
-      );
+      const url = existingFormId 
+        ? `${import.meta.env.VITE_API_URL}/api/consent-forms/${existingFormId}`
+        : `${import.meta.env.VITE_API_URL}/api/consent-forms`;
+      
+      const method = existingFormId ? 'PUT' : 'POST';
+
+      console.log('Submitting consent form:', {
+        url,
+        method,
+        experimentId: formData.experimentId,
+        researcherId: formData.researcherId,
+        title: formData.title
+      });
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
 
       const data = await response.json();
 
       if (response.ok) {
         setMessage({ 
           type: 'success', 
-          text: 'Consent form saved successfully!' 
+          text: existingFormId ? 'Consent form updated successfully!' : 'Consent form created successfully!' 
         });
+        
+        if (!existingFormId && data.consentForm?._id) {
+          setExistingFormId(data.consentForm._id);
+        }
+
         setTimeout(() => {
-          navigate('/experiments');
+          navigate('/user/dashboard');
         }, 2000);
       } else {
         setMessage({ 
@@ -169,7 +274,7 @@ const ConsentFormBuilder = () => {
     }
   };
 
-  if (loading) {
+  if (loading || loadingExperiments) {
     return (
       <SidebarProvider>
         <AppSidebar />
@@ -177,7 +282,9 @@ const ConsentFormBuilder = () => {
           <div className="flex items-center justify-center h-screen">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-muted-foreground">Loading consent form...</p>
+              <p className="text-muted-foreground">
+                {loadingExperiments ? 'Loading experiments...' : 'Loading consent form...'}
+              </p>
             </div>
           </div>
         </SidebarInset>
@@ -208,7 +315,7 @@ const ConsentFormBuilder = () => {
             </Button>
             <Button
               onClick={handleSubmit}
-              disabled={saving}
+              disabled={saving || !formData.title || !formData.experimentId}
               className="gap-2"
             >
               {saving ? (
@@ -219,7 +326,7 @@ const ConsentFormBuilder = () => {
               ) : (
                 <>
                   <Save className="w-4 h-4" />
-                  Save Consent Form
+                  {existingFormId ? 'Update' : 'Save'} Consent Form
                 </>
               )}
             </Button>
@@ -243,7 +350,48 @@ const ConsentFormBuilder = () => {
               </div>
             )}
 
-            <div className="grid grid-cols-1 gap-6">
+            <div className="grid grid-cols-1 gap-6 ">
+              {/* Experiment Selection Card */}
+              {!urlExperimentId && (
+                <Card className="border-2 border-primary/20 bg-primary/5 mx-2">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <FlaskConical className="w-5 h-5" />
+                      Select Experiment
+                    </CardTitle>
+                    <CardDescription>
+                      Choose the experiment this consent form is for
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <Label htmlFor="experiment-select">
+                        Experiment <span className="text-red-500">*</span>
+                      </Label>
+                      <select
+                        id="experiment-select"
+                        value={formData.experimentId}
+                        onChange={handleExperimentChange}
+                        className="w-full px-3 py-2 border rounded-md bg-background text-foreground"
+                        required
+                      >
+                        <option value="">-- Select an Experiment --</option>
+                        {experiments.map((exp) => (
+                          <option key={exp._id} value={exp._id}>
+                            {exp.title} {exp.status === 'draft' ? '(Draft)' : ''}
+                          </option>
+                        ))}
+                      </select>
+                      {experiments.length === 0 && (
+                        <p className="text-sm text-muted-foreground mt-2">
+                          No experiments found. Please create an experiment first.
+                        </p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Form Builder */}
               <div className="space-y-8 w-full">
                 <div className="flex justify-center">
@@ -798,6 +946,7 @@ const ConsentFormBuilder = () => {
                   </Tabs>
                 </div>
               </div>
+
               {/* Live Preview */}
               {showPreview && (
                 <div className="lg:sticky lg:top-6 h-fit">
