@@ -5,6 +5,7 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../../components/ui/card';
+import { ArrowLeft } from 'lucide-react';
 
 const ParticipantLogin = () => {
   const [id, setId] = useState('');
@@ -61,7 +62,21 @@ const ParticipantLogin = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative">
+      {/* Back to Home Button */}
+      <div className="absolute top-6 left-6">
+        <Button 
+          variant="outline" 
+          asChild
+          className="gap-2 border-border hover:bg-accent hover:text-accent-foreground"
+        >
+          <Link to="/" className="no-underline">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Home
+          </Link>
+        </Button>
+      </div>
+
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">
