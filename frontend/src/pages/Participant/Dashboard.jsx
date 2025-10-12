@@ -28,9 +28,35 @@ import { Alert, AlertDescription } from '../../components/ui/alert';
 import CryptoWallet from '../../components/participant/CryptoWallet';
 
 const ParticipantDashboard = () => {
-  const { participant } = useParticipant();
+  const { participant, updateParticipant } = useParticipant();
   const [activeExperiments, setActiveExperiments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Fetch participant details from API to ensure fresh data
+  useEffect(() => {
+    const fetchParticipantDetails = async () => {
+      if (!participant?.id) return;
+      
+      try {
+        setRefreshing(true);
+        console.log('Fetching participant details for ID:', participant.id);
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/participants/${participant.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Participant data refreshed:', data.participant);
+          // Update context with fresh data
+          updateParticipant(data.participant);
+        }
+      } catch (error) {
+        console.error('Error fetching participant details:', error);
+      } finally {
+        setRefreshing(false);
+      }
+    };
+
+    fetchParticipantDetails();
+  }, [participant?.id]); // Only run when participant ID changes
 
   // Fetch active experiments
   useEffect(() => {
@@ -54,6 +80,20 @@ const ParticipantDashboard = () => {
   }, []);
 
   const participatedCount = participant?.experimentsParticipated?.length || 0;
+
+  // Debug logging
+  useEffect(() => {
+    console.log('=== DASHBOARD DEBUG ===');
+    console.log('Participant:', participant);
+    console.log('Participant ID:', participant?.id);
+    console.log('Participant Age:', participant?.age);
+    console.log('Participant Gender:', participant?.gender);
+    console.log('Participant Education:', participant?.education);
+    console.log('Participant City:', participant?.city);
+    console.log('Experiments Participated:', participant?.experimentsParticipated);
+    console.log('Participated Count:', participatedCount);
+    console.log('======================');
+  }, [participant, participatedCount]);
 
   return (
     <SidebarProvider>
@@ -206,7 +246,7 @@ const ParticipantDashboard = () => {
                           <p className="text-sm font-medium">Participant ID</p>
                         </div>
                         <p className="text-sm font-mono bg-muted px-3 py-2 rounded border break-all">
-                          {participant?.id || 'N/A'}
+                          {refreshing ? 'Loading...' : participant?.id || 'N/A'}
                         </p>
                       </div>
 
@@ -216,7 +256,7 @@ const ParticipantDashboard = () => {
                           <p className="text-sm font-medium">Age</p>
                         </div>
                         <p className="text-lg font-semibold">
-                          {participant?.age || 'N/A'} years
+                          {refreshing ? 'Loading...' : `${participant?.age || 'N/A'} years`}
                         </p>
                       </div>
 
@@ -226,7 +266,7 @@ const ParticipantDashboard = () => {
                           <p className="text-sm font-medium">Gender</p>
                         </div>
                         <p className="text-lg font-semibold capitalize">
-                          {participant?.gender || 'N/A'}
+                          {refreshing ? 'Loading...' : participant?.gender || 'N/A'}
                         </p>
                       </div>
 
@@ -236,7 +276,7 @@ const ParticipantDashboard = () => {
                           <p className="text-sm font-medium">Education</p>
                         </div>
                         <p className="text-lg font-semibold">
-                          {participant?.education || 'N/A'}
+                          {refreshing ? 'Loading...' : participant?.education || 'N/A'}
                         </p>
                       </div>
 
@@ -246,7 +286,7 @@ const ParticipantDashboard = () => {
                           <p className="text-sm font-medium">City</p>
                         </div>
                         <p className="text-lg font-semibold">
-                          {participant?.city || 'Not specified'}
+                          {refreshing ? 'Loading...' : participant?.city || 'Not specified'}
                         </p>
                       </div>
 
@@ -256,13 +296,13 @@ const ParticipantDashboard = () => {
                           <p className="text-sm font-medium">Member Since</p>
                         </div>
                         <p className="text-lg font-semibold">
-                          {participant?.createdAt 
+                          {refreshing ? 'Loading...' : (participant?.createdAt 
                             ? new Date(participant.createdAt).toLocaleDateString('en-US', { 
                                 month: 'short', 
                                 day: 'numeric', 
                                 year: 'numeric' 
                               }) 
-                            : 'N/A'}
+                            : 'N/A')}
                         </p>
                       </div>
                     </div>
