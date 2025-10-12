@@ -237,21 +237,6 @@ const saveAIExperiment = async (req, res) => {
 
     console.log(`✅ AI experiment saved to DB: ${experiment._id}`);
 
-    // 🔨 BUILD STANDALONE VERSION
-    console.log(`🔨 Building standalone experiment for public access...`);
-    const buildResult = await buildAndSaveExperiment(
-      experiment._id,
-      componentCode,
-      sanitizedTitle,
-      description
-    );
-    
-    if (!buildResult.success) {
-      console.error(`❌ Build failed: ${buildResult.error}`);
-    } else {
-      console.log(`✅ Standalone build successful! Public ID: ${buildResult.publicId}`);
-    }
-
     // Generate template ID and component name from sanitized title
     const templateId = sanitizedTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
     
@@ -277,6 +262,22 @@ const saveAIExperiment = async (req, res) => {
         success: false,
         message: 'Generated component name is invalid. Please use a title that starts with a letter.'
       });
+    }
+
+    // 🔨 BUILD STANDALONE VERSION
+    console.log(`🔨 Building standalone experiment for public access...`);
+    const buildResult = await buildAndSaveExperiment(
+      experiment._id,
+      componentCode,
+      sanitizedTitle,
+      description,
+      templateId // Pass the templateId
+    );
+    
+    if (!buildResult.success) {
+      console.error(`❌ Build failed: ${buildResult.error}`);
+    } else {
+      console.log(`✅ Standalone build successful! Template ID: ${templateId}, Public ID: ${buildResult.publicId}`);
     }
 
     // Prepare the component code with proper export
@@ -411,10 +412,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
     res.status(201).json({
       success: true,
       experiment,
+      templateId,
       build: buildResult.success ? {
         publicId: buildResult.publicId,
-        previewUrl: `/public/preview/${buildResult.publicId}`,
-        publicUrl: `/public/experiment/${buildResult.publicId}`,
+        templateId: templateId,
+        previewUrl: `/preview/${templateId}`,
+        publicUrl: `/run-experiment/${templateId}`,
+        backendPreviewUrl: `/public/preview/${buildResult.publicId}`,
         status: 'built'
       } : {
         status: 'failed',
@@ -570,11 +574,16 @@ const buildExperiment = async (req, res) => {
     
     console.log(`🔨 Building experiment: ${experiment.title}`);
     
+    // Generate templateId from title if not stored
+    const templateId = experiment.config.templateId || 
+      experiment.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    
     const buildResult = await rebuildExperiment(
       experiment._id,
       experiment.config.componentCode,
       experiment.title,
-      experiment.description
+      experiment.description,
+      templateId
     );
     
     if (!buildResult.success) {
@@ -589,8 +598,9 @@ const buildExperiment = async (req, res) => {
       success: true,
       message: 'Experiment built successfully',
       publicId: buildResult.publicId,
-      previewUrl: `/public/preview/${buildResult.publicId}`,
-      publicUrl: `/public/experiment/${buildResult.publicId}`,
+      templateId: templateId,
+      previewUrl: `/preview/${templateId}`,
+      publicUrl: `/run-experiment/${templateId}`,
       buildVersion: buildResult.builtExperiment.buildVersion
     });
     
@@ -627,12 +637,13 @@ const getBuildStatus = async (req, res) => {
       success: true,
       built: true,
       publicId: builtExp.publicId,
+      templateId: builtExp.templateId,
       buildStatus: builtExp.buildStatus,
       buildVersion: builtExp.buildVersion,
       isPublic: builtExp.isPublic,
       accessCount: builtExp.accessCount,
-      previewUrl: `/public/preview/${builtExp.publicId}`,
-      publicUrl: `/public/experiment/${builtExp.publicId}`,
+      previewUrl: `/preview/${builtExp.templateId || builtExp.publicId}`,
+      publicUrl: `/run-experiment/${builtExp.templateId || builtExp.publicId}`,
       urls: {
         preview: `${process.env.API_URL || 'http://localhost:5000'}/public/preview/${builtExp.publicId}`,
         public: `${process.env.API_URL || 'http://localhost:5000'}/public/experiment/${builtExp.publicId}`,
@@ -679,7 +690,8 @@ const togglePublicAccess = async (req, res) => {
       success: true,
       isPublic: builtExp.isPublic,
       publicId: builtExp.publicId,
-      publicUrl: builtExp.isPublic ? `/public/experiment/${builtExp.publicId}` : null,
+      templateId: builtExp.templateId,
+      publicUrl: builtExp.isPublic ? `/run-experiment/${builtExp.templateId || builtExp.publicId}` : null,
       message: `Public access ${builtExp.isPublic ? 'enabled' : 'disabled'}`
     });
     
