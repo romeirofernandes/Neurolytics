@@ -1,6 +1,8 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const Groq = require("groq-sdk");
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 const analyzeExperiment = async (req, res) => {
   try {
@@ -15,18 +17,32 @@ const analyzeExperiment = async (req, res) => {
       });
     }
 
+    // Generate main analysis with Gemini
     let prompt = generatePromptForTemplate(templateId, results);
-
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const analysis = response.text();
+
+    // Generate research paper recommendations with Groq
+    console.log('📚 Generating research paper recommendations...');
+    const citationsPrompt = generateCitationsPrompt(templateId, analysis);
+    
+    const chatCompletion = await groq.chat.completions.create({
+      messages: [{ role: "user", content: citationsPrompt }],
+      model: "llama-3.3-70b-versatile",
+      temperature: 0.7,
+      max_tokens: 2000,
+    });
+
+    const citations = chatCompletion.choices[0]?.message?.content || "";
 
     console.log('✅ Analysis completed successfully');
 
     res.status(200).json({
       success: true,
       analysis: analysis,
+      citations: citations,
       dataPoints: results.length
     });
   } catch (error) {
@@ -38,6 +54,98 @@ const analyzeExperiment = async (req, res) => {
     });
   }
 };
+
+function generateCitationsPrompt(templateId, analysisResults) {
+  const templateInfo = getTemplateInfo(templateId);
+  
+  return `Based on the following experimental analysis, provide relevant research paper recommendations and topics for further study.
+
+**Experiment Type:** ${templateInfo.name}
+**Research Area:** ${templateInfo.area}
+
+**Analysis Summary:**
+${analysisResults.substring(0, 1000)} ... (truncated)
+
+Please provide:
+
+## Recommended Research Papers
+List exactly 4 highly relevant, real research papers with:
+- Full citation (Author(s), Year, Title, Journal/Conference)
+- Brief 1-2 sentence description of relevance
+- DOI or link if available
+
+## Related Research Topics
+Suggest exactly 4 specific research topics or questions that researchers could explore based on this experiment, such as:
+- Extensions of this paradigm
+- Cross-cultural or developmental studies
+- Clinical applications
+- Methodological innovations
+- Theoretical questions
+
+Format the response in clear Markdown with proper headings and bullet points.`;
+}
+
+function getTemplateInfo(templateId) {
+  const templates = {
+    'bart': {
+      name: 'Balloon Analogue Risk Task (BART)',
+      area: 'Risk-taking behavior, Decision-making, Behavioral Economics'
+    },
+    'stroop': {
+      name: 'Stroop Color-Word Task',
+      area: 'Selective attention, Cognitive control, Executive function'
+    },
+    'stroop-emotion': {
+      name: 'Stroop Task with Emotion Tracking',
+      area: 'Emotion-cognition interaction, Affective neuroscience, Cognitive control'
+    },
+    'flanker': {
+      name: 'Eriksen Flanker Task',
+      area: 'Selective attention, Response inhibition, Cognitive control'
+    },
+    'posner': {
+      name: 'Posner Spatial Cueing Task',
+      area: 'Spatial attention, Attentional orienting, Cognitive neuroscience'
+    },
+    'simon': {
+      name: 'Simon Task',
+      area: 'Stimulus-response compatibility, Automatic processing, Spatial interference'
+    },
+    'gonogo': {
+      name: 'Go/No-Go Task',
+      area: 'Response inhibition, Impulse control, Executive function'
+    },
+    'nback': {
+      name: 'N-Back Working Memory Task',
+      area: 'Working memory, Cognitive training, Executive function'
+    },
+    'abba': {
+      name: 'ABBA Action Planning Task',
+      area: 'Motor control, Action planning, Response compatibility'
+    },
+    'hanoi': {
+      name: 'Tower of Hanoi',
+      area: 'Problem-solving, Planning, Executive function'
+    },
+    'digitspan': {
+      name: 'Digit Span Memory Test',
+      area: 'Short-term memory, Memory capacity, Working memory'
+    },
+    'visualsearch': {
+      name: 'Visual Search Task',
+      area: 'Visual attention, Feature integration, Perception'
+    },
+    'voice-crt': {
+      name: 'Voice-based Cognitive Reflection Test',
+      area: 'Cognitive reflection, Analytical thinking, Decision-making'
+    }
+  };
+
+  return templates[templateId] || {
+    name: templateId,
+    area: 'Experimental psychology, Cognitive science'
+  };
+}
 
 function generatePromptForTemplate(templateId, results) {
   const basePrompt = `Analyze the following experimental data and provide insights in a clear, structured format.`;
