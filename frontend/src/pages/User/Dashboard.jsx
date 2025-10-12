@@ -88,15 +88,7 @@ const Dashboard = () => {
         icon: Users,
         color: 'text-chart-4'
       },
-      {
-        id: 4,
-        type: 'create',
-        title: 'AI Experiment created',
-        description: 'Custom N-Back task',
-        time: '2 days ago',
-        icon: Sparkles,
-        color: 'text-warning'
-      }
+      
     ]);
 
     // Generate notifications
