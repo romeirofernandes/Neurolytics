@@ -27,6 +27,7 @@ import { Button } from './components/ui/button'
 import TestModels from './pages/TestModels'
 import AIExperimentBuilder from './pages/User/AIExperimentBuilder'
 import PreviewExperiment from './pages/Preview/PreviewExperiment'
+import VisualBuilder from './pages/User/VisualBuilder'
 
 // Inline route protection components
 const ProtectedRoute = ({ children }) => {
@@ -194,6 +195,7 @@ const App = () => {
               <Route path="/preview/:templateId" element={<PreviewExperiment />} />
               
               <Route path="/test-models" element={<TestModels />} />
+              <Route path="/visual-builder" element={<VisualBuilder />} />
               
               {/* 404 route - catch all unmatched routes */}
               <Route path="*" element={<NotFoundPage />} />
