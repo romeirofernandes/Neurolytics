@@ -480,6 +480,83 @@
       "Custom Research"
     ],
     "publications": []
+  },
+  {
+    "id": "hiii",
+    "name": "hiii",
+    "fullName": "hiii",
+    "shortDescription": "hello",
+    "detailedDescription": "hello",
+    "duration": "~15 minutes",
+    "trials": "Variable",
+    "difficulty": "Custom",
+    "category": "AI Generated",
+    "measures": [
+      "Custom measures"
+    ],
+    "icon": "Sparkles",
+    "color": "from-purple-500 to-pink-500",
+    "requiresCamera": false,
+    "keywords": [
+      "hiii",
+      "ai-generated",
+      "custom"
+    ],
+    "researchAreas": [
+      "Custom Research"
+    ],
+    "publications": []
+  },
+  {
+    "id": "gavin",
+    "name": "Gavin",
+    "fullName": "Gavin",
+    "shortDescription": "Salary",
+    "detailedDescription": "Salary",
+    "duration": "~15 minutes",
+    "trials": "Variable",
+    "difficulty": "Custom",
+    "category": "AI Generated",
+    "measures": [
+      "Custom measures"
+    ],
+    "icon": "Sparkles",
+    "color": "from-purple-500 to-pink-500",
+    "requiresCamera": false,
+    "keywords": [
+      "gavin",
+      "ai-generated",
+      "custom"
+    ],
+    "researchAreas": [
+      "Custom Research"
+    ],
+    "publications": []
+  },
+  {
+    "id": "jtyythv",
+    "name": "Jtyythv",
+    "fullName": "Jtyythv",
+    "shortDescription": "Salary",
+    "detailedDescription": "Salary",
+    "duration": "~15 minutes",
+    "trials": "Variable",
+    "difficulty": "Custom",
+    "category": "AI Generated",
+    "measures": [
+      "Custom measures"
+    ],
+    "icon": "Sparkles",
+    "color": "from-purple-500 to-pink-500",
+    "requiresCamera": false,
+    "keywords": [
+      "jtyythv",
+      "ai-generated",
+      "custom"
+    ],
+    "researchAreas": [
+      "Custom Research"
+    ],
+    "publications": []
   }
-  
 ]

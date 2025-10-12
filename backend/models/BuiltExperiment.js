@@ -13,6 +13,11 @@ const builtExperimentSchema = new mongoose.Schema({
     unique: true,
     index: true
   },
+  templateId: {
+    type: String,
+    default: null,
+    index: true
+  },
   title: {
     type: String,
     required: true
