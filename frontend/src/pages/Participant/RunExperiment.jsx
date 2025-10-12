@@ -205,6 +205,24 @@ const RunExperiment = () => {
     setExperimentResults(results);
     setExperimentComplete(true);
     
+    // Add participant to template contributors
+    if (participant?.mongoId && templateId) {
+      try {
+        await fetch(`${import.meta.env.VITE_API_URL}/api/visual-builder/add-contributor`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            templateId: templateId,
+            participantId: participant.mongoId
+          })
+        });
+        console.log('✅ Added to template contributors');
+      } catch (error) {
+        console.error('⚠️ Failed to add contributor:', error);
+        // Don't fail the experiment completion if this fails
+      }
+    }
+    
     await awardCryptoPoints(templateId);
     
     // Then analyze results

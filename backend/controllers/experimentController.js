@@ -314,6 +314,38 @@ const recordParticipantCompletion = async (req, res) => {
       await experiment.save();
     }
 
+    // Add participant to templates.json contributors array if completed
+    if (completed && participantId && experiment.templateId) {
+      try {
+        const templatesJsonPath = path.join(__dirname, '../../frontend/public/templates.json');
+        const templatesData = await fs.readFile(templatesJsonPath, 'utf-8');
+        const templates = JSON.parse(templatesData);
+        
+        // Find the template matching this experiment
+        const templateIndex = templates.findIndex(t => t.id === experiment.templateId);
+        
+        if (templateIndex !== -1) {
+          // Initialize contributors array if it doesn't exist
+          if (!templates[templateIndex].contributors) {
+            templates[templateIndex].contributors = [];
+          }
+          
+          // Add participant ID if not already in the array
+          if (!templates[templateIndex].contributors.includes(participantId)) {
+            templates[templateIndex].contributors.push(participantId);
+            console.log(`✅ Added participant ${participantId} to template ${experiment.templateId} contributors`);
+          }
+          
+          // Update the templates.json file
+          await fs.writeFile(templatesJsonPath, JSON.stringify(templates, null, 2), 'utf-8');
+          console.log(`✅ Updated templates.json with new contributor`);
+        }
+      } catch (templateError) {
+        console.error('⚠️ Error updating templates.json:', templateError.message);
+        // Don't fail the request if templates.json update fails
+      }
+    }
+
     // Save participant data (implement separate data storage)
     // await saveParticipantData(experimentId, participantId, data);
 

@@ -353,4 +353,79 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
   }
 });
 
+// Add participant to template contributors when experiment is completed
+router.post('/add-contributor', async (req, res) => {
+  try {
+    const { templateId, participantId } = req.body;
+
+    if (!templateId || !participantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'templateId and participantId are required'
+      });
+    }
+
+    console.log(`📝 Adding participant ${participantId} to template ${templateId} contributors...`);
+
+    const templatesJsonPath = path.join(__dirname, '../../frontend/public/templates.json');
+    
+    // Read templates.json
+    let templates = [];
+    try {
+      const templatesData = await fs.readFile(templatesJsonPath, 'utf-8');
+      templates = JSON.parse(templatesData);
+    } catch (error) {
+      console.error('Error reading templates.json:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to read templates.json'
+      });
+    }
+
+    // Find the template
+    const templateIndex = templates.findIndex(t => t.id === templateId);
+    
+    if (templateIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: 'Template not found'
+      });
+    }
+
+    // Initialize contributors array if it doesn't exist
+    if (!templates[templateIndex].contributors) {
+      templates[templateIndex].contributors = [];
+    }
+
+    // Add participant ID if not already in the array
+    if (!templates[templateIndex].contributors.includes(participantId)) {
+      templates[templateIndex].contributors.push(participantId);
+      console.log(`✅ Added participant ${participantId} to template ${templateId}`);
+    } else {
+      console.log(`ℹ️ Participant ${participantId} already in contributors for ${templateId}`);
+    }
+
+    // Update updatedAt timestamp
+    templates[templateIndex].updatedAt = new Date().toISOString();
+
+    // Write back to templates.json
+    await fs.writeFile(templatesJsonPath, JSON.stringify(templates, null, 2), 'utf-8');
+    console.log('✅ templates.json updated successfully');
+
+    res.status(200).json({
+      success: true,
+      message: 'Contributor added successfully',
+      contributorsCount: templates[templateIndex].contributors.length
+    });
+
+  } catch (error) {
+    console.error('❌ Error adding contributor:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error adding contributor',
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;
