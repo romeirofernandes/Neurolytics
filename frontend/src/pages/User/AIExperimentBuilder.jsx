@@ -274,14 +274,6 @@ const AIExperimentBuilder = () => {
           <div className="flex items-center gap-2">
             {currentExperiment && (
               <>
-                <Button
-                  variant="outline"
-                  onClick={() => navigate(`/user/consent-form-builder/${currentExperiment._id}`)}
-                  className="gap-2"
-                >
-                  <FileCode className="w-4 h-4" />
-                  Create Consent Form
-                </Button>
                 
                 <Button
                   onClick={handlePublishExperiment}

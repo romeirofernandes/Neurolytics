@@ -3,11 +3,7 @@ const router = express.Router();
 const fs = require('fs').promises;
 const path = require('path');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-const { 
-  retrieveRelevantTemplates, 
-  extractModifications, 
-  generateRAGPrompt 
-} = require('../utils/ragHelper');
+const Experiment = require('../models/Experiment');
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
@@ -153,6 +149,7 @@ router.post('/save-ai', async (req, res) => {
       description, 
       componentCode, 
       researcherId,
+      researcherData, // Full researcher object from frontend
       estimatedDuration,
       metadata 
     } = req.body;
@@ -164,12 +161,31 @@ router.post('/save-ai', async (req, res) => {
       });
     }
 
-    console.log('💾 Saving AI-generated visual builder experiment to templates.json...');
+    console.log('💾 Saving AI-generated experiment to templates.json...');
+    
+    // Log researcher info
+    if (researcherData) {
+      console.log(`✅ Researcher data received: ${researcherData.name} (${researcherData.email})`);
+    } else {
+      console.log('⚠️ No researcher data provided');
+    }
 
-    // Generate template ID from title
+    // Format name: First letter uppercase, rest lowercase, no hyphens/camelCase
+    const formatName = (name) => {
+      // Remove special characters and extra spaces
+      const cleaned = name.replace(/[^a-zA-Z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+      // Split into words, capitalize first letter of each, lowercase rest
+      const words = cleaned.split(' ');
+      const formatted = words.map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+      ).join(' '); // Join with space, not camelCase
+      return formatted;
+    };
+
+    // Generate template ID from title (lowercase with hyphens for URL)
     const templateId = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
     
-    // Generate component name
+    // Generate component name (for code, keep it valid JavaScript)
     let componentName = title
       .split(' ')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
@@ -180,16 +196,23 @@ router.post('/save-ai', async (req, res) => {
       componentName = 'Custom' + componentName;
     }
     componentName = componentName + 'Template';
+    
+    // Format display name
+    const displayName = formatName(title);
 
     // Prepare the component code with proper export
     let finalComponentCode = componentCode;
+    
+    // Remove any CSS file imports (they don't exist)
+    finalComponentCode = finalComponentCode.replace(/import\s+['"]\.\/[^'"]*\.css['"]\s*;?\s*/gi, '');
+    finalComponentCode = finalComponentCode.replace(/import\s+['"][^'"]*\.css['"]\s*;?\s*/gi, '');
     
     if (!componentCode.includes('export const') && !componentCode.includes('export default')) {
       const componentMatch = componentCode.match(/const\s+(\w+)\s*=\s*\(/);
       const existingComponentName = componentMatch ? componentMatch[1] : componentName;
       
       if (/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(existingComponentName)) {
-        finalComponentCode = componentCode.replace(
+        finalComponentCode = finalComponentCode.replace(
           new RegExp(`const\\s+${existingComponentName}\\s*=`),
           `export const ${componentName} =`
         );
@@ -234,10 +257,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
     
     const newTemplate = {
       id: templateId,
-      name: title,
-      fullName: title,
-      shortDescription: description || `Visual builder experiment: ${title}`,
-      detailedDescription: description || `This experiment was created using the Visual Flow Builder with AI-powered code generation. ${title}`,
+      name: displayName, // Use formatted name
+      fullName: displayName, // Use formatted name
+      shortDescription: description || `AI-generated experiment: ${displayName}`,
+      detailedDescription: description || `Visual builder experiment: ${displayName}`,
       duration: `~${estimatedDuration || 15} minutes`,
       trials: metadata?.nodeCount ? `${metadata.nodeCount * (metadata.repetitions || 1)} trials` : "Variable",
       difficulty: "Custom",
@@ -250,15 +273,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
       researchAreas: ["Custom Research"],
       publications: [],
       source: "visual-builder-ai",
+      researcher: researcherData, // Add full researcher object
       visualFlow: metadata?.visualFlow || null,
-      ragMetadata: metadata?.ragContext || null, // 🔥 Store RAG context
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
     
     if (existingIndex !== -1) {
       templates[existingIndex] = {
         ...newTemplate,
-        createdAt: templates[existingIndex].createdAt || newTemplate.createdAt
+        createdAt: templates[existingIndex].createdAt || newTemplate.createdAt,
+        updatedAt: new Date().toISOString()
       };
       console.log(`✅ Updated template in templates.json: ${templateId}`);
     } else {
@@ -269,21 +294,76 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
     await fs.writeFile(templatesJsonPath, JSON.stringify(templates, null, 2), 'utf-8');
     console.log('✅ templates.json updated successfully');
 
-    res.status(201).json({
-      success: true,
-      message: 'Visual builder experiment saved with RAG context',
-      templateInfo: {
-        templateId,
-        componentName,
-        filePath: `src/components/experiment/templates/${componentName}.jsx`,
-        ragContext: metadata?.ragContext || null
-      },
-      experiment: {
-        _id: templateId,
-        title,
-        description
+    // Also save to Experiment model for build panel compatibility
+    try {
+      const experimentData = {
+        title: displayName,
+        description: description || `Visual builder experiment: ${displayName}`,
+        researcherId: researcherId, // Use researcher ID from request
+        templateType: 'custom', // Required field - set to 'custom' for visual builder experiments
+        templateId: templateId,
+        componentCode: finalComponentCode,
+        estimatedDuration: estimatedDuration || 15,
+        aiGenerated: true,
+        source: 'visual-builder-ai',
+        status: 'draft',
+        metadata: {
+          ...metadata,
+          componentName,
+          displayName
+        }
+      };
+
+      // Check if experiment already exists
+      let experiment = await Experiment.findOne({ templateId });
+      
+      if (experiment) {
+        // Update existing experiment
+        Object.assign(experiment, experimentData);
+        await experiment.save();
+        console.log(`✅ Updated Experiment document: ${experiment._id}`);
+      } else {
+        // Create new experiment
+        experiment = new Experiment(experimentData);
+        await experiment.save();
+        console.log(`✅ Created new Experiment document: ${experiment._id}`);
       }
-    });
+
+      res.status(201).json({
+        success: true,
+        message: 'Experiment saved successfully',
+        experimentId: experiment._id.toString(), // Use MongoDB _id for build panel
+        templateInfo: {
+          templateId,
+          componentName,
+          filePath: `src/components/experiment/templates/${componentName}.jsx`
+        },
+        experiment: {
+          _id: experiment._id.toString(),
+          title: displayName,
+          description,
+          templateId
+        }
+      });
+    } catch (dbError) {
+      console.error('⚠️ Database save failed, but templates.json was updated:', dbError);
+      // Still return success since templates.json was updated
+      res.status(201).json({
+        success: true,
+        message: 'Experiment saved to templates.json (database save failed)',
+        experimentId: templateId, // Fallback to templateId
+        templateInfo: {
+          templateId,
+          componentName,
+          filePath: `src/components/experiment/templates/${componentName}.jsx`
+        },
+        experiment: {
+          _id: templateId,
+          title: displayName,
+          description
+        }
+      });
+    }
 
   } catch (error) {
     console.error('❌ Save error:', error);
