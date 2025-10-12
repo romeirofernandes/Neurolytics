@@ -817,30 +817,55 @@ const TemplateSelector = ({ onTemplateSelect }) => {
 			</div>
 
 			{/* Search and Filter */}
-			<div className="flex flex-col sm:flex-row gap-4">
-				<div className="relative flex-1">
-					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-					<Input
-						placeholder="Search templates by name, description, or measure..."
-						value={searchQuery}
-						onChange={(e) => setSearchQuery(e.target.value)}
-						className="pl-10 w-full"
-					/>
-				</div>
-				<div className="flex gap-2 flex-wrap">
-					{categories.map(category => (
-						<Button
-							key={category}
-							variant={selectedCategory === category ? "default" : "outline"}
-							onClick={() => setSelectedCategory(category)}
-							className="capitalize"
-							size="sm"
-						>
-							{category}
-						</Button>
-					))}
-				</div>
-			</div>
+			<Card className="shadow-sm">
+				<CardContent className="pt-6">
+					<div className="space-y-4">
+						{/* Search Bar */}
+						<div className="relative">
+							<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none z-10" />
+							<Input
+								placeholder="Search templates by name, description, or measure..."
+								value={searchQuery}
+								onChange={(e) => setSearchQuery(e.target.value)}
+								className="pl-11 h-12 text-base shadow-sm border-2 focus:border-primary transition-all"
+							/>
+							{searchQuery && (
+								<button
+									onClick={() => setSearchQuery('')}
+									className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+								>
+									<svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+									</svg>
+								</button>
+							)}
+						</div>
+						
+						{/* Category Filter Pills */}
+						<div className="flex flex-col gap-2">
+							<label className="text-sm font-medium text-muted-foreground">Filter by Category:</label>
+							<div className="flex gap-2 flex-wrap">
+								{categories.map(category => (
+									<Button
+										key={category}
+										variant={selectedCategory === category ? "default" : "outline"}
+										onClick={() => setSelectedCategory(category)}
+										className="capitalize transition-all"
+										size="sm"
+									>
+										{category}
+										{selectedCategory === category && (
+											<span className="ml-2 bg-white/20 px-1.5 py-0.5 rounded text-xs">
+												{filteredTemplates.length}
+											</span>
+										)}
+									</Button>
+								))}
+							</div>
+						</div>
+					</div>
+				</CardContent>
+			</Card>
 
 			{/* Results Count */}
 			<div className="text-sm text-muted-foreground">
