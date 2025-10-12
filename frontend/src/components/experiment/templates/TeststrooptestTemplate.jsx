@@ -41,7 +41,9 @@ export const StroopTemplate = ({ onComplete }) => {
     const correct = response === color;
     const compatible = word === color ? 1 : 0;
     const result = { word, color, compatible, response, correct: correct ? 1 : 0, rt };
-    setResults([...results, result]);
+    
+    const updatedResults = [...results, result];
+    setResults(updatedResults);
 
     const nextTrial = currentTrial + 1;
     if (isTraining && nextTrial >= 5) {
@@ -49,7 +51,8 @@ export const StroopTemplate = ({ onComplete }) => {
       setCurrentTrial(0);
       generateTrial();
     } else if (!isTraining && nextTrial >= 20) {
-      onComplete?.(results);
+      console.log('🏁 Stroop test completed! Calling onComplete with results:', updatedResults);
+      onComplete?.(updatedResults);
     } else {
       setCurrentTrial(nextTrial);
       generateTrial();

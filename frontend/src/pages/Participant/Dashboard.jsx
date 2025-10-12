@@ -148,6 +148,11 @@ const ParticipantDashboard = () => {
                       ? 'Great contribution to research!' 
                       : 'Start your first experiment'}
                   </p>
+                  <Link to="/participant/participated">
+                    <Button variant="link" className="px-0 mt-2 h-auto text-xs">
+                      View my participated experiments <ArrowRight className="h-3 w-3 ml-1" />
+                    </Button>
+                  </Link>
                 </CardContent>
               </Card>
 
