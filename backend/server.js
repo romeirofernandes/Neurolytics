@@ -18,7 +18,7 @@ const cryptoRoutes = require('./routes/cryptoRoutes');
 const emailRoutes = require('./routes/emailRoutes');
 const twilioRoutes = require('./routes/twilioRoutes');
 // const { initializeAutoEmailScheduler } = require('./controllers/nodeMailerController'); // DISABLED
-const { initializeAutoWhatsAppScheduler } = require('./controllers/twilioControllers');
+// const { initializeAutoWhatsAppScheduler } = require('./controllers/twilioControllers');
 
 const app = express();
 
@@ -47,7 +47,7 @@ app.use("/api/upload", uploadRoutes);
 app.use("/api/visual-builder", visualBuilderRoutes);
 app.use('/api/crypto', cryptoRoutes);
 // app.use('/api/email', emailRoutes);
-app.use('/api/twilio', twilioRoutes);
+// app.use('/api/twilio', twilioRoutes);
 
 // Health check
 app.get('/', (req, res) => {
@@ -71,12 +71,12 @@ mongoose.connect(MONGODB_URI)
     console.log('✅ Connected to MongoDB');
     
     // Initialize WhatsApp scheduler after MongoDB connection
-    console.log('\n� Initializing WhatsApp scheduler...');
-    initializeAutoWhatsAppScheduler();
+    // console.log('\n� Initializing WhatsApp scheduler...');
+    // initializeAutoWhatsAppScheduler();
     
     app.listen(PORT, () => {
       console.log(`\n🚀 Server running on port ${PORT}`);
-      console.log('📊 BART Analytics WhatsApp will be sent every 10 minutes');
+      // console.log('📊 BART Analytics WhatsApp will be sent every 10 minutes');
     });
   })
   .catch((error) => {
