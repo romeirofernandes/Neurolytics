@@ -68,7 +68,7 @@ const Dashboard = () => {
         description: '12 participants completed',
         time: '2 hours ago',
         icon: Rocket,
-        color: 'text-green-600'
+        color: 'text-success'
       },
       {
         id: 2,
@@ -77,7 +77,7 @@ const Dashboard = () => {
         description: 'BART experiment',
         time: '5 hours ago',
         icon: FileText,
-        color: 'text-blue-600'
+        color: 'text-info'
       },
       {
         id: 3,
@@ -86,7 +86,7 @@ const Dashboard = () => {
         description: '8 new completions today',
         time: '1 day ago',
         icon: Users,
-        color: 'text-purple-600'
+        color: 'text-chart-4'
       },
       {
         id: 4,
@@ -95,7 +95,7 @@ const Dashboard = () => {
         description: 'Custom N-Back task',
         time: '2 days ago',
         icon: Sparkles,
-        color: 'text-amber-600'
+        color: 'text-warning'
       }
     ]);
 
@@ -151,12 +151,11 @@ const Dashboard = () => {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between gap-2 border-b px-6 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <header className="sticky top-0 z-10 flex h-23 shrink-0 items-center justify-between gap-2 border-b px-6 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="flex items-center gap-2">
             <SidebarTrigger className="-ml-1" />
             <div>
               <h1 className="text-xl font-semibold text-foreground">Dashboard</h1>
-              <p className="text-xs text-muted-foreground">Welcome back, {user?.name}</p>
             </div>
           </div>
 
@@ -170,11 +169,11 @@ const Dashboard = () => {
         <main className="flex-1 overflow-y-auto p-4 sm:p-6">
           <div className="max-w-7xl mx-auto space-y-6">
             {/* Welcome Section */}
-            <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg p-6 shadow-lg">
+            <div className="text-foreground rounded-lg p-6 shadow-lg">
               <h2 className="text-2xl sm:text-3xl font-bold mb-2">
                 Hello, {user?.name}! 👋
               </h2>
-              <p className="text-blue-50 text-sm sm:text-base">
+              <p className="opacity-90 text-sm sm:text-base">
                 Here's what's happening with your research today
               </p>
             </div>
@@ -201,9 +200,9 @@ const Dashboard = () => {
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <CardDescription className="text-xs">Published</CardDescription>
-                    <CheckCircle2 className="w-4 h-4 text-green-600" />
+                    <CheckCircle2 className="w-4 h-4 text-success" />
                   </div>
-                  <CardTitle className="text-2xl sm:text-3xl text-green-600">{stats.published}</CardTitle>
+                  <CardTitle className="text-2xl sm:text-3xl text-success">{stats.published}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -217,9 +216,9 @@ const Dashboard = () => {
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <CardDescription className="text-xs">Drafts</CardDescription>
-                    <Clock className="w-4 h-4 text-amber-600" />
+                    <Clock className="w-4 h-4 text-warning" />
                   </div>
-                  <CardTitle className="text-2xl sm:text-3xl text-amber-600">{stats.draft}</CardTitle>
+                  <CardTitle className="text-2xl sm:text-3xl text-warning">{stats.draft}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -233,9 +232,9 @@ const Dashboard = () => {
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <CardDescription className="text-xs">Participants</CardDescription>
-                    <Users className="w-4 h-4 text-blue-600" />
+                    <Users className="w-4 h-4 text-info" />
                   </div>
-                  <CardTitle className="text-2xl sm:text-3xl text-blue-600">{stats.totalParticipants}</CardTitle>
+                  <CardTitle className="text-2xl sm:text-3xl text-info">{stats.totalParticipants}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -266,10 +265,10 @@ const Dashboard = () => {
                       key={notif.id}
                       className={`p-3 rounded-lg border ${
                         notif.type === 'warning' 
-                          ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
+                          ? 'bg-warning/10 border-warning/20'
                           : notif.type === 'success'
-                          ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
-                          : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
+                          ? 'bg-success/10 border-success/20'
+                          : 'bg-info/10 border-info/20'
                       }`}
                     >
                       <div className="flex items-start justify-between gap-2">
@@ -286,9 +285,9 @@ const Dashboard = () => {
                             </Button>
                           )}
                         </div>
-                        {notif.type === 'warning' && <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />}
-                        {notif.type === 'success' && <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />}
-                        {notif.type === 'info' && <Zap className="w-4 h-4 text-blue-600 shrink-0" />}
+                        {notif.type === 'warning' && <AlertCircle className="w-4 h-4 text-warning shrink-0" />}
+                        {notif.type === 'success' && <CheckCircle2 className="w-4 h-4 text-success shrink-0" />}
+                        {notif.type === 'info' && <Zap className="w-4 h-4 text-info shrink-0" />}
                       </div>
                     </div>
                   ))}
