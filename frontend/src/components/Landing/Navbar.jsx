@@ -24,23 +24,21 @@ const Navbar = () => {
         </div>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center space-x-6">
-
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={toggleTheme}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
-              aria-label="Toggle theme"
-            >
-              {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </button>
-            <button 
-              onClick={() => navigate('/login')}
-              className="h-12 rounded-full bg-primary px-8 text-base font-medium text-primary-foreground hover:bg-primary/90"
-            >
-              Login
-            </button>
-          </div>
+        <div className="hidden md:flex items-center space-x-3">
+          <InstallPWAButton />
+          <button
+            onClick={toggleTheme}
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
+            aria-label="Toggle theme"
+          >
+            {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </button>
+          <button 
+            onClick={() => navigate('/login')}
+            className="h-10 rounded-full bg-primary px-6 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          >
+            Login
+          </button>
         </div>
 
         {/* Mobile menu button */}
@@ -86,19 +84,17 @@ const Navbar = () => {
                 </button>
               </div>
             </div>
-            <div className="mt-8 flex flex-col space-y-6">
-
-              <div className="pt-4">
-                <button 
-                  onClick={() => navigate('/login')}
-                  className="w-full justify-start border border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground"
-                >
-                  Log in
-                </button>
-              </div>
+            <div className="mt-8 flex flex-col space-y-4">
+              <InstallPWAButton />
+              <button 
+                onClick={() => navigate('/login')}
+                className="w-full h-12 rounded-full border border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground"
+              >
+                Log in
+              </button>
               <button 
                 onClick={() => navigate('/register')}
-                className="h-12 rounded-full bg-primary px-8 text-base font-medium text-primary-foreground hover:bg-primary/90"
+                className="w-full h-12 rounded-full bg-primary px-8 text-base font-medium text-primary-foreground hover:bg-primary/90"
               >
                 Get Started For Free
               </button>
@@ -106,7 +102,6 @@ const Navbar = () => {
           </motion.div>
         )}
       </AnimatePresence>
-      <InstallPWAButton />
     </>
   );
 };
