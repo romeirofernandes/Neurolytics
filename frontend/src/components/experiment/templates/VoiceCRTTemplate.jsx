@@ -70,6 +70,134 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
     interimResults: false
   };
 
+  // Helper function to estimate confidence based on keyword matching
+  const estimateConfidence = (transcript, correctKeywords) => {
+    if (!transcript || !correctKeywords || correctKeywords.length === 0) {
+      return 0;
+    }
+
+    // Normalize and tokenize transcript
+    const transcriptTokens = transcript
+      .toLowerCase()
+      .replace(/[.,!?;]/g, '') // Remove punctuation
+      .split(/\s+/)
+      .filter(token => token.length > 0);
+
+    // Normalize keywords
+    const normalizedKeywords = correctKeywords.map(kw => 
+      kw.toLowerCase().replace(/[.,!?;]/g, '')
+    );
+
+    // Count matches - check both exact match and partial match
+    let matchCount = 0;
+    
+    for (const keyword of normalizedKeywords) {
+      const keywordTokens = keyword.split(/\s+/).filter(t => t.length > 0);
+      
+      // Check if all keyword tokens appear in transcript
+      const allTokensMatch = keywordTokens.every(kwToken => 
+        transcriptTokens.some(tToken => 
+          tToken === kwToken || tToken.includes(kwToken) || kwToken.includes(tToken)
+        )
+      );
+      
+      if (allTokensMatch) {
+        matchCount++;
+        break; // Only count one match (correct answer found)
+      }
+    }
+
+    // Calculate keyword match score
+    const keywordScore = matchCount > 0 ? 1.0 : 0.0; // Binary: either matches or doesn't
+    
+    // Bonus: Calculate semantic similarity based on token overlap
+    const transcriptSet = new Set(transcriptTokens);
+    const allKeywordTokens = normalizedKeywords
+      .flatMap(kw => kw.split(/\s+/).filter(t => t.length > 0));
+    const keywordSet = new Set(allKeywordTokens);
+    
+    // Count overlapping tokens
+    let overlapCount = 0;
+    for (const token of transcriptSet) {
+      if (keywordSet.has(token)) {
+        overlapCount++;
+      }
+    }
+    
+    const overlapScore = keywordSet.size > 0 ? overlapCount / keywordSet.size : 0;
+    
+    // Combine scores: prioritize exact match, use overlap as fallback
+    return Math.max(keywordScore, overlapScore * 0.7);
+  };
+
+  // Calculate duration-based confidence score
+  const calculateDurationScore = (speechStartTime, speechEndTime) => {
+    if (!speechStartTime || !speechEndTime) {
+      return 0.5; // Default middle score if timing unavailable
+    }
+
+    const durationMs = speechEndTime - speechStartTime;
+    
+    // Optimal speech duration: 1-3 seconds
+    // Too short (<500ms): likely incomplete
+    // Too long (>5000ms): might indicate confusion or rambling
+    if (durationMs < 500) {
+      return 0.3; // Very short response
+    } else if (durationMs < 1000) {
+      return 0.6; // Short but acceptable
+    } else if (durationMs <= 3000) {
+      return 1.0; // Optimal duration
+    } else if (durationMs <= 5000) {
+      return 0.8; // A bit long but okay
+    } else {
+      return 0.5; // Very long, might indicate uncertainty
+    }
+  };
+
+  // Combine multiple confidence factors into final score
+  const calculateFinalConfidence = (
+    transcript, 
+    correctKeywords, 
+    webSpeechConfidence,
+    speechStartTime,
+    speechEndTime
+  ) => {
+    // 1. Keyword matching score (most important)
+    const keywordScore = estimateConfidence(transcript, correctKeywords);
+    
+    // 2. Duration-based score
+    const durationScore = calculateDurationScore(speechStartTime, speechEndTime);
+    
+    // 3. Web Speech API confidence (if available and reliable)
+    const apiConfidence = webSpeechConfidence > 0 ? webSpeechConfidence : 0;
+    
+    // Weighted combination:
+    // - Keyword match: 60% (most important - is it correct?)
+    // - Duration: 20% (was response time appropriate?)
+    // - API confidence: 20% (if available, use it as supplement)
+    let finalConfidence;
+    
+    if (apiConfidence > 0) {
+      finalConfidence = (keywordScore * 0.60) + (durationScore * 0.20) + (apiConfidence * 0.20);
+    } else {
+      finalConfidence = (keywordScore * 0.75) + (durationScore * 0.25);
+    }
+    
+    // Clamp between 0 and 1
+    finalConfidence = Math.max(0, Math.min(1, finalConfidence));
+    
+    console.log("🎯 Confidence Breakdown:", {
+      transcript,
+      keywordScore: keywordScore.toFixed(3),
+      durationScore: durationScore.toFixed(3),
+      apiConfidence: apiConfidence.toFixed(3),
+      finalConfidence: finalConfidence.toFixed(3),
+      durationMs: speechEndTime - speechStartTime
+    });
+    
+    return finalConfidence;
+  };
+
   // Validate props on mount
   useEffect(() => {
     if (!participantId || !experimentId) {
@@ -186,7 +314,7 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
     setIsListening(true);
     setTranscript('');
     setConfidence(0);
-    speechStartTimeRef.current = performance.now();
+    speechStartTimeRef.current = performance.now(); // ✅ Track start time
 
     if (speechTimeoutRef.current) {
       clearTimeout(speechTimeoutRef.current);
@@ -199,7 +327,22 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
         
         if (voiceTranscript && voiceTranscript.trim()) {
           setTranscript(voiceTranscript);
-          setConfidence(voiceConfidence);
+          
+          // ✅ Calculate enhanced confidence
+          const question = questions[currentTrial];
+          if (question) {
+            const enhancedConfidence = calculateFinalConfidence(
+              voiceTranscript,
+              question.correctKeywords,
+              voiceConfidence || 0,
+              speechStartTimeRef.current,
+              performance.now()
+            );
+            setConfidence(enhancedConfidence);
+            console.log("📊 Enhanced confidence:", enhancedConfidence.toFixed(3));
+          } else {
+            setConfidence(voiceConfidence || 0);
+          }
         }
       },
       () => {
@@ -260,6 +403,20 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
 
     const question = questions[currentTrial];
     
+    if (!question) {
+      console.error("❌ Question not found for trial:", currentTrial);
+      return;
+    }
+    
+    // ✅ Recalculate confidence with all factors
+    const finalConfidence = calculateFinalConfidence(
+      voiceTranscript,
+      question.correctKeywords,
+      voiceConfidence,
+      speechStartTimeRef.current,
+      speechEndTime
+    );
+    
     const isCorrect = question.correctKeywords.some(keyword => 
       voiceTranscript.toLowerCase().includes(keyword.toLowerCase())
     );
@@ -271,17 +428,20 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
       questionId: question.id,
       stimulusText: question.text,
       transcript: voiceTranscript,
-      transcriptConfidence: voiceConfidence,
+      transcriptConfidence: finalConfidence, // ✅ Using enhanced confidence
+      originalApiConfidence: voiceConfidence, // ✅ Store original for comparison
       reactionTimeMs: reactionTime,
-      speechStartTimestamp: trialStartTimeRef.current,
+      speechStartTimestamp: speechStartTimeRef.current,
       speechEndTimestamp: speechEndTime,
+      speechDurationMs: speechEndTime - speechStartTimeRef.current, // ✅ Add duration
       isCorrect: isCorrect ? 1 : 0,
       correctAnswer: question.correctAnswer,
       mode: recordingMode === 'type' ? 'typed' : 'voice',
       createdAt: new Date().toISOString()
     };
 
-    console.log("📊 Trial result:", result);
+    console.log("📊 Trial result with enhanced confidence:", result);
+    console.log(`🎯 Confidence comparison - API: ${voiceConfidence.toFixed(3)}, Enhanced: ${finalConfidence.toFixed(3)}`);
 
     setCurrentResult(result);
     setResults(prev => [...prev, result]);
@@ -312,9 +472,26 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
     }
 
     const reactionTime = Math.round(performance.now() - trialStartTimeRef.current);
-    const conf = recordingMode === 'type' ? 1.0 : confidence;
+    const speechEndTime = performance.now();
     
-    processTrialResult(finalAnswer, conf, reactionTime, performance.now());
+    // ✅ For typed answers, calculate confidence differently
+    let conf;
+    if (recordingMode === 'type') {
+      const question = questions[currentTrial];
+      if (question) {
+        // For typed: only use keyword matching (no duration penalty)
+        const keywordScore = estimateConfidence(finalAnswer, question.correctKeywords);
+        conf = keywordScore; // Higher confidence for typed (assumed intentional)
+      } else {
+        conf = 1.0; // Default high confidence for typed
+      }
+    } else {
+      conf = confidence; // Use already calculated confidence from voice
+    }
+    
+    console.log(`📝 Submit answer - Mode: ${recordingMode}, Confidence: ${conf.toFixed(3)}`);
+    
+    processTrialResult(finalAnswer, conf, reactionTime, speechEndTime);
   };
 
   // 10. Finish experiment
@@ -567,7 +744,6 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
   if (phase === 'listening') {
     const question = questions[currentTrial];
     
-    // Safety check - if question is undefined, show loading
     if (!question) {
       return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
@@ -630,9 +806,24 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
                       <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
                         <p className="text-sm text-muted-foreground mb-1">You said:</p>
                         <p className="text-lg font-medium">{transcript}</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Confidence: {(confidence * 100).toFixed(0)}%
-                        </p>
+                        {/* ✅ Enhanced confidence display with color coding */}
+                        <div className="flex items-center justify-center gap-2 mt-2">
+                          <p className="text-xs text-muted-foreground">
+                            Confidence:
+                          </p>
+                          <span className={`text-sm font-bold ${
+                            confidence >= 0.7 ? 'text-green-600' : 
+                            confidence >= 0.4 ? 'text-amber-600' : 
+                            'text-red-600'
+                          }`}>
+                            {(confidence * 100).toFixed(0)}%
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {confidence >= 0.7 ? '(High)' : 
+                             confidence >= 0.4 ? '(Medium)' : 
+                             '(Low)'}
+                          </span>
+                        </div>
                       </div>
                     )}
                     <Button 
