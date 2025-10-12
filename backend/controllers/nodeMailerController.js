@@ -3,17 +3,16 @@ const { ChartJSNodeCanvas } = require('chartjs-node-canvas');
 const PDFDocument = require('pdfkit');
 const cron = require('node-cron');
 
-// Create a transporter
+// Create a transporter - simplified
 const createTransporter = () => {
-  return nodemailer.createTransporter({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.SMTP_PORT) || 587,
-    secure: false,
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASS
     }
   });
+  return transporter;
 };
 
 // Generate chart image
@@ -38,7 +37,7 @@ const generateAnalyticsPDF = async (participants) => {
       // Header
       doc.rect(0, 0, 612, 120).fill('#667eea');
       doc.fontSize(28).fillColor('#ffffff').font('Helvetica-Bold')
-         .text('🎈 BART Analytics Report', 50, 40, { align: 'center' });
+         .text('BART Analytics Report', 50, 40, { align: 'center' });
       doc.fontSize(14).fillColor('#f0f0f0').font('Helvetica')
          .text('Your Experiment Participation Results Are Ready!', 50, 75, { align: 'center' });
       doc.fontSize(10).fillColor('#e0e0e0')
@@ -50,7 +49,7 @@ const generateAnalyticsPDF = async (participants) => {
 
       // Summary Statistics
       doc.fontSize(16).fillColor('#1e3a8a').font('Helvetica-Bold')
-         .text('📊 Summary Statistics', 50, yPos);
+         .text('Summary Statistics', 50, yPos);
       yPos += 30;
       
       const avgPumps = (participants.reduce((sum, p) => sum + p.avgPumps, 0) / participants.length).toFixed(1);
@@ -89,7 +88,7 @@ const generateAnalyticsPDF = async (participants) => {
       };
 
       doc.fontSize(14).fillColor('#1e3a8a').font('Helvetica-Bold')
-         .text('📈 Risk-Taking Analysis', 50, yPos);
+         .text('Risk-Taking Analysis', 50, yPos);
       yPos += 20;
 
       const chart1Image = await generateChartImage(chart1Config);
@@ -126,7 +125,7 @@ const generateAnalyticsPDF = async (participants) => {
       };
 
       doc.fontSize(14).fillColor('#991b1b').font('Helvetica-Bold')
-         .text('💥 Explosion Analysis', 50, yPos);
+         .text('Explosion Analysis', 50, yPos);
       yPos += 20;
 
       const chart2Image = await generateChartImage(chart2Config);
@@ -135,7 +134,7 @@ const generateAnalyticsPDF = async (participants) => {
 
       // Participant Data Table
       doc.fontSize(14).fillColor('#1e3a8a').font('Helvetica-Bold')
-         .text('👥 Detailed Participant Data', 50, yPos);
+         .text('Detailed Participant Data', 50, yPos);
       yPos += 25;
 
       // Table Header
@@ -180,7 +179,7 @@ const generateAnalyticsPDF = async (participants) => {
       }
 
       doc.fontSize(14).fillColor('#1e3a8a').font('Helvetica-Bold')
-         .text('🔍 Key Insights', 50, yPos);
+         .text(' Key Insights', 50, yPos);
       yPos += 25;
 
       doc.fontSize(10).fillColor('#374151').font('Helvetica');
@@ -229,7 +228,7 @@ const sendBARTAnalyticsEmail = async (req, res) => {
       { id: 'P005', age: 29, gender: 'Male', education: 'PhD', city: 'Chennai', avgPumps: 26.8, explosions: 7, riskScore: 'Moderate' },
     ];
 
-    console.log('📊 Generating PDF with analytics...');
+    console.log(' Generating PDF with analytics...');
     const pdfBuffer = await generateAnalyticsPDF(participants);
 
     const htmlTemplate = `
@@ -270,26 +269,26 @@ const sendBARTAnalyticsEmail = async (req, res) => {
                 <p>We're excited to share that your participation data has been successfully processed and analyzed!</p>
                 <p>Your comprehensive analytics report includes:</p>
                 <ul>
-                    <li>📊 Detailed performance charts and visualizations</li>
-                    <li>📈 Risk-taking behavior analysis</li>
-                    <li>👥 Comparative participant data</li>
-                    <li>🔍 Key insights and findings</li>
-                    <li>📋 Complete statistical breakdown</li>
+                    <li>Detailed performance charts and visualizations</li>
+                    <li> Risk-taking behavior analysis</li>
+                    <li> Comparative participant data</li>
+                    <li> Key insights and findings</li>
+                    <li> Complete statistical breakdown</li>
                 </ul>
             </div>
             <div class="attachment-notice">
-                <div class="icon">📎</div>
+                <div class="icon"></div>
                 <p>Your Complete Analytics Report is Attached</p>
                 <p style="font-size: 14px; font-weight: normal; margin-top: 10px;">Check the PDF attachment: <strong>BART-Analytics-Report.pdf</strong></p>
             </div>
             <div class="highlight">
-                <p style="margin: 0; color: #374151;"><strong>📅 Report Generated:</strong> ${new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                <p style="margin: 0; color: #374151;"><strong> Report Generated:</strong> ${new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
             </div>
             <div class="highlight">
-                <p style="margin: 0; color: #374151;"><strong>👥 Total Participants:</strong> ${participants.length}</p>
+                <p style="margin: 0; color: #374151;"><strong> Total Participants:</strong> ${participants.length}</p>
             </div>
             <div class="message" style="background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border-left-color: #10b981;">
-                <h2 style="color: #065f46;">💡 What's Next?</h2>
+                <h2 style="color: #065f46;"> What's Next?</h2>
                 <p>Review your detailed analytics PDF to understand your performance patterns and compare your results with other participants.</p>
                 <p>Thank you for your valuable participation in our research!</p>
             </div>
@@ -319,7 +318,7 @@ const sendBARTAnalyticsEmail = async (req, res) => {
 
     res.status(200).json({ success: true, message: 'Analytics email sent successfully', recipient: userEmail });
   } catch (error) {
-    console.error('❌ Email sending error:', error);
+    console.error('Email sending error:', error);
     res.status(500).json({ success: false, message: 'Failed to send analytics email', error: error.message });
   }
 };
@@ -364,7 +363,8 @@ const sendAnalyticsToAllUsers = async (req, res) => {
 
 // Auto-scheduler
 const initializeAutoEmailScheduler = () => {
-  const task = cron.schedule('*/10 * * * *', async () => {
+  // Function to send emails to all users
+  const sendEmailsToAllUsers = async () => {
     console.log('\n⏰ AUTO-SEND: Scheduled email task running...');
     console.log(`📅 Time: ${new Date().toLocaleString()}`);
     
@@ -413,11 +413,21 @@ const initializeAutoEmailScheduler = () => {
     } catch (error) {
       console.error('❌ Auto-send scheduler error:', error);
     }
-  });
+  };
+
+  // Send emails immediately on server start
+  console.log('\n🚀 Sending initial emails on server startup...');
+  setTimeout(() => {
+    sendEmailsToAllUsers();
+  }, 3000); // Wait 3 seconds for MongoDB connection to be stable
+
+  // Schedule to run every 10 minutes
+  const task = cron.schedule('*/10 * * * *', sendEmailsToAllUsers);
 
   console.log('\n✅ Email scheduler initialized!');
-  console.log('⏰ Emails will be sent automatically every 10 minutes');
-  console.log('📧 Next run at:', new Date(Date.now() + 10 * 60 * 1000).toLocaleString());
+  console.log('📧 Initial emails will be sent in 3 seconds...');
+  console.log('⏰ Then emails will be sent automatically every 10 minutes');
+  console.log('📧 Next scheduled run at:', new Date(Date.now() + 10 * 60 * 1000).toLocaleString());
   return task;
 };
 
