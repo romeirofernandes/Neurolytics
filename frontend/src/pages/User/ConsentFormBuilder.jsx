@@ -9,6 +9,7 @@ import { Label } from '../../components/ui/label';
 import { Textarea } from '../../components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
+import templatesData from '../../../templates.json';
 import { 
   Save, 
   Eye, 
@@ -39,8 +40,8 @@ const ConsentFormBuilder = () => {
     experimentId: urlExperimentId || '',
     researcherId: user?.mongoId || '',
     title: '',
-    studyPurpose: '',
-    procedures: '',
+    studyPurpose: 'This study aims to investigate cognitive processes related to experimental psychology. The research will contribute to our understanding of human cognition and behavior.',
+    procedures: 'You will be asked to complete a series of tasks on your computer/device. The experiment will take approximately 15 minutes. During the tasks, you will respond to various stimuli or questions. Your responses and reaction times will be recorded automatically. You may take breaks at any time.',
     estimatedDuration: 15,
     risks: 'There are no known risks beyond those of everyday computer use. You may experience mild eye strain or fatigue from screen time. You are free to take breaks at any time.',
     benefits: 'There may be no direct benefit to you. However, your participation will contribute to scientific knowledge in cognitive science. You may gain insight into cognitive research methods.',
@@ -66,7 +67,7 @@ const ConsentFormBuilder = () => {
       researcherName: user?.name || '',
       researcherEmail: user?.email || '',
       researcherPhone: '',
-      institution: '',
+      institution: 'Your Institution Name',
       department: 'Psychology Department',
       ethicsCommitteeName: 'Institutional Review Board',
       ethicsCommitteeEmail: '',
@@ -111,16 +112,25 @@ const ConsentFormBuilder = () => {
   const fetchExperiments = async () => {
     try {
       setLoadingExperiments(true);
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/experiments/researcher/${user.mongoId}`
+      
+      // Filter templates.json by researcher ID
+      const userTemplates = templatesData.filter(template => 
+        template.researcher && template.researcher.id === user.mongoId
       );
       
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          setExperiments(data.experiments || []);
-        }
-      }
+      // Transform templates to match experiment format
+      const formattedExperiments = userTemplates.map(template => ({
+        _id: template.id, // Use template ID as experiment ID
+        title: template.name,
+        description: template.shortDescription,
+        templateType: template.category,
+        researcher: template.researcher,
+        experimentId: template.experimentId // Keep reference to original experiment ID if exists
+      }));
+      
+      setExperiments(formattedExperiments);
+      
+      console.log(`✅ Loaded ${formattedExperiments.length} experiments for researcher ${user.mongoId}`);
     } catch (error) {
       console.error('Error fetching experiments:', error);
       setMessage({
@@ -208,6 +218,38 @@ const ConsentFormBuilder = () => {
       return;
     }
 
+    if (!formData.studyPurpose || formData.studyPurpose.trim().length < 50) {
+      setMessage({ 
+        type: 'error', 
+        text: 'Study purpose must be at least 50 characters long' 
+      });
+      return;
+    }
+
+    if (!formData.procedures || formData.procedures.trim().length < 100) {
+      setMessage({ 
+        type: 'error', 
+        text: 'Procedures description must be at least 100 characters long' 
+      });
+      return;
+    }
+
+    if (!formData.contactInfo.institution || formData.contactInfo.institution.trim() === '' || formData.contactInfo.institution === 'Your Institution Name') {
+      setMessage({ 
+        type: 'error', 
+        text: 'Please provide your institution name' 
+      });
+      return;
+    }
+
+    if (!formData.contactInfo.researcherEmail || !formData.contactInfo.researcherEmail.match(/^\S+@\S+\.\S+$/)) {
+      setMessage({ 
+        type: 'error', 
+        text: 'Please provide a valid researcher email address' 
+      });
+      return;
+    }
+
     if (!formData.researcherId) {
       setMessage({ 
         type: 'error', 
@@ -255,19 +297,19 @@ const ConsentFormBuilder = () => {
         }
 
         setTimeout(() => {
-          navigate('/user/dashboard');
+          navigate('/dashboard');
         }, 2000);
       } else {
         setMessage({ 
           type: 'error', 
-          text: data.message || 'Failed to save consent form' 
+          text: data.message || 'Failed to save consent form. Please check all required fields.' 
         });
       }
     } catch (error) {
       console.error('Error saving consent form:', error);
       setMessage({ 
         type: 'error', 
-        text: 'An error occurred while saving the consent form' 
+        text: 'An error occurred while saving the consent form. Please try again.' 
       });
     } finally {
       setSaving(false);
@@ -516,9 +558,10 @@ const ConsentFormBuilder = () => {
                               value={formData.studyPurpose}
                               onChange={handleChange}
                               required
+                              className={formData.studyPurpose.trim().length < 50 ? 'border-amber-300' : 'border-green-300'}
                             />
-                            <p className="text-xs text-muted-foreground">
-                              Minimum 50 characters (GDPR requirement)
+                            <p className={`text-xs ${formData.studyPurpose.trim().length < 50 ? 'text-amber-600' : 'text-green-600'}`}>
+                              {formData.studyPurpose.trim().length}/50 characters minimum (GDPR requirement)
                             </p>
                           </div>
 
@@ -534,9 +577,10 @@ const ConsentFormBuilder = () => {
                               value={formData.procedures}
                               onChange={handleChange}
                               required
+                              className={formData.procedures.trim().length < 100 ? 'border-amber-300' : 'border-green-300'}
                             />
-                            <p className="text-xs text-muted-foreground">
-                              Minimum 100 characters (IRB requirement)
+                            <p className={`text-xs ${formData.procedures.trim().length < 100 ? 'text-amber-600' : 'text-green-600'}`}>
+                              {formData.procedures.trim().length}/100 characters minimum
                             </p>
                           </div>
 

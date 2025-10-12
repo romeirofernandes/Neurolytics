@@ -12,6 +12,7 @@ import {
   FaSearch, FaCamera, FaClock, FaTrophy, FaBook, 
   FaArrowRight, FaChartLine
 } from 'react-icons/fa';
+import { Search } from 'lucide-react';
 import templatesData from '../../../templates.json';
 
 // Icon mapping for templates
@@ -116,12 +117,13 @@ const ParticipantExplore = () => {
 
             {/* Search and Filter */}
             <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search experiments by name, keyword, or description..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full"
+                  className="pl-10 w-full"
                 />
               </div>
               <div className="flex gap-2 flex-wrap">
@@ -131,6 +133,7 @@ const ParticipantExplore = () => {
                     variant={selectedCategory === category ? "default" : "outline"}
                     onClick={() => setSelectedCategory(category)}
                     className="capitalize"
+                    size="sm"
                   >
                     {category}
                   </Button>

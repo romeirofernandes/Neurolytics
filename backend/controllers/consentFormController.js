@@ -8,7 +8,7 @@ const Experiment = require('../models/Experiment');
 const createConsentForm = async (req, res) => {
   try {
     const {
-      experimentId,
+      experimentId, // This is the template ID from templates.json
       researcherId,
       title,
       studyPurpose,
@@ -26,23 +26,23 @@ const createConsentForm = async (req, res) => {
     if (!experimentId || !researcherId || !title) {
       return res.status(400).json({
         success: false,
-        message: 'Experiment ID, researcher ID, and title are required',
+        message: 'Experiment ID (template ID), researcher ID, and title are required',
       });
     }
 
-    // Check if consent form already exists for this experiment
+    // Check if consent form already exists for this template
     const existingConsent = await ConsentForm.findOne({ experimentId });
     if (existingConsent) {
       return res.status(409).json({
         success: false,
-        message: 'Consent form already exists for this experiment',
+        message: 'Consent form already exists for this experiment template',
         consentFormId: existingConsent._id,
       });
     }
 
-    // Create new consent form
+    // Create new consent form with template ID
     const consentForm = new ConsentForm({
-      experimentId,
+      experimentId, // Store template ID
       researcherId,
       title,
       studyPurpose,
@@ -57,6 +57,8 @@ const createConsentForm = async (req, res) => {
     });
 
     await consentForm.save();
+
+    console.log(`✅ Consent form created for template: ${experimentId}`);
 
     res.status(201).json({
       success: true,
@@ -74,13 +76,14 @@ const createConsentForm = async (req, res) => {
 };
 
 /**
- * Get consent form by experiment ID
+ * Get consent form by experiment ID (template ID)
  * @route GET /api/consent-forms/experiment/:experimentId
  */
 const getConsentFormByExperimentId = async (req, res) => {
   try {
     const { experimentId } = req.params;
 
+    // experimentId is actually the template ID from templates.json
     const consentForm = await ConsentForm.findOne({ experimentId })
       .populate('researcherId', 'name email');
 

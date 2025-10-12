@@ -1,6 +1,10 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Button } from '../ui/button';
+import { Download } from 'lucide-react';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ScatterChart, Scatter, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Area, AreaChart } from 'recharts';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const HanoiAnalytics = ({ templateId }) => {
   // Hardcoded data for 8 participants with realistic Hanoi performance
@@ -90,8 +94,72 @@ const HanoiAnalytics = ({ templateId }) => {
 
   const COLORS = ['#3b82f6', '#ec4899', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4', '#ef4444', '#14b8a6'];
 
+  const downloadPDF = () => {
+    try {
+      const doc = new jsPDF();
+      const margin = 20;
+      let yPosition = margin;
+
+      doc.setFontSize(20);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Tower of Hanoi Analytics', margin, yPosition);
+      yPosition += 10;
+
+      doc.setFontSize(14);
+      doc.text(isExtended ? '(5 Discs Version)' : '(3 Discs Version)', margin, yPosition);
+      yPosition += 15;
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Generated: ${new Date().toLocaleString()}`, margin, yPosition);
+      yPosition += 20;
+
+      autoTable(doc, {
+        startY: yPosition,
+        head: [['Metric', 'Value']],
+        body: [
+          ['Total Participants', '8'],
+          ['Average Moves', avgMoves],
+          ['Average Time', `${avgTime}s`],
+          ['Average Efficiency', `${avgEfficiency}%`],
+          ['Optimal Moves', isExtended ? '31' : '7']
+        ],
+        theme: 'grid',
+        headStyles: { fillColor: [249, 250, 251], textColor: [26, 26, 26], fontStyle: 'bold' },
+        margin: { left: margin, right: margin }
+      });
+
+      yPosition = doc.lastAutoTable.finalY + 15;
+
+      autoTable(doc, {
+        startY: yPosition,
+        head: [['ID', 'Age', 'Gender', 'Education', 'City', 'Moves', 'Time (s)', 'Optimal', 'Efficiency']],
+        body: participantData.map(p => [
+          p.id, p.age.toString(), p.gender, p.education, p.city,
+          p.moves.toString(), p.time.toString(), p.optimalMoves.toString(), `${p.efficiency}%`
+        ]),
+        theme: 'grid',
+        headStyles: { fillColor: [249, 250, 251], textColor: [26, 26, 26], fontStyle: 'bold' },
+        bodyStyles: { fontSize: 9 },
+        margin: { left: margin, right: margin }
+      });
+
+      doc.save(`Hanoi-analytics-${Date.now()}.pdf`);
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      alert('Failed to generate PDF. Please try again.');
+    }
+  };
+
   return (
     <div className="space-y-6">
+      <div className="flex justify-end">
+        <Button onClick={downloadPDF} variant="outline" className="gap-2">
+          <Download className="h-4 w-4" />
+          Download PDF Report
+        </Button>
+      </div>
+
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
@@ -199,147 +267,6 @@ const HanoiAnalytics = ({ templateId }) => {
                 <Tooltip cursor={{ strokeDasharray: '3 3' }} />
                 <Scatter name="Participants" data={timeMoveData} fill="#ec4899" />
               </ScatterChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Demographics */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Gender Distribution */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Gender Distribution</CardTitle>
-            <CardDescription>Participant demographics</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie data={genderData} cx="50%" cy="50%" labelLine={false} label={({ name, value }) => `${name}: ${value}`} outerRadius={80} fill="#8884d8" dataKey="value">
-                  {genderData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Education Distribution */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Education Level</CardTitle>
-            <CardDescription>Educational background</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie data={educationData} cx="50%" cy="50%" labelLine={false} label={({ name, value }) => `${name}: ${value}`} outerRadius={80} fill="#8884d8" dataKey="value">
-                  {educationData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Age Distribution */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Age Distribution</CardTitle>
-            <CardDescription>Participant age ranges</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={ageDistribution}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="range" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="count" fill="#06b6d4" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Advanced Analytics */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Age vs Performance */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Age vs Performance Correlation</CardTitle>
-            <CardDescription>Efficiency score by age</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <ScatterChart>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="age" name="Age" />
-                <YAxis dataKey="efficiency" name="Efficiency %" domain={[0, 100]} />
-                <Tooltip cursor={{ strokeDasharray: '3 3' }} />
-                <Scatter name="Performance" data={agePerformanceData} fill="#f59e0b" />
-              </ScatterChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Education vs Performance */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Education vs Average Efficiency</CardTitle>
-            <CardDescription>Performance by education level</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={educationPerformance}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="education" />
-                <YAxis domain={[0, 100]} />
-                <Tooltip />
-                <Bar dataKey="avgEfficiency" fill="#8b5cf6" name="Avg Efficiency %" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* City Distribution */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Geographic Distribution</CardTitle>
-            <CardDescription>Participants by city</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={cityData} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" />
-                <YAxis dataKey="city" type="category" />
-                <Tooltip />
-                <Bar dataKey="count" fill="#14b8a6" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Performance Radar */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Multi-Dimensional Performance</CardTitle>
-            <CardDescription>Top 5 performers across metrics</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <RadarChart data={radarData}>
-                <PolarGrid />
-                <PolarAngleAxis dataKey="participant" />
-                <PolarRadiusAxis domain={[0, 100]} />
-                <Radar name="Efficiency" dataKey="efficiency" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.6} />
-                <Tooltip />
-              </RadarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
