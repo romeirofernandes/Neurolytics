@@ -55,6 +55,14 @@ export const Component = () => {
                 <Link to="/research" className='text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap font-medium'>Research</Link>
               </div>
             </div>
+
+            <div className='flex flex-col gap-1 md:gap-4'>
+              <h4 className='uppercase font-display text-md text-muted-foreground font-semibold'>Legal</h4>
+              <div className="flex flex-col gap-2 text-sm text-foreground items-start">
+                <Link to="/privacy-policy" className='text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap font-medium'>Privacy Policy</Link>
+                <Link to="/terms-and-conditions" className='text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap font-medium'>Terms & Conditions</Link>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -64,7 +72,8 @@ export const Component = () => {
             ©{currentYear} Neurolytics. All rights reserved.
           </p>
           <div className="flex flex-row gap-4">
-            <span className="text-muted-foreground transition-colors">Empowering research.</span>
+            <Link to="/privacy-policy" className="text-muted-foreground hover:text-foreground transition-colors">Privacy Policy</Link>
+            <Link to="/terms-and-conditions" className="text-muted-foreground hover:text-foreground transition-colors">Terms & Conditions</Link>
           </div>
         </div>
         <div className="flex gap-4 items-center">
