@@ -29,6 +29,8 @@ import { Button } from './components/ui/button'
 import TestModels from './pages/TestModels'
 import AIExperimentBuilder from './pages/User/AIExperimentBuilder'
 import PreviewExperiment from './pages/Preview/PreviewExperiment'
+import PupilTracker from './components/experiment/templates/PupilTracker'
+import PupilTrackingActivity from './pages/Experiment/PupilTrackingActivity'
 import VisualBuilder from './pages/User/VisualBuilder'
 import TermsAndConditions from './pages/TermsAndConditions'
 import PrivacyPolicy from './pages/Policy'
@@ -225,6 +227,9 @@ const App = () => {
               <Route path="/preview/:templateId" element={<PreviewExperiment />} />
               
               <Route path="/test-models" element={<TestModels />} />
+              
+              {/* Pupil tracking activity route */}
+              <Route path="/experiment/pupil-tracking-activity" element={<PupilTrackingActivity />} />
               <Route path="/visual-builder" element={<VisualBuilder />} />
               
               {/* 404 route - catch all unmatched routes */}

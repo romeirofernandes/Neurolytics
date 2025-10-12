@@ -12,7 +12,7 @@ import {
   FaFilter, FaHandPaper, FaSyncAlt, FaArrowsAlt, FaHashtag, 
   FaSearch, FaCamera, FaClock, FaTrophy, FaArrowLeft, 
   FaPlay, FaCheckCircle, FaExclamationCircle, FaBook,
-  FaUsers, FaChartLine, FaFileAlt
+  FaUsers, FaChartLine, FaFileAlt, FaEye
 } from 'react-icons/fa';
 import templatesData from '../../../public/templates.json';
 
@@ -29,7 +29,8 @@ const iconMap = {
   Move: FaArrowsAlt,
   Hash: FaHashtag,
   Search: FaSearch,
-  Camera: FaCamera
+  Camera: FaCamera,
+  Eye: FaEye
 };
 
 const TemplateDetail = () => {

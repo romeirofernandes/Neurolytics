@@ -19,6 +19,7 @@ import { SimonTemplate } from '../../components/experiment/templates/SimonTempla
 import { DigitSpanTemplate } from '../../components/experiment/templates/DigitSpanTemplate';
 import { VisualSearchTemplate } from '../../components/experiment/templates/VisualSearchTemplate';
 import EmotionTracker from '../../components/experiment/templates/EmotionTracker';
+import PupilTracker from '../../components/experiment/templates/PupilTracker'; // ✅ Direct import
 
 // Base template component mapping
 const baseTemplateComponents = {
@@ -26,15 +27,16 @@ const baseTemplateComponents = {
   'stroop': StroopTemplate,
   'posner': PosnerTemplate,
   'abba': ABBATemplate,
-  'hanoi': HanoiTowerTemplate,  // 5-disk version
-  'hanoi1': TowerHanoiTemplate,  // 3-disk version
+  'hanoi': HanoiTowerTemplate,
+  'hanoi1': TowerHanoiTemplate,
   'flanker': FlankerTemplate,
   'gonogo': GoNoGoTemplate,
   'nback': NBackTemplate,
   'simon': SimonTemplate,
   'digitspan': DigitSpanTemplate,
   'visualsearch': VisualSearchTemplate,
-  'stroop-emotion': EmotionTracker
+  'stroop-emotion': EmotionTracker,
+  'pupil-gaze-reaction': PupilTracker, // ✅ Added here
 };
 
 /**
@@ -42,14 +44,12 @@ const baseTemplateComponents = {
  */
 const loadDynamicComponent = async (templateId) => {
   try {
-    // Try to find the template in templates.json
     const template = templatesData.find(t => t.id === templateId);
     if (!template) {
       console.error('Template not found in templates.json:', templateId);
       return null;
     }
 
-    // Generate component name from template ID
     const componentName = templateId
       .split('-')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
@@ -57,19 +57,13 @@ const loadDynamicComponent = async (templateId) => {
 
     console.log('Attempting to load component:', componentName);
 
-    // Try to dynamically import the component
     const module = await import(`../../components/experiment/templates/${componentName}.jsx`);
     
-    // Try to find the component in multiple ways:
-    // 1. Named export matching the expected name
-    // 2. Default export
-    // 3. Any named export (for incorrectly named components)
     if (module[componentName]) {
       return module[componentName];
     } else if (module.default) {
       return module.default;
     } else {
-      // Get first named export if exists
       const exports = Object.keys(module).filter(key => key !== 'default' && key !== '__esModule');
       if (exports.length > 0) {
         console.warn(`Component ${componentName} not found, using ${exports[0]} instead`);
@@ -84,10 +78,6 @@ const loadDynamicComponent = async (templateId) => {
   }
 };
 
-/**
- * Preview Experiment - Public route for previewing experiments
- * No authentication required - used for iframe previews
- */
 const PreviewExperiment = () => {
   const { templateId } = useParams();
   const [template, setTemplate] = useState(null);
@@ -101,7 +91,6 @@ const PreviewExperiment = () => {
       setLoading(true);
       setLoadError(null);
 
-      // Find template in templates.json
       const foundTemplate = templatesData.find(t => t.id === templateId);
       if (!foundTemplate) {
         setLoadError('Template not found');
@@ -110,14 +99,12 @@ const PreviewExperiment = () => {
       }
       setTemplate(foundTemplate);
 
-      // Try to load from base components first
       if (baseTemplateComponents[templateId]) {
         setTemplateComponent(() => baseTemplateComponents[templateId]);
         setLoading(false);
         return;
       }
 
-      // Try to dynamically load AI-generated component
       const dynamicComponent = await loadDynamicComponent(templateId);
       if (dynamicComponent) {
         setTemplateComponent(() => dynamicComponent);
@@ -206,13 +193,8 @@ const PreviewExperiment = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
-      <div className="container mx-auto p-4">
-        <div className="mb-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 text-sm text-yellow-800 dark:text-yellow-200">
-          <strong>Preview Mode:</strong> This is a preview. Results will not be saved.
-        </div>
-        <TemplateComponent onComplete={handleExperimentComplete} />
-      </div>
+    <div className="min-h-screen">
+      <TemplateComponent onComplete={handleExperimentComplete} />
     </div>
   );
 };
