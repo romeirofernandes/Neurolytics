@@ -146,14 +146,14 @@ const CryptoSponsor = ({ experimentId, experimentTitle }) => {
 
   if (sponsored) {
     return (
-      <Card className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 border-green-500/20">
+      <Card className="bg-muted/50 border-border">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5 text-green-600" />
+              <CheckCircle2 className="h-5 w-5 text-foreground" />
               <CardTitle className="text-lg">Crypto Sponsored</CardTitle>
             </div>
-            <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/30">
+            <Badge variant="outline" className="bg-muted text-foreground border-border">
               Active
             </Badge>
           </div>
@@ -163,10 +163,10 @@ const CryptoSponsor = ({ experimentId, experimentTitle }) => {
         </CardHeader>
         <CardContent>
           {txHash && (
-            <div className="p-3 bg-background/50 rounded-lg border">
+            <div className="p-3 bg-background rounded-lg border border-border">
               <p className="text-xs text-muted-foreground mb-1">Transaction Hash</p>
               <div className="flex items-center gap-2">
-                <code className="text-sm font-mono flex-1 truncate">
+                <code className="text-sm font-mono flex-1 truncate text-foreground">
                   {txHash}
                 </code>
                 <a
@@ -187,10 +187,10 @@ const CryptoSponsor = ({ experimentId, experimentTitle }) => {
   }
 
   return (
-    <Card className="bg-gradient-to-br from-purple-500/10 to-blue-500/10 border-purple-500/20">
+    <Card className="bg-card border-border">
       <CardHeader>
         <div className="flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-purple-600" />
+          <Sparkles className="h-5 w-5 text-foreground" />
           <CardTitle className="text-lg">Blockchain Sponsorship</CardTitle>
         </div>
         <CardDescription>
@@ -198,9 +198,9 @@ const CryptoSponsor = ({ experimentId, experimentTitle }) => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="p-4 bg-background/50 rounded-lg border">
-          <h4 className="font-semibold mb-2 flex items-center gap-2">
-            <Wallet className="h-4 w-4 text-purple-600" />
+        <div className="p-4 bg-muted/50 rounded-lg border border-border">
+          <h4 className="font-semibold mb-2 flex items-center gap-2 text-foreground">
+            <Wallet className="h-4 w-4" />
             Why Sponsor on Blockchain?
           </h4>
           <ul className="text-sm space-y-1 text-muted-foreground">
@@ -214,7 +214,7 @@ const CryptoSponsor = ({ experimentId, experimentTitle }) => {
         <Button
           onClick={sponsorWithCrypto}
           disabled={loading}
-          className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+          className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
         >
           {loading ? (
             <>
