@@ -10,6 +10,7 @@ import { FaArrowLeft, FaCheckCircle, FaExclamationCircle, FaSpinner, FaChartLine
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import templatesData from '../../../templates.json';
+import ConsentDisplay from '../../components/experiment/ConsentDisplay';
 import { BARTTemplate } from '../../components/experiment/templates/BARTTemplate';
 import { StroopTemplate } from '../../components/experiment/templates/StroopTemplate';
 import { PosnerTemplate } from '../../components/experiment/templates/PosnerTemplate';
@@ -102,6 +103,12 @@ const RunExperiment = () => {
   const [TemplateComponent, setTemplateComponent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
+  
+  // Consent form states
+  const [consentForm, setConsentForm] = useState(null);
+  const [hasConsented, setHasConsented] = useState(false);
+  const [loadingConsent, setLoadingConsent] = useState(true);
+  const [consentError, setConsentError] = useState(null);
 
   useEffect(() => {
     const loadTemplate = async () => {
@@ -137,6 +144,45 @@ const RunExperiment = () => {
     };
 
     loadTemplate();
+  }, [templateId]);
+
+  // Fetch consent form for this experiment
+  useEffect(() => {
+    const fetchConsentForm = async () => {
+      setLoadingConsent(true);
+      setConsentError(null);
+      
+      try {
+        // Convert template ID to lowercase as the experiment ID
+        const experimentId = templateId.toLowerCase();
+        
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/api/consent-forms/experiment/${experimentId}`
+        );
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.consentForm) {
+            setConsentForm(data.consentForm);
+          } else {
+            setConsentError('No consent form found for this experiment');
+          }
+        } else if (response.status === 404) {
+          setConsentError('No consent form has been created for this experiment yet');
+        } else {
+          setConsentError('Failed to load consent form');
+        }
+      } catch (error) {
+        console.error('Error fetching consent form:', error);
+        setConsentError('Error loading consent form');
+      } finally {
+        setLoadingConsent(false);
+      }
+    };
+
+    if (templateId) {
+      fetchConsentForm();
+    }
   }, [templateId]);
 
   const handleExperimentComplete = async (results) => {
@@ -184,6 +230,41 @@ const RunExperiment = () => {
     setExperimentResults(null);
     setAiAnalysis(null);
     setAnalysisError(null);
+  };
+
+  // Handle participant consent
+  const handleConsent = async () => {
+    try {
+      // Record consent in the database
+      await fetch(
+        `${import.meta.env.VITE_API_URL}/api/consent-forms/${consentForm._id}/consent`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            participantId: participant?.mongoId || 'anonymous',
+            experimentId: templateId.toLowerCase(),
+            ipAddress: 'client-ip', // Would be captured on backend
+            userAgent: navigator.userAgent,
+            consentGiven: true,
+            consentTimestamp: new Date().toISOString()
+          })
+        }
+      );
+
+      // Mark consent as given and allow experiment to proceed
+      setHasConsented(true);
+    } catch (error) {
+      console.error('Error recording consent:', error);
+      alert('Failed to record consent. Please try again.');
+    }
+  };
+
+  // Handle participant declining consent
+  const handleDecline = () => {
+    if (window.confirm('Are you sure you do not want to participate? You will be returned to the explore page.')) {
+      navigate('/participant/explore');
+    }
   };
 
   const downloadResults = () => {
@@ -425,14 +506,16 @@ const RunExperiment = () => {
   };
 
   // Loading state
-  if (loading) {
+  if (loading || loadingConsent) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="max-w-md">
           <CardContent className="pt-6">
             <div className="flex flex-col items-center justify-center py-8">
-              <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-              <p className="text-muted-foreground">Loading experiment...</p>
+              <FaSpinner className="h-12 w-12 animate-spin text-primary mb-4" />
+              <p className="text-muted-foreground">
+                {loading ? 'Loading experiment...' : 'Loading consent form...'}
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -451,6 +534,44 @@ const RunExperiment = () => {
           </AlertDescription>
         </Alert>
       </div>
+    );
+  }
+
+  // Consent form error state
+  if (consentError) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="max-w-md">
+          <CardContent className="pt-6 space-y-4">
+            <Alert variant="destructive">
+              <FaExclamationCircle className="h-4 w-4" />
+              <AlertDescription>
+                {consentError}
+              </AlertDescription>
+            </Alert>
+            <p className="text-sm text-muted-foreground text-center">
+              This experiment cannot proceed without a consent form. Please contact the researcher.
+            </p>
+            <div className="flex justify-center">
+              <Button onClick={() => navigate('/participant/explore')}>
+                <FaArrowLeft className="mr-2 h-4 w-4" />
+                Back to Explore
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show consent form if participant hasn't consented yet
+  if (consentForm && !hasConsented) {
+    return (
+      <ConsentDisplay
+        consentForm={consentForm}
+        onConsent={handleConsent}
+        onDecline={handleDecline}
+      />
     );
   }
 

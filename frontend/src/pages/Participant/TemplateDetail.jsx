@@ -185,6 +185,70 @@ const TemplateDetail = () => {
               </CardContent>
             </Card>
 
+            {/* Researcher Information (if available) */}
+            {template.researcher && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FaUsers className="h-5 w-5" />
+                    Researcher Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <div className="text-sm font-medium text-muted-foreground">Name</div>
+                      <div className="text-base">{template.researcher.name}</div>
+                    </div>
+                    {template.researcher.institution && (
+                      <div>
+                        <div className="text-sm font-medium text-muted-foreground">Institution</div>
+                        <div className="text-base">{template.researcher.institution}</div>
+                      </div>
+                    )}
+                    {template.researcher.designation && (
+                      <div>
+                        <div className="text-sm font-medium text-muted-foreground">Designation</div>
+                        <div className="text-base">{template.researcher.designation}</div>
+                      </div>
+                    )}
+                    {template.researcher.fieldOfStudy && (
+                      <div>
+                        <div className="text-sm font-medium text-muted-foreground">Field of Study</div>
+                        <div className="text-base">{template.researcher.fieldOfStudy}</div>
+                      </div>
+                    )}
+                    {template.researcher.orcId && (
+                      <div>
+                        <div className="text-sm font-medium text-muted-foreground">ORCID</div>
+                        <div className="text-sm font-mono">
+                          <a 
+                            href={`https://orcid.org/${template.researcher.orcId}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline"
+                          >
+                            {template.researcher.orcId}
+                          </a>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  {template.createdAt && (
+                    <div className="pt-3 border-t">
+                      <div className="text-sm text-muted-foreground">
+                        Created on {new Date(template.createdAt).toLocaleDateString('en-US', { 
+                          year: 'numeric', 
+                          month: 'long', 
+                          day: 'numeric' 
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
             {/* What We Measure */}
             <Card>
               <CardHeader>

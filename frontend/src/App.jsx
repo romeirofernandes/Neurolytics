@@ -9,6 +9,7 @@ import Register from './pages/Register'
 import Dashboard from './pages/User/Dashboard'
 import Profile from './pages/User/Profile'
 import Analytics from './pages/User/Analytics'
+import MyExperiments from './pages/User/MyExperiments'
 import AdminAuth from './pages/Admin/AdminAuth'
 import AdminDashboard from './pages/Admin/AdminDashboard'
 import ParticipantLogin from './pages/Participant/Login'
@@ -27,6 +28,7 @@ import { Button } from './components/ui/button'
 import TestModels from './pages/TestModels'
 import AIExperimentBuilder from './pages/User/AIExperimentBuilder'
 import PreviewExperiment from './pages/Preview/PreviewExperiment'
+import VisualBuilder from './pages/User/VisualBuilder'
 
 // Inline route protection components
 const ProtectedRoute = ({ children }) => {
@@ -148,6 +150,12 @@ const App = () => {
                   <Templates />
                 </ProtectedRoute>
               } />
+
+              <Route path="/my-experiments" element={
+                <ProtectedRoute>
+                  <MyExperiments />
+                </ProtectedRoute>
+              } />
             
               {/* Admin routes */}
               <Route path="/admin/auth" element={<AdminAuth />} />
@@ -189,6 +197,7 @@ const App = () => {
               <Route path="/preview/:templateId" element={<PreviewExperiment />} />
               
               <Route path="/test-models" element={<TestModels />} />
+              <Route path="/visual-builder" element={<VisualBuilder />} />
               
               {/* 404 route - catch all unmatched routes */}
               <Route path="*" element={<NotFoundPage />} />

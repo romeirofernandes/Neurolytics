@@ -341,10 +341,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
       // Continue even if file write fails - experiment is already saved in DB
     }
 
-    // Update templates.json
+    // Update templates.json with researcher information
     const templatesJsonPath = path.join(__dirname, '../../frontend/templates.json');
     
     try {
+      // Fetch researcher details from database
+      const User = require('../models/User');
+      const Researcher = require('../models/Researcher');
+      
+      const user = await User.findById(researcherId).select('name email');
+      const researcher = await Researcher.findOne({ userId: researcherId }).select('institution designation fieldOfStudy orcId');
+      
       const templatesData = await fs.readFile(templatesJsonPath, 'utf-8');
       const templates = JSON.parse(templatesData);
       
@@ -367,12 +374,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
         requiresCamera: false,
         keywords: [templateId, "ai-generated", "custom"],
         researchAreas: ["Custom Research"],
-        publications: []
+        publications: [],
+        // Add researcher information
+        researcher: {
+          id: researcherId,
+          name: user?.name || 'Unknown Researcher',
+          email: user?.email || '',
+          institution: researcher?.institution || '',
+          designation: researcher?.designation || '',
+          fieldOfStudy: researcher?.fieldOfStudy || '',
+          orcId: researcher?.orcId || null
+        },
+        createdAt: new Date().toISOString(),
+        experimentId: experiment._id.toString()
       };
       
       if (existingIndex !== -1) {
-        // Update existing template
-        templates[existingIndex] = newTemplate;
+        // Update existing template (preserve createdAt, update researcher info)
+        templates[existingIndex] = {
+          ...newTemplate,
+          createdAt: templates[existingIndex].createdAt || newTemplate.createdAt
+        };
         console.log(`✅ Updated existing template in templates.json: ${templateId}`);
       } else {
         // Add new template
@@ -381,7 +403,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
       }
       
       await fs.writeFile(templatesJsonPath, JSON.stringify(templates, null, 2), 'utf-8');
-      console.log(`✅ templates.json updated successfully`);
+      console.log(`✅ templates.json updated successfully with researcher info`);
     } catch (jsonError) {
       console.error('❌ Error updating templates.json:', jsonError);
       // Continue even if JSON update fails - experiment and file are already saved
@@ -405,9 +427,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
       templateInfo: {
         templateId,
         componentName,
-        filePath: `src/components/experiment/templates/${componentName}.jsx`
+        filePath: `src/components/experiment/templates/${componentName}.jsx`,
+        researcher: {
+          id: researcherId,
+          included: true
+        }
       },
-      message: 'AI-generated experiment saved successfully and added to templates'
+      message: 'AI-generated experiment saved successfully with researcher information and added to templates'
     });
 
   } catch (error) {
