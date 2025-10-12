@@ -16,6 +16,7 @@ import ParticipantLogin from './pages/Participant/Login'
 import ParticipantRegister from './pages/Participant/Register'
 import ParticipantDashboard from './pages/Participant/Dashboard'
 import ParticipantExplore from './pages/Participant/Explore'
+import ParticipatedExperiments from './pages/Participant/ParticipatedExperiments'
 import TemplateDetail from './pages/Participant/TemplateDetail'
 import RunExperiment from './pages/Participant/RunExperiment'
 import NotFoundPage from './pages/404Page'
@@ -28,9 +29,11 @@ import { Button } from './components/ui/button'
 import TestModels from './pages/TestModels'
 import AIExperimentBuilder from './pages/User/AIExperimentBuilder'
 import PreviewExperiment from './pages/Preview/PreviewExperiment'
+import PupilTracker from './components/experiment/templates/PupilTracker'
+import PupilTrackingActivity from './pages/Experiment/PupilTrackingActivity'
 import VisualBuilder from './pages/User/VisualBuilder'
 import TermsAndConditions from './pages/TermsAndConditions'
-import PrivacyPolicy from './pages/PrivacyPolicy'
+import PrivacyPolicy from './pages/Policy'
 // Fix Leaflet default marker icons for Vite/Webpack
 import L from 'leaflet';
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -199,6 +202,16 @@ const App = () => {
                   <ParticipantExplore />
                 </ProtectedParticipantRoute>
               } />
+              <Route path="/participant/experiments" element={
+                <ProtectedParticipantRoute>
+                  <ParticipantExplore />
+                </ProtectedParticipantRoute>
+              } />
+              <Route path="/participant/participated" element={
+                <ProtectedParticipantRoute>
+                  <ParticipatedExperiments />
+                </ProtectedParticipantRoute>
+              } />
               
               {/* Public participant experiment routes - no authentication required */}
               <Route path="/participant/experiment/:templateId" element={<TemplateDetail />} />
@@ -214,6 +227,9 @@ const App = () => {
               <Route path="/preview/:templateId" element={<PreviewExperiment />} />
               
               <Route path="/test-models" element={<TestModels />} />
+              
+              {/* Pupil tracking activity route */}
+              <Route path="/experiment/pupil-tracking-activity" element={<PupilTrackingActivity />} />
               <Route path="/visual-builder" element={<VisualBuilder />} />
               
               {/* 404 route - catch all unmatched routes */}

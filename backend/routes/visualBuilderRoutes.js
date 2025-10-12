@@ -5,6 +5,12 @@ const path = require('path');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const Experiment = require('../models/Experiment');
 
+const { 
+  retrieveRelevantTemplates, 
+  extractModifications, 
+  generateRAGPrompt 
+} = require('../utils/ragHelper');
+
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // Save experiment to templates.json (original route)
@@ -75,7 +81,7 @@ router.get('/experiments', async (req, res) => {
   }
 });
 
-// Generate AI experiment from visual flow
+// 🎯 UPDATED: Generate AI experiment from visual flow WITH RAG
 router.post('/generate-ai', async (req, res) => {
   try {
     const { description, researcherId } = req.body;
@@ -87,17 +93,32 @@ router.post('/generate-ai', async (req, res) => {
       });
     }
 
-    console.log('🎨 Generating AI experiment from visual flow...');
+    console.log('🎨 Generating AI experiment from visual flow WITH RAG...');
+
+    // 🔥 RAG: Retrieve relevant templates from knowledge base
+    const relevantTemplates = retrieveRelevantTemplates(description, 3);
+    const modifications = extractModifications(description);
+    
+    console.log(`📚 RAG: Found ${relevantTemplates.length} relevant templates for visual builder`);
+    if (relevantTemplates.length > 0) {
+      console.log(`   - Best match: ${relevantTemplates[0]?.name} (score: ${relevantTemplates[0]?.similarityScore?.toFixed(2)})`);
+    }
+    console.log(`🔧 Detected ${modifications.length} modifications:`, modifications.map(m => m.description));
+
+    // 🔥 Build RAG-enhanced prompt (same as AI Experiment Builder)
+    const systemPrompt = generateRAGPrompt(description, relevantTemplates, modifications);
+
+    console.log('📝 Sending RAG-enhanced prompt to Gemini...');
 
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-    const result = await model.generateContent(description);
+    const result = await model.generateContent(systemPrompt);
     const response = await result.response;
     const generatedCode = response.text();
 
     const codeMatch = generatedCode.match(/```jsx\n([\s\S]*?)\n```/);
     const componentCode = codeMatch ? codeMatch[1] : generatedCode;
 
-    console.log('✅ AI code generated');
+    console.log('✅ AI code generated with RAG context');
 
     res.status(200).json({
       success: true,
@@ -105,7 +126,14 @@ router.post('/generate-ai', async (req, res) => {
       fullResponse: generatedCode,
       metadata: {
         generatedAt: new Date().toISOString(),
-        description: description
+        description: description,
+        usedTemplate: relevantTemplates[0]?.name || null,
+        templateSimilarityScore: relevantTemplates[0]?.similarityScore || 0,
+        modifications: modifications,
+        ragContext: {
+          templatesUsed: relevantTemplates.length,
+          modificationsDetected: modifications.length
+        }
       }
     });
 
@@ -240,7 +268,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
       shortDescription: description || `AI-generated experiment: ${displayName}`,
       detailedDescription: description || `Visual builder experiment: ${displayName}`,
       duration: `~${estimatedDuration || 15} minutes`,
-      trials: metadata?.nodeCount ? `${metadata.nodeCount * metadata.repetitions} trials` : "Variable",
+      trials: metadata?.nodeCount ? `${metadata.nodeCount * (metadata.repetitions || 1)} trials` : "Variable",
       difficulty: "Custom",
       category: "Visual Builder",
       measures: ["Custom measures"],
@@ -348,6 +376,169 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
     res.status(500).json({
       success: false,
       message: 'Error saving experiment to templates.json',
+      error: error.message
+    });
+  }
+});
+
+// Add participant to template contributors when experiment is completed
+router.post('/add-contributor', async (req, res) => {
+  try {
+    const { templateId, participantId } = req.body;
+
+    if (!templateId || !participantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'templateId and participantId are required'
+      });
+    }
+
+    console.log(`📝 Adding participant ${participantId} to template ${templateId} contributors...`);
+
+    const templatesJsonPath = path.join(__dirname, '../../frontend/public/templates.json');
+    
+    // Read templates.json
+    let templates = [];
+    try {
+      const templatesData = await fs.readFile(templatesJsonPath, 'utf-8');
+      templates = JSON.parse(templatesData);
+    } catch (error) {
+      console.error('Error reading templates.json:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to read templates.json'
+      });
+    }
+
+    // Find the template
+    const templateIndex = templates.findIndex(t => t.id === templateId);
+    
+    if (templateIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: 'Template not found'
+      });
+    }
+
+    // Initialize contributors array if it doesn't exist
+    if (!templates[templateIndex].contributors) {
+      templates[templateIndex].contributors = [];
+    }
+
+    // Add participant ID if not already in the array
+    if (!templates[templateIndex].contributors.includes(participantId)) {
+      templates[templateIndex].contributors.push(participantId);
+      console.log(`✅ Added participant ${participantId} to template ${templateId}`);
+    } else {
+      console.log(`ℹ️ Participant ${participantId} already in contributors for ${templateId}`);
+    }
+
+    // Update updatedAt timestamp
+    templates[templateIndex].updatedAt = new Date().toISOString();
+
+    // Write back to templates.json
+    await fs.writeFile(templatesJsonPath, JSON.stringify(templates, null, 2), 'utf-8');
+    console.log('✅ templates.json updated successfully');
+
+    res.status(200).json({
+      success: true,
+      message: 'Contributor added successfully',
+      contributorsCount: templates[templateIndex].contributors.length
+    });
+
+  } catch (error) {
+    console.error('❌ Error adding contributor:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error adding contributor',
+      error: error.message
+    });
+  }
+});
+
+// Remove participant from template contributors
+router.post('/remove-contributor', async (req, res) => {
+  try {
+    const { templateId, participantId } = req.body;
+
+    if (!templateId || !participantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'templateId and participantId are required'
+      });
+    }
+
+    console.log(`🗑️ Removing participant ${participantId} from template ${templateId} contributors...`);
+
+    const templatesJsonPath = path.join(__dirname, '../../frontend/public/templates.json');
+    
+    // Read templates.json
+    let templates = [];
+    try {
+      const templatesData = await fs.readFile(templatesJsonPath, 'utf-8');
+      templates = JSON.parse(templatesData);
+    } catch (error) {
+      console.error('Error reading templates.json:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to read templates.json'
+      });
+    }
+
+    // Find the template
+    const templateIndex = templates.findIndex(t => t.id === templateId);
+    
+    if (templateIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: 'Template not found'
+      });
+    }
+
+    // Check if contributors array exists
+    if (!templates[templateIndex].contributors) {
+      return res.status(404).json({
+        success: false,
+        message: 'No contributors found for this template'
+      });
+    }
+
+    // Find and remove the participant ID
+    const initialLength = templates[templateIndex].contributors.length;
+    templates[templateIndex].contributors = templates[templateIndex].contributors.filter(
+      id => id !== participantId
+    );
+
+    const removed = initialLength > templates[templateIndex].contributors.length;
+
+    if (removed) {
+      console.log(`✅ Removed participant ${participantId} from template ${templateId}`);
+      
+      // Update updatedAt timestamp
+      templates[templateIndex].updatedAt = new Date().toISOString();
+
+      // Write back to templates.json
+      await fs.writeFile(templatesJsonPath, JSON.stringify(templates, null, 2), 'utf-8');
+      console.log('✅ templates.json updated successfully');
+
+      res.status(200).json({
+        success: true,
+        message: 'Participant removed from contributors successfully',
+        contributorsCount: templates[templateIndex].contributors.length
+      });
+    } else {
+      console.log(`ℹ️ Participant ${participantId} not found in contributors for ${templateId}`);
+      res.status(404).json({
+        success: false,
+        message: 'Participant not found in contributors list'
+      });
+    }
+
+  } catch (error) {
+    console.error('❌ Error removing contributor:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error removing contributor',
       error: error.message
     });
   }
