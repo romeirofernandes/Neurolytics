@@ -598,10 +598,10 @@ const EmotionTracker = ({ participantId, experimentId, onComplete }) => {
 
   if (!experimentStarted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="max-w-2xl w-full">
           <CardHeader>
-            <CardTitle className="text-3xl text-center">Stroop Task with Emotion Tracking</CardTitle>
+            <CardTitle className="text-4xl text-center">Stroop Task with Emotion Tracking</CardTitle>
             <CardDescription className="text-center text-base mt-2">
               Combines classic cognitive task with real-time facial emotion recognition
             </CardDescription>
@@ -609,7 +609,7 @@ const EmotionTracker = ({ participantId, experimentId, onComplete }) => {
           
           <CardContent className="space-y-6">
             <div className="flex flex-col items-center gap-4">
-              <div className="relative rounded-lg overflow-hidden border-4 border-slate-300 dark:border-slate-600 bg-black shadow-2xl">
+              <div className="relative rounded-lg overflow-hidden border bg-black shadow-lg">
                 <video
                   ref={videoRef}
                   autoPlay
@@ -624,15 +624,15 @@ const EmotionTracker = ({ participantId, experimentId, onComplete }) => {
                   style={{ width: '400px', height: '300px' }}
                 />
                 {!cameraReady && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/70">
-                    <div className="text-white text-center">
+                  <div className="absolute inset-0 flex items-center justify-center bg-primary/90">
+                    <div className="text-primary-foreground text-center">
                       <Camera className="w-12 h-12 mx-auto mb-2 animate-pulse" />
                       <p className="text-sm">Starting camera...</p>
                     </div>
                   </div>
                 )}
                 {cameraReady && !faceDetected && (
-                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-amber-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg animate-pulse">
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-warning text-warning-foreground px-4 py-2 rounded-full text-sm font-semibold shadow-lg animate-pulse">
                     ⚠️ Position your face in the frame
                   </div>
                 )}
@@ -642,12 +642,12 @@ const EmotionTracker = ({ participantId, experimentId, onComplete }) => {
                 <div className="flex items-center gap-2">
                   {isLoaded ? (
                     <>
-                      <CheckCircle2 className="w-5 h-5 text-green-600" />
-                      <span className="text-green-600 font-semibold">Models Ready</span>
+                      <CheckCircle2 className="w-5 h-5 text-success" />
+                      <span className="text-success font-semibold">Models Ready</span>
                     </>
                   ) : (
                     <>
-                      <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                      <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                       <span className="text-muted-foreground">Loading models...</span>
                     </>
                   )}
@@ -656,12 +656,12 @@ const EmotionTracker = ({ participantId, experimentId, onComplete }) => {
                 <div className="flex items-center gap-2">
                   {cameraReady ? (
                     <>
-                      <Video className="w-5 h-5 text-green-600 animate-pulse" />
-                      <span className="text-green-600 font-semibold">Camera Active</span>
+                      <Video className="w-5 h-5 text-success animate-pulse" />
+                      <span className="text-success font-semibold">Camera Active</span>
                     </>
                   ) : (
                     <>
-                      <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                      <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                       <span className="text-muted-foreground">Starting camera...</span>
                     </>
                   )}
@@ -670,20 +670,20 @@ const EmotionTracker = ({ participantId, experimentId, onComplete }) => {
                 <div className="flex items-center gap-2">
                   {faceDetected ? (
                     <>
-                      <CheckCircle2 className="w-5 h-5 text-green-600" />
-                      <span className="text-green-600 font-semibold">Face Detected</span>
+                      <CheckCircle2 className="w-5 h-5 text-success" />
+                      <span className="text-success font-semibold">Face Detected</span>
                     </>
                   ) : (
                     <>
-                      <AlertCircle className="w-5 h-5 text-amber-600" />
-                      <span className="text-amber-600 font-semibold">Looking for face...</span>
+                      <AlertCircle className="w-5 h-5 text-warning" />
+                      <span className="text-warning font-semibold">Looking for face...</span>
                     </>
                   )}
                 </div>
               </div>
 
               {currentEmotion && faceDetected && (
-                <div className="px-6 py-3 bg-gradient-to-r from-primary/10 to-primary/20 rounded-xl border-2 border-primary/30 shadow-lg">
+                <div className="px-6 py-3 bg-muted rounded-lg border shadow">
                   <div className="text-center space-y-2">
                     <div className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
                       Current Emotion Detected
@@ -703,7 +703,7 @@ const EmotionTracker = ({ participantId, experimentId, onComplete }) => {
                         {(emotionConfidence * 100).toFixed(0)}%
                       </span>
                     </div>
-                    <div className="text-xs text-green-600 font-medium">
+                    <div className="text-xs text-success font-medium">
                       ✓ Emotion tracking working correctly!
                     </div>
                   </div>
@@ -711,68 +711,34 @@ const EmotionTracker = ({ participantId, experimentId, onComplete }) => {
               )}
             </div>
 
-            <div className="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-300 dark:border-blue-700 rounded-lg p-6 space-y-4">
-              <h3 className="font-bold text-xl text-blue-900 dark:text-blue-100 flex items-center gap-2">
-                <AlertCircle className="w-6 h-6" />
-                How to Play - READ CAREFULLY!
-              </h3>
-              
-              <div className="bg-white dark:bg-slate-800 border-2 border-red-500 rounded-lg p-4 space-y-2">
-                <p className="font-bold text-lg text-red-600 dark:text-red-400">⚠️ MOST IMPORTANT RULE:</p>
+            <div className="bg-muted border rounded-lg p-6">
+              <div className="text-center space-y-2">
                 <p className="text-base text-foreground">
-                  Press the key for the <span className="text-2xl font-black text-red-600 dark:text-red-400 underline">COLOR</span> you see, 
-                  <span className="font-bold"> NOT the word!</span>
+                  Press the key for the <span className="text-xl font-black text-destructive underline">COLOR</span> you see,{' '}
+                  <span className="font-bold">NOT the word!</span>
                 </p>
               </div>
-
-              <div className="space-y-3 text-sm text-blue-800 dark:text-blue-200">
-                <div className="flex items-start gap-3">
-                  <span className="font-bold text-base">Example 1:</span>
-                  <div>
-                    <p className="mb-1">Word <span className="font-bold text-green-600" style={{ fontSize: '18px' }}>GREEN</span> shown in <span className="font-bold text-red-600">RED color</span></p>
-                    <p className="font-bold">→ Press <kbd className="px-2 py-1 bg-red-600 text-white rounded">R</kbd> (for RED color)</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-3">
-                  <span className="font-bold text-base">Example 2:</span>
-                  <div>
-                    <p className="mb-1">Word <span className="font-bold text-red-600" style={{ fontSize: '18px' }}>RED</span> shown in <span className="font-bold text-yellow-600">YELLOW color</span></p>
-                    <p className="font-bold">→ Press <kbd className="px-2 py-1 bg-yellow-500 text-black rounded">Y</kbd> (for YELLOW color)</p>
-                  </div>
-                </div>
-
-                <div className="border-t-2 border-blue-300 dark:border-blue-700 pt-3 mt-4">
-                  <p className="font-semibold text-base mb-2">Keyboard Controls:</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="flex items-center gap-2">
-                      <kbd className="px-3 py-2 bg-red-600 text-white rounded font-bold">R</kbd>
-                      <span>= Red</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <kbd className="px-3 py-2 bg-green-600 text-white rounded font-bold">G</kbd>
-                      <span>= Green</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <kbd className="px-3 py-2 bg-blue-600 text-white rounded font-bold">B</kbd>
-                      <span>= Blue</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <kbd className="px-3 py-2 bg-yellow-500 text-black rounded font-bold">Y</kbd>
-                      <span>= Yellow</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="border-t-2 border-blue-300 dark:border-blue-700 pt-3 mt-4">
-                  <p className="font-semibold text-base">What to expect:</p>
-                  <ul className="space-y-1 ml-4 mt-2">
-                    <li>• 10 practice trials (to learn)</li>
-                    <li>• 40 test trials (for real data)</li>
-                    <li>• Takes about 5-7 minutes</li>
-                    <li>• Your face will be tracked throughout</li>
-                  </ul>
-                </div>
+              
+              <div className="mt-4 pt-4 border-t">
+                <p className="font-semibold text-base mb-2">What to expect:</p>
+                <ul className="space-y-1 text-sm">
+                  <li className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                    <span>10 practice trials (to learn)</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                    <span>40 test trials (for real data)</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                    <span>Takes about 5-7 minutes</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                    <span>Your face will be tracked throughout</span>
+                  </li>
+                </ul>
               </div>
             </div>
 
@@ -783,12 +749,12 @@ const EmotionTracker = ({ participantId, experimentId, onComplete }) => {
             >
               {!isLoaded ? (
                 <span className="flex items-center gap-2">
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
                   Loading models...
                 </span>
               ) : !cameraReady ? (
                 <span className="flex items-center gap-2">
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
                   Starting camera...
                 </span>
               ) : !faceDetected ? (
@@ -805,7 +771,7 @@ const EmotionTracker = ({ participantId, experimentId, onComplete }) => {
             </Button>
             
             {!faceDetected && cameraReady && (
-              <p className="text-center text-sm text-amber-600 font-medium">
+              <p className="text-center text-sm text-warning font-medium">
                 ⚠️ Please position your face clearly in front of the camera to enable the start button
               </p>
             )}
