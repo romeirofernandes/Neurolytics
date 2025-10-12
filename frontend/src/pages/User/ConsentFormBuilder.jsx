@@ -255,7 +255,7 @@ const ConsentFormBuilder = () => {
         }
 
         setTimeout(() => {
-          navigate('/user/dashboard');
+          navigate('/dashboard');
         }, 2000);
       } else {
         setMessage({ 

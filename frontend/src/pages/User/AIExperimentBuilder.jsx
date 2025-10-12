@@ -255,7 +255,7 @@ What would you like to build today?`,
 
       if (data.success) {
         alert('🚀 Experiment published successfully!');
-        navigate('/user/dashboard');
+        navigate('/dashboard');
       } else {
         throw new Error(data.message);
       }
