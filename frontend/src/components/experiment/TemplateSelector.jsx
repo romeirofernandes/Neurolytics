@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { BARTTemplate } from './templates/BARTTemplate';
 import { StroopTemplate } from './templates/StroopTemplate';
 import { PosnerTemplate } from './templates/PosnerTemplate';
@@ -13,8 +15,8 @@ import { SimonTemplate } from './templates/SimonTemplate';
 import { DigitSpanTemplate } from './templates/DigitSpanTemplate';
 import { VisualSearchTemplate } from './templates/VisualSearchTemplate';
 import EmotionTracker from './templates/EmotionTracker';
-import VoiceCRTTemplate from './templates/VoiceCRTTemplate'; // Added import
-import { Loader2, ArrowLeft, Brain, Target, Zap, Layers, Puzzle, Download, Filter, Hand, RefreshCw, Move, Hash, Search, Camera, AlertCircle, Mic } from 'lucide-react'; // Added Mic icon
+import VoiceCRTTemplate from './templates/VoiceCRTTemplate';
+import { Loader2, ArrowLeft, Brain, Target, Zap, Layers, Puzzle, Download, Filter, Hand, RefreshCw, Move, Hash, Search, Camera, AlertCircle, Mic, Book, ChartLine, Clock, Trophy, ArrowRight } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -205,6 +207,28 @@ const TemplateSelector = ({ onTemplateSelect }) => {
 	const [error, setError] = useState(null);
 	const [participantId] = useState(`participant-${Date.now()}`);
 	const [experimentId] = useState(`experiment-${Date.now()}`);
+	const [searchQuery, setSearchQuery] = useState('');
+	const [selectedCategory, setSelectedCategory] = useState('all');
+
+	// Get unique categories
+	const categories = ['all', ...new Set(templates.map(t => t.measures[0] || 'Other'))];
+
+	// Filter templates based on search and category
+	const filteredTemplates = templates.filter(template => {
+		const matchesSearch = template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+							 template.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+							 template.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+							 template.measures.some(m => m.toLowerCase().includes(searchQuery.toLowerCase()));
+		const matchesCategory = selectedCategory === 'all' || template.measures[0] === selectedCategory;
+		return matchesSearch && matchesCategory;
+	});
+
+	const getDifficultyColor = (measures) => {
+		// Simple heuristic based on number of measures
+		if (measures.length <= 2) return 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20';
+		if (measures.length <= 3) return 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20';
+		return 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20';
+	};
 
 	const handleTemplateClick = (templateId) => {
 		const template = templates.find(t => t.id === templateId);
@@ -755,66 +779,157 @@ const TemplateSelector = ({ onTemplateSelect }) => {
 	// Grid view - show all templates
 	return (
 		<div className="space-y-6">
+			{/* Stats Bar */}
+			<div className="grid gap-4 md:grid-cols-3">
+				<Card>
+					<CardContent className="pt-6">
+						<div className="flex items-center justify-between">
+							<div>
+								<p className="text-sm text-muted-foreground">Available Templates</p>
+								<p className="text-2xl font-bold">{templates.length}</p>
+							</div>
+							<Book className="h-8 w-8 text-primary" />
+						</div>
+					</CardContent>
+				</Card>
+				<Card>
+					<CardContent className="pt-6">
+						<div className="flex items-center justify-between">
+							<div>
+								<p className="text-sm text-muted-foreground">Categories</p>
+								<p className="text-2xl font-bold">{categories.length - 1}</p>
+							</div>
+							<ChartLine className="h-8 w-8 text-primary" />
+						</div>
+					</CardContent>
+				</Card>
+				<Card>
+					<CardContent className="pt-6">
+						<div className="flex items-center justify-between">
+							<div>
+								<p className="text-sm text-muted-foreground">Avg. Duration</p>
+								<p className="text-2xl font-bold">~2 min</p>
+							</div>
+							<Clock className="h-8 w-8 text-primary" />
+						</div>
+					</CardContent>
+				</Card>
+			</div>
+
+			{/* Search and Filter */}
+			<div className="flex flex-col sm:flex-row gap-4">
+				<div className="relative flex-1">
+					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+					<Input
+						placeholder="Search templates by name, description, or measure..."
+						value={searchQuery}
+						onChange={(e) => setSearchQuery(e.target.value)}
+						className="pl-10 w-full"
+					/>
+				</div>
+				<div className="flex gap-2 flex-wrap">
+					{categories.map(category => (
+						<Button
+							key={category}
+							variant={selectedCategory === category ? "default" : "outline"}
+							onClick={() => setSelectedCategory(category)}
+							className="capitalize"
+							size="sm"
+						>
+							{category}
+						</Button>
+					))}
+				</div>
+			</div>
+
+			{/* Results Count */}
+			<div className="text-sm text-muted-foreground">
+				Showing {filteredTemplates.length} of {templates.length} templates
+			</div>
+
+			{/* Templates Grid */}
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-				{templates.map((template) => {
+				{filteredTemplates.map((template) => {
 					const Icon = template.icon;
 					return (
 						<Card 
 							key={template.id} 
-							className="group hover:shadow-xl transition-all duration-300 border-2 hover:border-primary/50 cursor-pointer overflow-hidden"
+							className="group hover:shadow-lg transition-all duration-300 border-2 hover:border-primary/50 cursor-pointer"
 							onClick={() => handleTemplateClick(template.id)}
 						>
-							<div className={`h-2 bg-gradient-to-r ${template.color}`} />
-							<CardHeader className="space-y-4">
-								<div className="flex items-start justify-between">
-									<div className={`p-3 rounded-lg bg-gradient-to-br ${template.color} text-white shadow-md`}>
-										<Icon className="h-6 w-6" />
+							<CardHeader>
+								<div className="flex items-start justify-between mb-3">
+									<div className="p-3 rounded-lg bg-primary/10">
+										<Icon className="h-6 w-6 text-primary" />
 									</div>
-									<div className="text-right text-xs text-muted-foreground space-y-1">
-										<div className="font-medium">{template.duration}</div>
-										<div>{template.trials}</div>
-										{template.requiresCamera && (
-											<div className="flex items-center gap-1 text-amber-600">
-												<Camera className="h-3 w-3" />
-												<span>Camera</span>
-											</div>
-										)}
-									</div>
+									<Badge 
+										variant="outline" 
+										className={getDifficultyColor(template.measures)}
+									>
+										{template.measures.length <= 2 ? 'Beginner' : template.measures.length <= 3 ? 'Intermediate' : 'Advanced'}
+									</Badge>
 								</div>
-								<div>
-									<CardTitle className="text-xl group-hover:text-primary transition-colors">
-										{template.fullName}
-									</CardTitle>
-									<CardDescription className="mt-2 line-clamp-2">
-										{template.description}
-									</CardDescription>
-								</div>
+								<CardTitle className="group-hover:text-primary transition-colors">
+									{template.name}
+								</CardTitle>
+								<CardDescription className="text-xs text-muted-foreground">
+									{template.fullName}
+								</CardDescription>
 							</CardHeader>
 							<CardContent className="space-y-4">
-								<div className="flex flex-wrap gap-1">
-									{template.measures.slice(0, 3).map((measure, idx) => (
-										<span 
-											key={idx} 
-											className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded-full"
-										>
-											{measure}
-										</span>
-									))}
-									{template.measures.length > 3 && (
-										<span className="text-xs text-muted-foreground px-2 py-1">
-											+{template.measures.length - 3} more
-										</span>
-									)}
+								<p className="text-sm text-muted-foreground line-clamp-2">
+									{template.description}
+								</p>
+								
+								<div className="flex items-center gap-4 text-xs text-muted-foreground">
+									<div className="flex items-center gap-1">
+										<Clock className="h-3 w-3" />
+										{template.duration}
+									</div>
+									<div className="flex items-center gap-1">
+										<Trophy className="h-3 w-3" />
+										{template.trials}
+									</div>
 								</div>
 
-								<Button className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-									View Details
-								</Button>
+								{template.requiresCamera && (
+									<Badge variant="secondary" className="text-xs">
+										<Camera className="h-3 w-3 mr-1" />
+										Camera Required
+									</Badge>
+								)}
+
+								<div className="flex items-center justify-between pt-2 border-t">
+									<span className="text-xs font-medium text-muted-foreground">
+										{template.measures[0]}
+									</span>
+									<Button 
+										size="sm" 
+										variant="ghost"
+										className="group-hover:text-primary"
+									>
+										View Details
+										<ArrowRight className="ml-2 h-4 w-4" />
+									</Button>
+								</div>
 							</CardContent>
 						</Card>
 					);
 				})}
 			</div>
+
+			{/* No Results */}
+			{filteredTemplates.length === 0 && (
+				<Card>
+					<CardContent className="py-12 text-center">
+						<Filter className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+						<h3 className="text-lg font-semibold mb-2">No templates found</h3>
+						<p className="text-muted-foreground">
+							Try adjusting your search or filter criteria
+						</p>
+					</CardContent>
+				</Card>
+			)}
 		</div>
 	);
 };

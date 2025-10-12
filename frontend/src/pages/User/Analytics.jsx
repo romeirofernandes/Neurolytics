@@ -400,14 +400,6 @@ const Analytics = () => {
                   Export as CSV
                 </Button>
                 <Button
-                  onClick={exportToPDF}
-                  variant="outline"
-                  className="gap-2"
-                >
-                  <Download className="h-4 w-4" />
-                  Export as PDF
-                </Button>
-                <Button
                   onClick={generateAIInsights}
                   disabled={isGeneratingInsights}
                   className="gap-2"
