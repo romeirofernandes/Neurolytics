@@ -10,27 +10,23 @@ export default defineConfig({
     react(), tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
+      devOptions: {
+        enabled: true, // Enable PWA in dev mode
+      },
       includeAssets: [
-        "favicon.ico",
-        "apple-touch-icon.png",
-        "mask-icon.svg",
+        "psychology.png",
       ],
       manifest: {
         name: "Neurolytics",
         short_name: "Neurolytics",
         description: "Advanced neuroanalytics and experiment platform",
-        theme_color: "#ffffff",
-        background_color: "#ffffff",
+        theme_color: "#000000",
+        background_color: "#000000",
         display: "standalone",
         scope: "/",
         start_url: "/",
         orientation: "portrait",
         icons: [
-          {
-            src: "psychology.png",
-            sizes: "64x64",
-            type: "image/png",
-          },
           {
             src: "psychology.png",
             sizes: "192x192",
@@ -40,13 +36,7 @@ export default defineConfig({
             src: "psychology.png",
             sizes: "512x512",
             type: "image/png",
-            purpose: "any",
-          },
-          {
-            src: "psychology.png",
-            sizes: "512x512",
-            type: "image/png",
-            purpose: "maskable",
+            purpose: "any maskable",
           },
         ],
       },

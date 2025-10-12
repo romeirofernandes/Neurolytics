@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from './button';
-import { Download } from 'lucide-react';
+import { Download, CheckCircle } from 'lucide-react';
 
 export function InstallPWAButton() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
@@ -21,7 +21,7 @@ export function InstallPWAButton() {
 
     // Listen for the install prompt
     const handler = (e) => {
-      console.log('beforeinstallprompt event fired!'); // Debug log
+      console.log('✅ beforeinstallprompt event fired!');
       e.preventDefault();
       setDeferredPrompt(e);
     };
@@ -30,7 +30,7 @@ export function InstallPWAButton() {
 
     // Listen for app installed event
     const installedHandler = () => {
-      console.log('App installed successfully!'); // Debug log
+      console.log('App installed successfully!');
       setIsInstalled(true);
       setDeferredPrompt(null);
     };
@@ -44,30 +44,46 @@ export function InstallPWAButton() {
   }, []);
 
   const handleInstallClick = async () => {
-    console.log('Install button clicked, deferredPrompt:', deferredPrompt);
+    console.log('🔘 Install button clicked');
+    console.log('deferredPrompt:', deferredPrompt);
+    
     if (!deferredPrompt) {
-      alert('Install not available. Try:\n1. Use Chrome/Edge\n2. Visit on HTTPS\n3. Interact with page first\n4. Clear cache and reload');
+      alert('Install prompt not ready yet.\n\nTry:\n• Use Chrome or Edge browser\n• Visit on HTTPS\n• Scroll around the page\n• Wait a few seconds\n• Reload the page');
       return;
     }
 
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
+    try {
+      await deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
 
-    if (outcome === 'accepted') {
-      console.log('User accepted the install prompt');
-      setIsInstalled(true);
-    } else {
-      console.log('User dismissed the install prompt');
+      if (outcome === 'accepted') {
+        console.log('User accepted install');
+        setIsInstalled(true);
+      } else {
+        console.log('User dismissed install');
+      }
+    } catch (error) {
+      console.error('Install error:', error);
     }
 
     setDeferredPrompt(null);
   };
 
-  // Don't show button if app is already installed or prompt not available
-  if (isInstalled || !deferredPrompt) {
-    return null;
+  // Show "Already Installed" if installed
+  if (isInstalled) {
+    return (
+      <Button 
+        disabled
+        className="flex items-center gap-2 h-12 w-full md:w-auto"
+        variant="outline"
+      >
+        <CheckCircle className="h-4 w-4 text-green-500" />
+        App Installed
+      </Button>
+    );
   }
 
+  // ALWAYS SHOW BUTTON (even if prompt not ready)
   return (
     <Button 
       onClick={handleInstallClick} 
@@ -75,7 +91,7 @@ export function InstallPWAButton() {
       variant="outline"
     >
       <Download className="h-4 w-4" />
-      Install App
+      {deferredPrompt ? 'Install App' : 'Install App (Ready...)'}
     </Button>
   );
 }
