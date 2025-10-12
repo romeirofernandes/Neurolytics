@@ -1,6 +1,10 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Button } from '../ui/button';
+import { Download } from 'lucide-react';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const GoNoGoAnalytics = () => {
   const participantData = [
@@ -32,8 +36,72 @@ const GoNoGoAnalytics = () => {
     Omission: p.omissionErrors,
   }));
 
+  const downloadPDF = () => {
+    try {
+      const doc = new jsPDF();
+      const margin = 20;
+      let yPosition = margin;
+
+      doc.setFontSize(20);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Go/No-Go Analytics', margin, yPosition);
+      yPosition += 20;
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(102, 102, 102);
+      doc.text(`Generated: ${new Date().toLocaleString()}`, margin, yPosition);
+      yPosition += 20;
+
+      const summaryData = [
+        ['Metric', 'Value'],
+        ['Total Participants', '6'],
+        ['Avg Commission Errors', `${avgCommissionError}%`],
+        ['Avg Accuracy', `${avgAccuracy}%`]
+      ];
+
+      autoTable(doc, {
+        startY: yPosition,
+        head: [summaryData[0]],
+        body: summaryData.slice(1),
+        theme: 'grid',
+        headStyles: { fillColor: [249, 250, 251], textColor: [26, 26, 26], fontStyle: 'bold' },
+        margin: { left: margin, right: margin }
+      });
+
+      yPosition = doc.lastAutoTable.finalY + 15;
+
+      const tableData = participantData.map(p => [
+        p.id, p.age.toString(), p.gender, p.education, p.city,
+        `${p.goRT}ms`, `${p.commissionErrors}%`, `${p.omissionErrors}%`, `${p.accuracy}%`
+      ]);
+
+      autoTable(doc, {
+        startY: yPosition,
+        head: [['ID', 'Age', 'Gender', 'Education', 'City', 'Go RT', 'Commission', 'Omission', 'Accuracy']],
+        body: tableData,
+        theme: 'grid',
+        headStyles: { fillColor: [249, 250, 251], textColor: [26, 26, 26], fontStyle: 'bold' },
+        bodyStyles: { fontSize: 9 },
+        margin: { left: margin, right: margin }
+      });
+
+      doc.save(`GoNoGo-analytics-${Date.now()}.pdf`);
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      alert('Failed to generate PDF. Please try again.');
+    }
+  };
+
   return (
     <div className="space-y-6">
+      <div className="flex justify-end">
+        <Button onClick={downloadPDF} variant="outline" className="gap-2">
+          <Download className="h-4 w-4" />
+          Download PDF Report
+        </Button>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">

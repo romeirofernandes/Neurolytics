@@ -4,14 +4,18 @@ const mongoose = require('mongoose');
  * ConsentForm Schema
  * Fully compliant with IRB (Institutional Review Board) and GDPR regulations
  * Ensures ethical research practices and participant rights protection
+ * 
+ * NOTE: experimentId stores the template ID from templates.json
+ * This links consent forms to experiment templates created by researchers
  */
 const consentFormSchema = new mongoose.Schema({
-  // Unique experiment identifier this consent is for
+  // Template identifier from templates.json (e.g., "hanoi1", "stroop-emotion")
   experimentId: {
     type: String,
     required: false,
     index: true,
     trim: true,
+    comment: 'Template ID from templates.json that this consent form is for'
   },
 
   // Researcher who created this consent form
