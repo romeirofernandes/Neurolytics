@@ -21,9 +21,11 @@ import { Label } from '../../components/ui/label';
 import { Alert, AlertDescription } from '../../components/ui/alert';
 import { Badge } from '../../components/ui/badge';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '../../components/ui/sheet';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
 import ExperimentNode from '../../components/visual-builder/ExperimentNode';
 import NodePalette from '../../components/visual-builder/NodePalette';
 import NodeEditor from '../../components/visual-builder/NodeEditor';
+import { ExperimentBuildPanel } from '../../components/experiment/ExperimentBuildPanel';
 import {
   Save,
   Download,
@@ -35,7 +37,8 @@ import {
   Sparkles,
   Info,
   Loader2,
-  X
+  X,
+  Hammer
 } from 'lucide-react';
 
 const nodeTypes = {
@@ -78,6 +81,8 @@ const VisualBuilder = () => {
   const [generatingAI, setGeneratingAI] = useState(false);
   const [savedExperimentId, setSavedExperimentId] = useState(null);
   const [templateId, setTemplateId] = useState(null);
+  const [showBuildPanel, setShowBuildPanel] = useState(false);
+  const [activeTab, setActiveTab] = useState('builder');
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -111,12 +116,13 @@ const VisualBuilder = () => {
         randomization,
         savedExperimentId,
         templateId,
+        showBuildPanel,
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch (error) {
       console.error('Failed to save state:', error);
     }
-  }, [nodes, edges, experimentName, experimentDescription, repetitions, randomization, savedExperimentId, templateId]);
+  }, [nodes, edges, experimentName, experimentDescription, repetitions, randomization, savedExperimentId, templateId, showBuildPanel]);
 
   const onConnect = useCallback(
     (params) => {
@@ -273,6 +279,17 @@ Generate a complete, production-ready React component.
       // Save directly to templates.json
       console.log('Saving to templates.json...');
       
+      // Prepare researcher data from context
+      const researcherData = user ? {
+        id: user.mongoId || user._id,
+        name: user.name || '',
+        email: user.email || '',
+        institution: user.institution || '',
+        designation: user.designation || '',
+        fieldOfStudy: user.fieldOfStudy || '',
+        orcId: user.orcId || null
+      } : null;
+      
       const saveResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/visual-builder/save-ai`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -281,6 +298,7 @@ Generate a complete, production-ready React component.
           description: experimentDescription,
           componentCode: data.code,
           researcherId: user?.mongoId || 'anonymous',
+          researcherData: researcherData, // Send full researcher object
           estimatedDuration: Math.ceil(nodes.length * repetitions * 2 / 60),
           metadata: {
             nodeCount: nodes.length,
@@ -304,8 +322,11 @@ Generate a complete, production-ready React component.
 
       if (saveData.success) {
         setTemplateId(saveData.templateInfo?.templateId);
+        setSavedExperimentId(saveData.experimentId); // Store experiment ID for build panel
+        setShowBuildPanel(true); // Show build panel with preview/public link
+        setActiveTab('build'); // Switch to build tab
         setSaveSuccess(true);
-        alert(`✅ Experiment saved to templates.json!\n\nTemplate ID: ${saveData.templateInfo?.templateId}\nYou can now find it in your experiment templates.`);
+        alert(`✅ Experiment saved successfully!\n\nTemplate ID: ${saveData.templateInfo?.templateId}\nYou can now preview and publish it.`);
         setTimeout(() => setSaveSuccess(false), 3000);
       } else {
         throw new Error(saveData.message || 'Failed to save');
@@ -426,34 +447,47 @@ Generate a complete, production-ready React component.
         </header>
 
         <main className="flex-1 h-[calc(100vh-4rem)] relative overflow-hidden">
-          {saveSuccess && (
-            <Alert className="absolute top-4 right-4 w-96 z-20 border-success bg-success/10">
-              <CheckCircle2 className="h-4 w-4 text-success" />
-              <AlertDescription className="text-success">
-                AI Experiment generated and saved successfully!
-              </AlertDescription>
-            </Alert>
-          )}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
+            <TabsList className="grid w-full max-w-md grid-cols-2 mb-4 mx-4 mt-4">
+              <TabsTrigger value="builder" className="gap-2">
+                <Settings className="w-4 h-4" />
+                Visual Builder
+              </TabsTrigger>
+              <TabsTrigger value="build" className="gap-2" disabled={!savedExperimentId || !templateId}>
+                <Hammer className="w-4 h-4" />
+                Preview & Public Link
+              </TabsTrigger>
+            </TabsList>
 
-          {/* Tutorial hint */}
-          {nodes.length === 0 && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-              <Card className="max-w-md pointer-events-auto">
-                <CardContent className="pt-6 text-center space-y-3">
-                  <Info className="h-12 w-12 mx-auto text-primary" />
-                  <h3 className="text-lg font-semibold">Build Your Experiment Flow</h3>
-                  <p className="text-sm text-muted-foreground">
-                    1. Click blocks in the right panel to add nodes
-                    <br />2. Connect them with arrows
-                    <br />3. Click "Generate AI Experiment" to create a template
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Or import a JSON file to get started quickly
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+            <TabsContent value="builder" className="h-full m-0 relative">
+              {saveSuccess && (
+                <Alert className="absolute top-4 right-4 w-96 z-20 border-success bg-success/10">
+                  <CheckCircle2 className="h-4 w-4 text-success" />
+                  <AlertDescription className="text-success">
+                    AI Experiment generated and saved successfully!
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {/* Tutorial hint */}
+              {nodes.length === 0 && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                  <Card className="max-w-md pointer-events-auto">
+                    <CardContent className="pt-6 text-center space-y-3">
+                      <Info className="h-12 w-12 mx-auto text-primary" />
+                      <h3 className="text-lg font-semibold">Build Your Experiment Flow</h3>
+                      <p className="text-sm text-muted-foreground">
+                        1. Click blocks in the right panel to add nodes
+                        <br />2. Connect them with arrows
+                        <br />3. Click "Generate AI Experiment" to create a template
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Or import a JSON file to get started quickly
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
 
           <div className="absolute top-4 left-4 z-10 w-80">
             <Card>
@@ -606,6 +640,17 @@ Generate a complete, production-ready React component.
               </div>
             </SheetContent>
           </Sheet>
+        </TabsContent>
+
+        <TabsContent value="build" className="h-full m-0">
+          <div className="space-y-6">
+            <ExperimentBuildPanel 
+              experimentId={savedExperimentId} 
+              templateId={templateId} 
+            />
+          </div>
+        </TabsContent>
+      </Tabs>
         </main>
       </SidebarInset>
     </SidebarProvider>

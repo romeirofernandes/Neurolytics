@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Alert, AlertDescription } from '../../components/ui/alert';
+import CryptoWallet from '../../components/participant/CryptoWallet';
 
 const ParticipantDashboard = () => {
   const { participant } = useParticipant();
@@ -53,7 +54,6 @@ const ParticipantDashboard = () => {
   }, []);
 
   const participatedCount = participant?.experimentsParticipated?.length || 0;
-  const currentBalance = 0; // Placeholder for now
 
   return (
     <SidebarProvider>
@@ -131,26 +131,6 @@ const ParticipantDashboard = () => {
                 </CardContent>
               </Card>
 
-              <Card className="border-2 border-green-500/20 hover:border-green-500/40 transition-all">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Current Balance
-                  </CardTitle>
-                  <Wallet className="h-5 w-5 text-green-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-green-600">
-                    ₹{currentBalance}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Reward credits earned
-                  </p>
-                  <p className="text-xs text-muted-foreground/70 mt-1 italic">
-                    Coming soon: Earn rewards for participation
-                  </p>
-                </CardContent>
-              </Card>
-
               <Card className="border-2 border-blue-500/20 hover:border-blue-500/40 transition-all">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">
@@ -170,248 +150,280 @@ const ParticipantDashboard = () => {
                   </p>
                 </CardContent>
               </Card>
+
+              {/* NEW: Time Invested Card (to keep 3 columns balanced) */}
+              <Card className="border-2 border-purple-500/20 hover:border-purple-500/40 transition-all">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Time Invested
+                  </CardTitle>
+                  <Clock className="h-5 w-5 text-purple-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-purple-600">
+                    {participatedCount * 15}m
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Estimated total time
+                  </p>
+                </CardContent>
+              </Card>
             </div>
 
-            {/* Profile Details */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
+            {/* MAIN GRID: Profile + Crypto Wallet */}
+            <div className="grid gap-6 lg:grid-cols-3">
+              {/* LEFT SIDE - 2 columns */}
+              <div className="lg:col-span-2 space-y-6">
+                {/* Profile Details Card - MOVE HERE */}
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="flex items-center gap-2">
+                          <User className="h-5 w-5" />
+                          Profile Details
+                        </CardTitle>
+                        <CardDescription>
+                          Your participant information (kept anonymous)
+                        </CardDescription>
+                      </div>
+                      <Badge variant="outline" className="gap-1">
+                        <Lock className="h-3 w-3" />
+                        Private
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <User className="h-4 w-4" />
+                          <p className="text-sm font-medium">Participant ID</p>
+                        </div>
+                        <p className="text-sm font-mono bg-muted px-3 py-2 rounded border break-all">
+                          {participant?.id || 'N/A'}
+                        </p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Calendar className="h-4 w-4" />
+                          <p className="text-sm font-medium">Age</p>
+                        </div>
+                        <p className="text-lg font-semibold">
+                          {participant?.age || 'N/A'} years
+                        </p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <User className="h-4 w-4" />
+                          <p className="text-sm font-medium">Gender</p>
+                        </div>
+                        <p className="text-lg font-semibold capitalize">
+                          {participant?.gender || 'N/A'}
+                        </p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <GraduationCap className="h-4 w-4" />
+                          <p className="text-sm font-medium">Education</p>
+                        </div>
+                        <p className="text-lg font-semibold">
+                          {participant?.education || 'N/A'}
+                        </p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <MapPin className="h-4 w-4" />
+                          <p className="text-sm font-medium">City</p>
+                        </div>
+                        <p className="text-lg font-semibold">
+                          {participant?.city || 'Not specified'}
+                        </p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Clock className="h-4 w-4" />
+                          <p className="text-sm font-medium">Member Since</p>
+                        </div>
+                        <p className="text-lg font-semibold">
+                          {participant?.createdAt 
+                            ? new Date(participant.createdAt).toLocaleDateString('en-US', { 
+                                month: 'short', 
+                                day: 'numeric', 
+                                year: 'numeric' 
+                              }) 
+                            : 'N/A'}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Data Protection Card - KEEP */}
+                <Card className="bg-gradient-to-br from-purple-50/50 to-blue-50/50 dark:from-purple-950/20 dark:to-blue-950/20 border-purple-200/50 dark:border-purple-800/50">
+                  <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <User className="h-5 w-5" />
-                      Profile Details
+                      <Shield className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                      Data Protection & Your Rights
                     </CardTitle>
-                    <CardDescription>
-                      Your participant information (kept anonymous)
-                    </CardDescription>
-                  </div>
-                  <Badge variant="outline" className="gap-1">
-                    <Lock className="h-3 w-3" />
-                    Private
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <User className="h-4 w-4" />
-                      <p className="text-sm font-medium">Participant ID</p>
-                    </div>
-                    <p className="text-sm font-mono bg-muted px-3 py-2 rounded border break-all">
-                      {participant?.id || 'N/A'}
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Calendar className="h-4 w-4" />
-                      <p className="text-sm font-medium">Age</p>
-                    </div>
-                    <p className="text-lg font-semibold">
-                      {participant?.age || 'N/A'} years
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <User className="h-4 w-4" />
-                      <p className="text-sm font-medium">Gender</p>
-                    </div>
-                    <p className="text-lg font-semibold capitalize">
-                      {participant?.gender || 'N/A'}
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <GraduationCap className="h-4 w-4" />
-                      <p className="text-sm font-medium">Education</p>
-                    </div>
-                    <p className="text-lg font-semibold">
-                      {participant?.education || 'N/A'}
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <MapPin className="h-4 w-4" />
-                      <p className="text-sm font-medium">City</p>
-                    </div>
-                    <p className="text-lg font-semibold">
-                      {participant?.city || 'Not specified'}
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Clock className="h-4 w-4" />
-                      <p className="text-sm font-medium">Member Since</p>
-                    </div>
-                    <p className="text-lg font-semibold">
-                      {participant?.createdAt 
-                        ? new Date(participant.createdAt).toLocaleDateString('en-US', { 
-                            month: 'short', 
-                            day: 'numeric', 
-                            year: 'numeric' 
-                          }) 
-                        : 'N/A'}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Data Protection Info */}
-            <Card className="bg-gradient-to-br from-purple-50/50 to-blue-50/50 dark:from-purple-950/20 dark:to-blue-950/20 border-purple-200/50 dark:border-purple-800/50">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                  Data Protection & Your Rights
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="flex gap-3">
-                    <Lock className="h-5 w-5 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-semibold text-sm">Encrypted & Secure</p>
-                      <p className="text-xs text-muted-foreground">
-                        All data is encrypted in transit (HTTPS/TLS) and at rest using industry-standard protocols
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3">
-                    <Eye className="h-5 w-5 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-semibold text-sm">Anonymous Data Collection</p>
-                      <p className="text-xs text-muted-foreground">
-                        No personally identifiable information (PII) is collected without explicit consent
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3">
-                    <FileCheck className="h-5 w-5 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-semibold text-sm">GDPR & CCPA Compliant</p>
-                      <p className="text-xs text-muted-foreground">
-                        Full compliance with data protection regulations and ethical research guidelines
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3">
-                    <TrendingUp className="h-5 w-5 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-semibold text-sm">Your Data, Your Control</p>
-                      <p className="text-xs text-muted-foreground">
-                        Right to access, delete, or export your data at any time
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t border-purple-200/50 dark:border-purple-800/50">
-                  <p className="text-xs text-muted-foreground mb-3">
-                    <strong>Your Rights:</strong> Access, Deletion, Rectification, Data Portability, Withdraw Consent, Object to Processing
-                  </p>
-                  <div className="flex gap-2">
-                    <Link to="/privacy-policy">
-                      <Button variant="outline" size="sm" className="gap-2">
-                        <Shield className="h-4 w-4" />
-                        Learn More
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Quick Insights */}
-            <div className="grid gap-4 md:grid-cols-2">
-              <Card className="bg-gradient-to-br from-orange-50/50 to-red-50/50 dark:from-orange-950/20 dark:to-red-950/20 border-orange-200/50 dark:border-orange-800/50">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <TrendingUp className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-                    Research Impact
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Contribution Score</span>
-                    <span className="font-bold text-orange-600 dark:text-orange-400">
-                      {participatedCount * 10} pts
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Experiments Available</span>
-                    <span className="font-bold">{activeExperiments.length}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Completion Rate</span>
-                    <span className="font-bold text-green-600 dark:text-green-400">
-                      {participatedCount > 0 ? '100%' : '0%'}
-                    </span>
-                  </div>
-                  <div className="pt-3 border-t border-orange-200/50 dark:border-orange-800/50">
-                    <p className="text-xs text-muted-foreground italic">
-                      Your participation helps advance scientific research! 🎓
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gradient-to-br from-cyan-50/50 to-blue-50/50 dark:from-cyan-950/20 dark:to-blue-950/20 border-cyan-200/50 dark:border-cyan-800/50">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Award className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
-                    Achievements
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    {participatedCount >= 1 ? (
-                      <>
-                        <div className="h-10 w-10 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
-                          <Award className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
-                        </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="flex gap-3">
+                        <Lock className="h-5 w-5 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5" />
                         <div>
-                          <p className="font-semibold text-sm">First Participation 🎉</p>
-                          <p className="text-xs text-muted-foreground">Completed your first experiment</p>
+                          <p className="font-semibold text-sm">Encrypted & Secure</p>
+                          <p className="text-xs text-muted-foreground">
+                            All data is encrypted in transit (HTTPS/TLS) and at rest using industry-standard protocols
+                          </p>
                         </div>
-                      </>
-                    ) : (
-                      <div className="text-sm text-muted-foreground">
-                        Complete experiments to unlock achievements
                       </div>
-                    )}
-                  </div>
-                  {participatedCount >= 5 && (
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-                        <TrendingUp className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+
+                      <div className="flex gap-3">
+                        <Eye className="h-5 w-5 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-semibold text-sm">Anonymous Data Collection</p>
+                          <p className="text-xs text-muted-foreground">
+                            No personally identifiable information (PII) is collected without explicit consent
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-semibold text-sm">Research Enthusiast 🌟</p>
-                        <p className="text-xs text-muted-foreground">Completed 5+ experiments</p>
+
+                      <div className="flex gap-3">
+                        <FileCheck className="h-5 w-5 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-semibold text-sm">GDPR & CCPA Compliant</p>
+                          <p className="text-xs text-muted-foreground">
+                            Full compliance with data protection regulations and ethical research guidelines
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <TrendingUp className="h-5 w-5 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-semibold text-sm">Your Data, Your Control</p>
+                          <p className="text-xs text-muted-foreground">
+                            Right to access, delete, or export your data at any time
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  )}
-                  {participatedCount >= 10 && (
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                        <Award className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-sm">Science Champion 🏆</p>
-                        <p className="text-xs text-muted-foreground">Completed 10+ experiments</p>
+
+                    <div className="pt-4 border-t border-purple-200/50 dark:border-purple-800/50">
+                      <p className="text-xs text-muted-foreground mb-3">
+                        <strong>Your Rights:</strong> Access, Deletion, Rectification, Data Portability, Withdraw Consent, Object to Processing
+                      </p>
+                      <div className="flex gap-2">
+                        <Link to="/privacy-policy">
+                          <Button variant="outline" size="sm" className="gap-2">
+                            <Shield className="h-4 w-4" />
+                            Learn More
+                          </Button>
+                        </Link>
                       </div>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+
+                {/* Quick Insights - Research Impact + Achievements */}
+                <div className="grid gap-4 md:grid-cols-2">
+                  {/* Research Impact - KEEP */}
+                  <Card className="bg-gradient-to-br from-orange-50/50 to-red-50/50 dark:from-orange-950/20 dark:to-red-950/20 border-orange-200/50 dark:border-orange-800/50">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        <TrendingUp className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                        Research Impact
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Contribution Score</span>
+                        <span className="font-bold text-orange-600 dark:text-orange-400">
+                          {participatedCount * 10} pts
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Experiments Available</span>
+                        <span className="font-bold">{activeExperiments.length}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Completion Rate</span>
+                        <span className="font-bold text-green-600 dark:text-green-400">
+                          {participatedCount > 0 ? '100%' : '0%'}
+                        </span>
+                      </div>
+                      <div className="pt-3 border-t border-orange-200/50 dark:border-orange-800/50">
+                        <p className="text-xs text-muted-foreground italic">
+                          Your participation helps advance scientific research! 🎓
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Achievements - KEEP */}
+                  <Card className="bg-gradient-to-br from-cyan-50/50 to-blue-50/50 dark:from-cyan-950/20 dark:to-blue-950/20 border-cyan-200/50 dark:border-cyan-800/50">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        <Award className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
+                        Achievements
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        {participatedCount >= 1 ? (
+                          <>
+                            <div className="h-10 w-10 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
+                              <Award className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+                            </div>
+                            <div>
+                              <p className="font-semibold text-sm">First Participation 🎉</p>
+                              <p className="text-xs text-muted-foreground">Completed your first experiment</p>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="text-sm text-muted-foreground">
+                            Complete experiments to unlock achievements
+                          </div>
+                        )}
+                      </div>
+                      {participatedCount >= 5 && (
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                            <TrendingUp className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-sm">Research Enthusiast 🌟</p>
+                            <p className="text-xs text-muted-foreground">Completed 5+ experiments</p>
+                          </div>
+                        </div>
+                      )}
+                      {participatedCount >= 10 && (
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                            <Award className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-sm">Science Champion 🏆</p>
+                            <p className="text-xs text-muted-foreground">Completed 10+ experiments</p>
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+
+              {/* RIGHT SIDE - 1 column - CRYPTO WALLET */}
+              <div className="space-y-6">
+                {/* 🎯 CRYPTO WALLET COMPONENT */}
+                <CryptoWallet participantId={participant?.id} />
+              </div>
             </div>
 
             {/* Participated Experiments Section */}
