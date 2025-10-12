@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SidebarProvider, SidebarTrigger } from '../../components/ui/sidebar';
 import ParticipantSidebar from '../../components/participant/ParticipantSidebar';
@@ -12,7 +12,8 @@ import {
   FaSearch, FaCamera, FaClock, FaTrophy, FaBook, 
   FaArrowRight, FaChartLine
 } from 'react-icons/fa';
-import { Search } from 'lucide-react';
+import { Search, Wallet, Trophy } from 'lucide-react';
+import { useParticipant } from '@/context/ParticipantContext';
 import templatesData from '../../../public/templates.json';
 
 // Icon mapping for templates
@@ -33,17 +34,22 @@ const iconMap = {
 
 const ParticipantExplore = () => {
   const navigate = useNavigate();
+  const { participant } = useParticipant();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [walletStats, setWalletStats] = useState(null);
 
-  // Get unique categories
-  const categories = ['all', ...new Set(templatesData.map(t => t.category))];
+  // Filter to only show experiments with researcher (actual experiments, not base templates)
+  const researcherExperiments = templatesData.filter(t => t.researcher);
+
+  // Get unique categories from researcher experiments only
+  const categories = ['all', ...new Set(researcherExperiments.map(t => t.category).filter(Boolean))];
 
   // Filter templates based on search and category
-  const filteredTemplates = templatesData.filter(template => {
-    const matchesSearch = template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         template.shortDescription.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         template.keywords.some(k => k.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredTemplates = researcherExperiments.filter(template => {
+    const matchesSearch = template.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         template.shortDescription?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         (template.keywords && template.keywords.some(k => k.toLowerCase().includes(searchQuery.toLowerCase())));
     const matchesCategory = selectedCategory === 'all' || template.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
@@ -56,6 +62,29 @@ const ParticipantExplore = () => {
       default: return 'bg-gray-500/10 text-gray-600 dark:text-gray-400 border-gray-500/20';
     }
   };
+
+  useEffect(() => {
+    const fetchWalletStats = async () => {
+      const walletAddress = localStorage.getItem(`wallet_${participant?.id}`);
+      if (!walletAddress) return;
+
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/api/crypto/stats/${walletAddress}`
+        );
+        const data = await response.json();
+        if (data.success) {
+          setWalletStats(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch wallet stats:', error);
+      }
+    };
+
+    if (participant?.id) {
+      fetchWalletStats();
+    }
+  }, [participant?.id]);
 
   return (
     <SidebarProvider>
@@ -85,7 +114,7 @@ const ParticipantExplore = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-muted-foreground">Available Experiments</p>
-                      <p className="text-2xl font-bold">{templatesData.length}</p>
+                      <p className="text-2xl font-bold">{researcherExperiments.length}</p>
                     </div>
                     <FaBook className="h-8 w-8 text-primary" />
                   </div>
@@ -168,8 +197,31 @@ const ParticipantExplore = () => {
 
             {/* Results Count */}
             <div className="text-sm text-muted-foreground">
-              Showing {filteredTemplates.length} of {templatesData.length} experiments
+              Showing {filteredTemplates.length} of {researcherExperiments.length} experiments
             </div>
+
+            {/* Wallet Stats Banner */}
+            {walletStats && (
+              <Card className="mb-6 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border-yellow-500/20">
+                <CardContent className="py-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Trophy className="h-6 w-6 text-yellow-600" />
+                      <div>
+                        <p className="font-semibold text-foreground">Your Points: {walletStats.totalPoints}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {walletStats.experimentsCompleted} experiments completed
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      <Wallet className="h-4 w-4 inline mr-1" />
+                      Connected
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Templates Grid */}
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -186,34 +238,44 @@ const ParticipantExplore = () => {
                         <div className="p-3 rounded-lg bg-primary/10">
                           <Icon className="h-6 w-6 text-primary" />
                         </div>
-                        <Badge 
-                          variant="outline" 
-                          className={getDifficultyColor(template.difficulty)}
-                        >
-                          {template.difficulty}
-                        </Badge>
+                        {template.difficulty && (
+                          <Badge 
+                            variant="outline" 
+                            className={getDifficultyColor(template.difficulty)}
+                          >
+                            {template.difficulty}
+                          </Badge>
+                        )}
                       </div>
                       <CardTitle className="group-hover:text-primary transition-colors">
                         {template.name}
                       </CardTitle>
-                      <CardDescription className="text-xs text-muted-foreground">
-                        {template.fullName}
-                      </CardDescription>
+                      {template.fullName && (
+                        <CardDescription className="text-xs text-muted-foreground">
+                          {template.fullName}
+                        </CardDescription>
+                      )}
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {template.shortDescription}
-                      </p>
+                      {template.shortDescription && (
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {template.shortDescription}
+                        </p>
+                      )}
                       
                       <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <FaClock className="h-3 w-3" />
-                          {template.duration}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <FaTrophy className="h-3 w-3" />
-                          {template.trials}
-                        </div>
+                        {template.duration && (
+                          <div className="flex items-center gap-1">
+                            <FaClock className="h-3 w-3" />
+                            {template.duration}
+                          </div>
+                        )}
+                        {template.trials && (
+                          <div className="flex items-center gap-1">
+                            <FaTrophy className="h-3 w-3" />
+                            {template.trials}
+                          </div>
+                        )}
                       </div>
 
                       {template.requiresCamera && (
@@ -223,19 +285,33 @@ const ParticipantExplore = () => {
                         </Badge>
                       )}
 
-                      <div className="flex items-center justify-between pt-2 border-t">
-                        <span className="text-xs font-medium text-muted-foreground">
-                          {template.category}
-                        </span>
-                        <Button 
-                          size="sm" 
-                          variant="ghost"
-                          className="group-hover:text-primary"
-                        >
-                          View Details
-                          <FaArrowRight className="ml-2 h-4 w-4" />
-                        </Button>
-                      </div>
+                      {template.category && (
+                        <div className="flex items-center justify-between pt-2 border-t">
+                          <span className="text-xs font-medium text-muted-foreground">
+                            {template.category}
+                          </span>
+                          <Button 
+                            size="sm" 
+                            variant="ghost"
+                            className="group-hover:text-primary"
+                          >
+                            View Details
+                            <FaArrowRight className="ml-2 h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
+                      {!template.category && (
+                        <div className="flex items-center justify-end pt-2 border-t">
+                          <Button 
+                            size="sm" 
+                            variant="ghost"
+                            className="group-hover:text-primary"
+                          >
+                            View Details
+                            <FaArrowRight className="ml-2 h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 );

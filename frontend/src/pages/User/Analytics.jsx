@@ -187,10 +187,9 @@ const Analytics = () => {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-background sticky top-0 z-10">
+        <header className="flex h-23 shrink-0 items-center gap-2 border-b px-4 bg-background sticky top-0 z-10">
           <SidebarTrigger className="-ml-1" />
           <div className="flex items-center gap-2">
-            <Activity className="h-5 w-5" />
             <h1 className="text-xl font-semibold">Analytics Dashboard</h1>
           </div>
         </header>

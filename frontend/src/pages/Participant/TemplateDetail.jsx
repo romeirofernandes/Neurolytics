@@ -39,7 +39,8 @@ const TemplateDetail = () => {
 
   useEffect(() => {
     const foundTemplate = templatesData.find(t => t.id === templateId);
-    if (foundTemplate) {
+    // Only set template if it has a researcher (actual experiment, not base template)
+    if (foundTemplate && foundTemplate.researcher) {
       setTemplate(foundTemplate);
     }
   }, [templateId]);

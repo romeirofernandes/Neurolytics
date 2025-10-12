@@ -29,7 +29,8 @@ import TestModels from './pages/TestModels'
 import AIExperimentBuilder from './pages/User/AIExperimentBuilder'
 import PreviewExperiment from './pages/Preview/PreviewExperiment'
 import VisualBuilder from './pages/User/VisualBuilder'
-
+import TermsAndConditions from './pages/TermsAndConditions'
+import PrivacyPolicy from './pages/PrivacyPolicy'
 // Fix Leaflet default marker icons for Vite/Webpack
 import L from 'leaflet';
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -93,6 +94,8 @@ const App = () => {
             <Routes>
               {/* Public routes - accessible to everyone */}
               <Route path="/" element={<Landing />} />
+              <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               
               {/* Auth routes - only accessible when NOT logged in */}
               <Route path="/login" element={

@@ -22,6 +22,7 @@ import {
   Zap
 } from 'lucide-react';
 import templatesData from '../../../public/templates.json';
+import CryptoSponsor from '../../components/user/CryptoSponsor';
 
 const Dashboard = () => {
   const { user, isAuthenticated } = useAuth();
@@ -220,6 +221,44 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Crypto Sponsorship Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5" />
+                  Blockchain Sponsorship
+                </CardTitle>
+                <CardDescription>
+                  Sponsor your experiments on the blockchain for transparent tracking
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {/* Example sponsorship cards - replace with your actual experiments */}
+                  {stats.total > 0 ? (
+                    <>
+                      <CryptoSponsor 
+                        experimentId="stroop-task-001" 
+                        experimentTitle="Stroop Color Task"
+                      />
+                      <CryptoSponsor 
+                        experimentId="bart-task-001" 
+                        experimentTitle="Balloon Analog Risk Task"
+                      />
+                      <CryptoSponsor 
+                        experimentId="posner-task-001" 
+                        experimentTitle="Posner Cueing Task"
+                      />
+                    </>
+                  ) : (
+                    <div className="col-span-full text-center py-8 text-muted-foreground">
+                      <p>Create experiments to enable blockchain sponsorship</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Notifications and Activity */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">

@@ -45,16 +45,7 @@ const ParticipantSidebar = () => {
       url: '/participant/explore',
       icon: HiCollection,
     },
-    {
-      title: 'My Experiments',
-      url: '/participant/experiments',
-      icon: HiClipboardList,
-    },
-    {
-      title: 'Settings',
-      url: '/participant/settings',
-      icon: HiCog,
-    },
+
   ];
 
   return (

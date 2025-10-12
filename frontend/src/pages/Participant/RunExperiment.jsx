@@ -8,7 +8,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Trophy } from 'lucide-react';
 import { FaArrowLeft, FaCheckCircle, FaExclamationCircle, FaSpinner, FaChartLine, FaDownload, FaBrain, FaCamera } from 'react-icons/fa';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -113,6 +113,9 @@ const RunExperiment = () => {
   const [loadingConsent, setLoadingConsent] = useState(true);
   const [consentError, setConsentError] = useState(null);
 
+  // Add state for crypto points
+  const [cryptoPointsAwarded, setCryptoPointsAwarded] = useState(null);
+
   useEffect(() => {
     const loadTemplate = async () => {
       setLoading(true);
@@ -120,11 +123,20 @@ const RunExperiment = () => {
 
       // Find template in templates.json
       const foundTemplate = templatesData.find(t => t.id === templateId);
+      
+      // Only proceed if template exists AND has a researcher (actual experiment, not base template)
       if (!foundTemplate) {
         setLoadError('Template not found');
         setLoading(false);
         return;
       }
+      
+      if (!foundTemplate.researcher) {
+        setLoadError('This is a base template and cannot be run directly. Please contact a researcher to create an experiment based on this template.');
+        setLoading(false);
+        return;
+      }
+      
       setTemplate(foundTemplate);
 
       // Try to load from base components first
@@ -193,7 +205,9 @@ const RunExperiment = () => {
     setExperimentResults(results);
     setExperimentComplete(true);
     
-    // Automatically start AI analysis
+    await awardCryptoPoints(templateId);
+    
+    // Then analyze results
     await analyzeResults(results);
   };
 
@@ -508,6 +522,42 @@ const RunExperiment = () => {
     }
   };
 
+  // Award crypto points to participant
+  const awardCryptoPoints = async (experimentId) => {
+    try {
+      const participantId = participant?.id;
+      if (!participantId) return;
+
+      const walletAddress = localStorage.getItem(`wallet_${participantId}`);
+      if (!walletAddress) {
+        console.log('No wallet connected - skipping crypto points');
+        return;
+      }
+
+      console.log('Awarding crypto points...');
+      
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/crypto/points/award`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          experimentId,
+          participantWallet: walletAddress
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        console.log('✅ Crypto points awarded!', data);
+        setCryptoPointsAwarded(data); // 🎯 Save the result
+      } else {
+        console.log('Points already awarded or error:', data.message);
+      }
+    } catch (error) {
+      console.error('Crypto points error:', error);
+    }
+  };
+
   // Loading state
   if (loading || loadingConsent) {
     return (
@@ -601,6 +651,35 @@ const RunExperiment = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Crypto Points Awarded Alert */}
+          {cryptoPointsAwarded && (
+            <Card className="border-2 border-yellow-500/20 bg-gradient-to-br from-yellow-500/5 to-orange-500/5">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 rounded-full bg-yellow-500/10">
+                    <Trophy className="h-8 w-8 text-yellow-600" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-bold text-foreground">
+                      🎉 {cryptoPointsAwarded.points} Points Earned!
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Transaction: 
+                      <a 
+                        href={cryptoPointsAwarded.explorerUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline ml-1"
+                      >
+                        {cryptoPointsAwarded.transactionHash.slice(0, 10)}...
+                      </a>
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* AI Analysis Section */}
           {analyzingResults ? (
