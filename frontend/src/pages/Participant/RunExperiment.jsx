@@ -24,6 +24,7 @@ import { SimonTemplate } from '../../components/experiment/templates/SimonTempla
 import { DigitSpanTemplate } from '../../components/experiment/templates/DigitSpanTemplate';
 import { VisualSearchTemplate } from '../../components/experiment/templates/VisualSearchTemplate';
 import EmotionTracker from '../../components/experiment/templates/EmotionTracker';
+import PupilTracker from '../../components/experiment/templates/PupilTracker'; // ✅ Changed from PupilExperimentPage
 
 // Base template component mapping
 const baseTemplateComponents = {
@@ -31,15 +32,16 @@ const baseTemplateComponents = {
   'stroop': StroopTemplate,
   'posner': PosnerTemplate,
   'abba': ABBATemplate,
-  'hanoi': HanoiTowerTemplate,  // Maps to Tile5HanoiTemplate (5 disks)
-  'hanoi1': TowerHanoiTemplate,  // Original 3-disk version
+  'hanoi': HanoiTowerTemplate,
+  'hanoi1': TowerHanoiTemplate,
   'flanker': FlankerTemplate,
   'gonogo': GoNoGoTemplate,
   'nback': NBackTemplate,
   'simon': SimonTemplate,
   'digitspan': DigitSpanTemplate,
   'visualsearch': VisualSearchTemplate,
-  'stroop-emotion': EmotionTracker
+  'stroop-emotion': EmotionTracker,
+  'pupil-gaze-reaction': PupilTracker  // ✅ Changed from PupilExperimentPage
 };
 
 /**

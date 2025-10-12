@@ -27,6 +27,8 @@ import { Button } from './components/ui/button'
 import TestModels from './pages/TestModels'
 import AIExperimentBuilder from './pages/User/AIExperimentBuilder'
 import PreviewExperiment from './pages/Preview/PreviewExperiment'
+import PupilTracker from './components/experiment/templates/PupilTracker'
+import PupilTrackingActivity from './pages/Experiment/PupilTrackingActivity'
 
 // Inline route protection components
 const ProtectedRoute = ({ children }) => {
@@ -194,6 +196,9 @@ const App = () => {
               <Route path="/preview/:templateId" element={<PreviewExperiment />} />
               
               <Route path="/test-models" element={<TestModels />} />
+              
+              {/* Pupil tracking activity route */}
+              <Route path="/experiment/pupil-tracking-activity" element={<PupilTrackingActivity />} />
               
               {/* 404 route - catch all unmatched routes */}
               <Route path="*" element={<NotFoundPage />} />

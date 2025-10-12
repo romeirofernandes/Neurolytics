@@ -480,6 +480,17 @@
       "Custom Research"
     ],
     "publications": []
+  },
+  {
+    "id": "pupil-gaze-reaction",
+    "name": "Gaze-Target Reaction",
+    "fullName": "Pupil-Tracked Visual Attention & Orienting Task",
+    "shortDescription": "Measures visual attention using pupil/gaze tracking",
+    "category": "Attention & Perception",
+    "difficulty": "Advanced",
+    "duration": "~5-7 minutes",
+    "requiresCamera": true,
+    "icon": "Eye",
+    "color": "from-purple-500 to-blue-500"
   }
-  
 ]
