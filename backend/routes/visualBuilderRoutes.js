@@ -450,4 +450,92 @@ router.post('/add-contributor', async (req, res) => {
   }
 });
 
+// Remove participant from template contributors
+router.post('/remove-contributor', async (req, res) => {
+  try {
+    const { templateId, participantId } = req.body;
+
+    if (!templateId || !participantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'templateId and participantId are required'
+      });
+    }
+
+    console.log(`🗑️ Removing participant ${participantId} from template ${templateId} contributors...`);
+
+    const templatesJsonPath = path.join(__dirname, '../../frontend/public/templates.json');
+    
+    // Read templates.json
+    let templates = [];
+    try {
+      const templatesData = await fs.readFile(templatesJsonPath, 'utf-8');
+      templates = JSON.parse(templatesData);
+    } catch (error) {
+      console.error('Error reading templates.json:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to read templates.json'
+      });
+    }
+
+    // Find the template
+    const templateIndex = templates.findIndex(t => t.id === templateId);
+    
+    if (templateIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: 'Template not found'
+      });
+    }
+
+    // Check if contributors array exists
+    if (!templates[templateIndex].contributors) {
+      return res.status(404).json({
+        success: false,
+        message: 'No contributors found for this template'
+      });
+    }
+
+    // Find and remove the participant ID
+    const initialLength = templates[templateIndex].contributors.length;
+    templates[templateIndex].contributors = templates[templateIndex].contributors.filter(
+      id => id !== participantId
+    );
+
+    const removed = initialLength > templates[templateIndex].contributors.length;
+
+    if (removed) {
+      console.log(`✅ Removed participant ${participantId} from template ${templateId}`);
+      
+      // Update updatedAt timestamp
+      templates[templateIndex].updatedAt = new Date().toISOString();
+
+      // Write back to templates.json
+      await fs.writeFile(templatesJsonPath, JSON.stringify(templates, null, 2), 'utf-8');
+      console.log('✅ templates.json updated successfully');
+
+      res.status(200).json({
+        success: true,
+        message: 'Participant removed from contributors successfully',
+        contributorsCount: templates[templateIndex].contributors.length
+      });
+    } else {
+      console.log(`ℹ️ Participant ${participantId} not found in contributors for ${templateId}`);
+      res.status(404).json({
+        success: false,
+        message: 'Participant not found in contributors list'
+      });
+    }
+
+  } catch (error) {
+    console.error('❌ Error removing contributor:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error removing contributor',
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;

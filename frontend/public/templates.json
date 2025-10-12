@@ -808,7 +808,9 @@
       "orcId": null
     },
     "createdAt": "2025-10-12T06:14:41.180Z",
-    "experimentId": "68eb4751396f4a4bd5897f33"
+    "experimentId": "68eb4751396f4a4bd5897f33",
+    "contributors": [],
+    "updatedAt": "2025-10-12T09:05:59.378Z"
   },
   {
     "id": "my-first-experiment",

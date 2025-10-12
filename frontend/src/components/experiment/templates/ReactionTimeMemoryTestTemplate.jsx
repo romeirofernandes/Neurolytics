@@ -1,22 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import './Experiment.css'; // Create a CSS file for styling
 
-const ReactionTimeMemoryExperiment = () => {
-  const [currentBlockIndex, setCurrentBlockIndex] = useState(0);
-  const [repetition, setRepetition] = useState(0);
-  const [trialData, setTrialData] = useState([]);
+const Experiment = () => {
+  const [blockIndex, setBlockIndex] = useState(0);
+  const [repetitionIndex, setRepetitionIndex] = useState(0);
+  const [currentTrial, setCurrentTrial] = useState(null);
+  const [results, setResults] = useState([]);
   const [experimentCompleted, setExperimentCompleted] = useState(false);
-  const [startTime, setStartTime] = useState(null);
-  const [responseTime, setResponseTime] = useState(null);
-  const [accuracy, setAccuracy] = useState(null);
-  const [blockOrder, setBlockOrder] = useState([]);
-  const [currentResponse, setCurrentResponse] = useState(null);
+  const [reactionTime, setReactionTime] = useState(null);
+  const startTimeRef = useRef(null);
+  const [progress, setProgress] = useState(0);
+  const [currentBlockRepetitions, setCurrentBlockRepetitions] = useState(0);
 
 
-  const numBlocks = 8;
-  const repetitionsPerBlock = 5;
-  const totalTrials = numBlocks * repetitionsPerBlock;
-
-  // Define the blocks of the experiment
   const blocks = [
     {
       type: 'instruction',
@@ -92,206 +88,242 @@ const ReactionTimeMemoryExperiment = () => {
         questionType: 'multiple-choice',
         options: ['Cat', 'Dog', 'Bird', 'Tree'],
       },
-      next: null, // final block
+      next: null,
     },
   ];
 
-  useEffect(() => {
-    // Initialize block order with randomization
-    const initialBlockOrder = [];
-    for (let i = 0; i < numBlocks; i++) {
-      for (let j = 0; j < repetitionsPerBlock; j++) {
-        initialBlockOrder.push(i);
+  const NUM_BLOCKS = 8;
+  const REPETITIONS_PER_BLOCK = 5;
+
+  const getRandomizedTrialOrder = () => {
+      const trialOrder = [];
+      for (let i = 0; i < NUM_BLOCKS; i++) {
+          for (let j = 0; j < REPETITIONS_PER_BLOCK; j++) {
+              trialOrder.push({ blockIndex: i, repetitionIndex: j });
+          }
       }
-    }
+      // Fisher-Yates Shuffle
+      for (let i = trialOrder.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [trialOrder[i], trialOrder[j]] = [trialOrder[j], trialOrder[i]];
+      }
+      return trialOrder;
+  };
 
-    // Shuffle the block order using Fisher-Yates shuffle
-    const shuffledBlockOrder = [...initialBlockOrder];
-    for (let i = shuffledBlockOrder.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffledBlockOrder[i], shuffledBlockOrder[j]] = [
-        shuffledBlockOrder[j],
-        shuffledBlockOrder[i],
-      ];
-    }
-    setBlockOrder(shuffledBlockOrder);
-  }, []);
+  const [trialOrder, setTrialOrder] = useState(getRandomizedTrialOrder());
+  const [currentTrialIndex, setCurrentTrialIndex] = useState(0);
 
   useEffect(() => {
-    if (blockOrder.length > 0 && currentBlockIndex < totalTrials) {
-      const currentBlockType = blocks[blockOrder[currentBlockIndex]].type;
-
-      if (currentBlockType === 'response') {
-        // Start timing for response
-        setStartTime(performance.now());
-        setResponseTime(null); // Reset response time
-        setAccuracy(null);      // Reset accuracy
-        setCurrentResponse(null);
-        window.addEventListener('keydown', handleKeyPress);
-      } else {
-        // No action needed for other block types
+      if (trialOrder.length > 0) {
+          loadTrial(trialOrder[currentTrialIndex]);
       }
+  }, [currentTrialIndex, trialOrder]);
+
+  const loadTrial = (trial) => {
+      setBlockIndex(trial.blockIndex);
+      setRepetitionIndex(trial.repetitionIndex);
+      setCurrentTrial(blocks[trial.blockIndex]);
+  };
+
+  useEffect(() => {
+    if (currentTrial && currentTrial.type === 'response') {
+      startTimeRef.current = Date.now();
+      window.addEventListener('keydown', handleKeyPress);
     }
     return () => {
-        window.removeEventListener('keydown', handleKeyPress); // Clean up the event listener on unmount
-    }
-  }, [currentBlockIndex, blockOrder]);
+      window.removeEventListener('keydown', handleKeyPress);
+    };
+  }, [currentTrial]);
 
   const handleKeyPress = (event) => {
-    if (blocks[blockOrder[currentBlockIndex]].type === 'response') {
-      const { choices, correctResponse } = blocks[blockOrder[currentBlockIndex]].configuration;
+    if (currentTrial && currentTrial.type === 'response') {
+      const key = event.code.toLowerCase();
+      const correctResponse = currentTrial.configuration.correctResponse.toLowerCase();
 
-      if (choices.includes(event.code.toLowerCase())) {
-        const endTime = performance.now();
-        const reactionTime = endTime - startTime;
-        const isCorrect = event.code.toLowerCase() === correctResponse;
+      if (currentTrial.configuration.choices.map(c => c.toLowerCase()).includes(key)) {
+        const endTime = Date.now();
+        const reactionTime = endTime - startTimeRef.current;
+        setReactionTime(reactionTime);
 
-        setResponseTime(reactionTime);
-        setAccuracy(isCorrect);
-        setCurrentResponse(event.code.toLowerCase());
-        window.removeEventListener('keydown', handleKeyPress); // Remove listener after first response.
+        const isCorrect = key === correctResponse;
+        handleTrialEnd(isCorrect, reactionTime);
 
+        window.removeEventListener('keydown', handleKeyPress); // Remove listener after the response
       }
     }
   };
 
 
-  const nextTrial = () => {
-    const currentBlock = blocks[blockOrder[currentBlockIndex]];
-
-    // Collect data for the current trial
-    const trialDataEntry = {
-      blockIndex: blockOrder[currentBlockIndex],
-      blockType: currentBlock.type,
-      configuration: currentBlock.configuration,
-      repetition: repetition,
-      reactionTime: responseTime,
-      accuracy: accuracy,
-      response: currentResponse,
+  const handleTrialEnd = (isCorrect, reactionTime) => {
+    const data = {
+      blockType: currentTrial.type,
+      blockConfig: currentTrial.configuration,
+      isCorrect: isCorrect,
+      reactionTime: reactionTime,
+      memoryAnswer: null, // To be populated in survey
     };
 
-    setTrialData((prevData) => [...prevData, trialDataEntry]);
-
-    // Move to the next block or repetition
-    if (currentBlockIndex < totalTrials - 1) {
-        setCurrentBlockIndex((prevIndex) => prevIndex + 1);
-    }
-    else {
-        setExperimentCompleted(true);
-    }
-    setStartTime(null);
-    setResponseTime(null);
-    setAccuracy(null);
-    setCurrentResponse(null);
-
+    setResults([...results, data]);
+    goToNextTrial();
   };
 
-  const renderBlockContent = () => {
-    if (blockOrder.length === 0) {
-      return <p>Loading Experiment...</p>;
-    }
-    if (experimentCompleted) {
-      return (
-        <div>
-          <h2>Experiment Completed!</h2>
-          <h3>Summary Statistics:</h3>
-          {/* Example: Calculate average reaction time */}
-          {trialData.length > 0 && (
-            <p>
-              Average Reaction Time:{' '}
-              {trialData
-                .filter((trial) => trial.reactionTime !== null)
-                .reduce((sum, trial) => sum + trial.reactionTime, 0) /
-                trialData.filter((trial) => trial.reactionTime !== null).length}{' '}
-              ms
-            </p>
-          )}
-          {/* Add more summary stats as needed */}
-          <pre>{JSON.stringify(trialData, null, 2)}</pre>
-        </div>
-      );
+  const handleSurveySubmit = (answer) => {
+    const updatedResults = [...results];
+    updatedResults[results.length - 1].memoryAnswer = answer;
+    setResults(updatedResults);
+    goToNextTrial();
+  };
+
+  const goToNextTrial = () => {
+      const nextTrialIndex = currentTrialIndex + 1;
+      if (nextTrialIndex < trialOrder.length) {
+          setCurrentTrialIndex(nextTrialIndex);
+          setProgress(Math.round((nextTrialIndex / trialOrder.length) * 100));
+      } else {
+          setExperimentCompleted(true);
+          setProgress(100);
+      }
+  };
+
+  const renderBlock = () => {
+    if (!currentTrial) {
+      return <div>Loading...</div>;
     }
 
-    const currentBlock = blocks[blockOrder[currentBlockIndex]];
-
-    switch (currentBlock.type) {
+    switch (currentTrial.type) {
       case 'instruction':
         return (
-          <div>
-            <p>{currentBlock.configuration.text}</p>
-            <button onClick={nextTrial}>
-              {currentBlock.configuration.buttonText}
-            </button>
+          <div className="instruction-block">
+            <h2>{currentTrial.configuration.text}</h2>
+            <button onClick={goToNextTrial}>{currentTrial.configuration.buttonText}</button>
           </div>
         );
       case 'fixation':
         return (
-          <div>
-            <p style={{ fontSize: currentBlock.configuration.size }}>
-              {currentBlock.configuration.symbol}
-            </p>
-            {setTimeout(nextTrial, currentBlock.configuration.duration)}
+          <div className="fixation-block">
+            <span style={{ fontSize: currentTrial.configuration.size }}>
+              {currentTrial.configuration.symbol}
+            </span>
+            {setTimeout(goToNextTrial, currentTrial.configuration.duration)}
           </div>
         );
       case 'stimulus':
         return (
-          <div>
-            {currentBlock.configuration.stimulusType === 'text' && (
-              <p
-                style={{
-                  fontSize: 40,
-                  textAlign: currentBlock.configuration.position,
-                }}
-              >
-                {currentBlock.configuration.content}
-              </p>
-            )}
-            {setTimeout(nextTrial, currentBlock.configuration.duration)}
+          <div className="stimulus-block">
+            <div
+              style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                fontSize: '4em',
+              }}
+            >
+              {currentTrial.configuration.content}
+            </div>
+            {setTimeout(goToNextTrial, currentTrial.configuration.duration)}
           </div>
         );
       case 'response':
         return (
-          <div>
-            <p>Press SPACE when you see the target!</p>
+          <div className="response-block">
+            <h2>Wait for the green circle and press Spacebar as fast as you can!</h2>
+            {/* Waiting for key press handled in useEffect */}
           </div>
         );
       case 'feedback':
-        let feedbackText = accuracy ? currentBlock.configuration.correctText : currentBlock.configuration.incorrectText;
         return (
-          <div>
-            <p>{feedbackText}</p>
-            {setTimeout(nextTrial, currentBlock.configuration.duration)}
+          <div className="feedback-block">
+            <h2>
+              {reactionTime !== null
+                ? reactionTime < currentTrial.configuration.duration
+                  ? currentTrial.configuration.correctText
+                  : currentTrial.configuration.incorrectText
+                : currentTrial.configuration.incorrectText}
+            </h2>
+            {setTimeout(goToNextTrial, currentTrial.configuration.duration)}
           </div>
         );
       case 'survey':
         return (
-          <div>
-            <p>{currentBlock.configuration.question}</p>
-            <form>
-              {currentBlock.configuration.options.map((option, index) => (
-                <div key={index}>
+          <div className="survey-block">
+            <h2>{currentTrial.configuration.question}</h2>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const selectedAnswer = e.target.answer.value;
+                handleSurveySubmit(selectedAnswer);
+              }}
+            >
+              {currentTrial.configuration.options.map((option) => (
+                <div key={option}>
                   <label>
-                    <input type="radio" name="memoryChoice" value={option} />
+                    <input
+                      type="radio"
+                      name="answer"
+                      value={option}
+                      required
+                    />
                     {option}
                   </label>
                 </div>
               ))}
-              <button onClick={nextTrial}>Submit</button>
+              <button type="submit">Submit</button>
             </form>
           </div>
         );
       default:
-        return <p>Unknown block type</p>;
+        return <div>Unknown block type</div>;
     }
   };
 
+  const calculateSummaryStatistics = () => {
+    const correctResponses = results.filter((result) => result.isCorrect).length;
+    const accuracy = (correctResponses / results.length) * 100;
+
+    const reactionTimes = results
+      .filter((result) => result.reactionTime !== null)
+      .map((result) => result.reactionTime);
+    const averageReactionTime =
+      reactionTimes.reduce((sum, rt) => sum + rt, 0) / reactionTimes.length;
+
+    const catRecognitionCount = results.filter(r => r.memoryAnswer === "Cat").length;
+    const recognitionAccuracy = (catRecognitionCount / NUM_BLOCKS) * 100;
+
+    return {
+      accuracy: accuracy.toFixed(2),
+      averageReactionTime: averageReactionTime.toFixed(2),
+      recognitionAccuracy: recognitionAccuracy.toFixed(2),
+    };
+  };
+
+  const renderSummary = () => {
+    const summary = calculateSummaryStatistics();
+    return (
+      <div className="summary-block">
+        <h1>Experiment Complete!</h1>
+        <h2>Summary:</h2>
+        <p>Accuracy: {summary.accuracy}%</p>
+        <p>Average Reaction Time: {summary.averageReactionTime} ms</p>
+        <p>Cat Recognition Accuracy: {summary.recognitionAccuracy}%</p>
+        <h2>Raw Data:</h2>
+        <pre>{JSON.stringify(results, null, 2)}</pre>
+      </div>
+    );
+  };
+
   return (
-    <div>
-      <h2>Reaction Time & Memory Test</h2>
-      <p>Progress: {currentBlockIndex + 1} / {totalTrials}</p>
-      {renderBlockContent()}
+    <div className="experiment-container">
+      <div className="progress-bar">
+        <div
+          className="progress-bar-fill"
+          style={{ width: `${progress}%` }}
+        ></div>
+        <div className="progress-bar-label">{progress}%</div>
+      </div>
+      {!experimentCompleted ? renderBlock() : renderSummary()}
     </div>
   );
 };
 
-export default ReactionTimeMemoryExperiment;
+export default Experiment;

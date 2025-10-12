@@ -116,6 +116,14 @@ const RunExperiment = () => {
   // Add state for crypto points
   const [cryptoPointsAwarded, setCryptoPointsAwarded] = useState(null);
 
+  // Debug log to verify participant and templateId are available
+  console.log('🔍 RunExperiment Component State:', {
+    templateId,
+    participantId: participant?.id,
+    participantEmail: participant?.email,
+    hasParticipant: !!participant
+  });
+
   useEffect(() => {
     const loadTemplate = async () => {
       setLoading(true);
@@ -201,26 +209,58 @@ const RunExperiment = () => {
   }, [templateId]);
 
   const handleExperimentComplete = async (results) => {
+    console.log('🎯🎯🎯 EXPERIMENT COMPLETE HANDLER CALLED! 🎯🎯🎯');
     console.log('Experiment completed with results:', results);
+    console.log('Current participant:', participant);
+    console.log('Current templateId:', templateId);
+    console.log('participant?.id:', participant?.id);
+    
     setExperimentResults(results);
     setExperimentComplete(true);
     
     // Add participant to template contributors
-    if (participant?.mongoId && templateId) {
+    console.log('🔍 Checking conditions...');
+    console.log('  - participant?.id:', participant?.id);
+    console.log('  - templateId:', templateId);
+    console.log('  - Will add contributor?', !!(participant?.id && templateId));
+    
+    if (participant?.id && templateId) {
       try {
-        await fetch(`${import.meta.env.VITE_API_URL}/api/visual-builder/add-contributor`, {
+        console.log('🔄🔄🔄 ADDING CONTRIBUTOR NOW! 🔄🔄🔄');
+        console.log('🔄 Adding contributor...', {
+          participantId: participant.id,
+          templateId: templateId,
+          apiUrl: import.meta.env.VITE_API_URL
+        });
+        
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/visual-builder/add-contributor`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             templateId: templateId,
-            participantId: participant.mongoId
+            participantId: participant.id
           })
         });
-        console.log('✅ Added to template contributors');
+        
+        console.log('📡 Response received! Status:', response.status, response.statusText);
+        
+        const data = await response.json();
+        console.log('📝 Contributor API Response:', data);
+        
+        if (response.ok) {
+          console.log('✅✅✅ SUCCESSFULLY ADDED TO CONTRIBUTORS! ✅✅✅');
+        } else {
+          console.error('❌❌❌ FAILED TO ADD CONTRIBUTOR! ❌❌❌');
+          console.error('❌ Failed to add contributor:', data);
+        }
       } catch (error) {
+        console.error('⚠️⚠️⚠️ ERROR ADDING CONTRIBUTOR! ⚠️⚠️⚠️');
         console.error('⚠️ Failed to add contributor:', error);
         // Don't fail the experiment completion if this fails
       }
+    } else {
+      console.warn('⚠️⚠️⚠️ MISSING DATA - CANNOT ADD CONTRIBUTOR! ⚠️⚠️⚠️');
+      console.warn('⚠️ Missing data - participant.id:', participant?.id, 'templateId:', templateId);
     }
     
     await awardCryptoPoints(templateId);
