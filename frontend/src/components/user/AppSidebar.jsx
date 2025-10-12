@@ -22,7 +22,7 @@ import { Button } from '../ui/button';
 import { ConnectedThemeToggle } from '../ui/ConnectedThemeToggle';
 import { HiHome, HiCog, HiLogout, HiUser, HiSun, HiMoon, HiChartBar } from 'react-icons/hi';
 import { FaBrain, FaFlask } from 'react-icons/fa';
-import { Home, Settings, User, FileText, FlaskConical, BookTemplate } from "lucide-react";
+import { Home, Settings, User, FileText, FlaskConical, BookTemplate, Beaker } from "lucide-react";
 
 const AppSidebar = () => {
   const { user, logout } = useAuth();
@@ -43,6 +43,7 @@ const AppSidebar = () => {
   const items = [
     { title: "Dashboard", url: "/dashboard", icon: Home },
     { title: "Experiments", url: "/ai-experiment-builder", icon: FlaskConical },
+    { title: "My Experiments", url: "/my-experiments", icon: Beaker },
     { title: "Templates", url: "/templates", icon: BookTemplate },
     { title: "Analytics", url: "/analytics", icon: HiChartBar },
     { title: "Consent Forms", url: "/consent-form/create", icon: FileText },

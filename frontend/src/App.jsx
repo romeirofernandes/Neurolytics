@@ -9,6 +9,7 @@ import Register from './pages/Register'
 import Dashboard from './pages/User/Dashboard'
 import Profile from './pages/User/Profile'
 import Analytics from './pages/User/Analytics'
+import MyExperiments from './pages/User/MyExperiments'
 import AdminAuth from './pages/Admin/AdminAuth'
 import AdminDashboard from './pages/Admin/AdminDashboard'
 import ParticipantLogin from './pages/Participant/Login'
@@ -146,6 +147,12 @@ const App = () => {
               <Route path="/templates" element={
                 <ProtectedRoute>
                   <Templates />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/my-experiments" element={
+                <ProtectedRoute>
+                  <MyExperiments />
                 </ProtectedRoute>
               } />
             
