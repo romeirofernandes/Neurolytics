@@ -78,6 +78,7 @@ const VisualBuilder = () => {
   const [generatingAI, setGeneratingAI] = useState(false);
   const [savedExperimentId, setSavedExperimentId] = useState(null);
   const [templateId, setTemplateId] = useState(null);
+  const [ragContext, setRagContext] = useState(null); // 🔥 NEW: Track RAG context
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -244,11 +245,13 @@ ${randomization.enabled ? '4. Randomize the order of trials' : '4. Keep trials i
 6. Display clear instructions and feedback
 7. Show progress indicator
 8. Provide summary statistics at the end
+9. Use React hooks and Shadcn UI components
+10. Follow experimental psychology best practices
 
 Generate a complete, production-ready React component.
     `.trim();
 
-      console.log('Sending AI generation request...');
+      console.log('Sending AI generation request with RAG...');
 
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/visual-builder/generate-ai`, {
         method: 'POST',
@@ -264,14 +267,24 @@ Generate a complete, production-ready React component.
       }
 
       const data = await response.json();
-      console.log('AI generated code successfully');
+      console.log('AI generated code successfully with RAG context');
 
       if (!data.success) {
         throw new Error(data.message || 'Failed to generate experiment');
       }
 
+      // 🔥 Store RAG context
+      if (data.metadata?.ragContext) {
+        setRagContext(data.metadata);
+        console.log('📚 RAG Context:', {
+          baseTemplate: data.metadata.usedTemplate,
+          similarity: data.metadata.templateSimilarityScore,
+          modifications: data.metadata.modifications?.length || 0
+        });
+      }
+
       // Save directly to templates.json
-      console.log('Saving to templates.json...');
+      console.log('Saving to templates.json with RAG metadata...');
       
       const saveResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/visual-builder/save-ai`, {
         method: 'POST',
@@ -290,7 +303,8 @@ Generate a complete, production-ready React component.
             visualFlow: {
               nodes: nodes,
               edges: edges
-            }
+            },
+            ragContext: data.metadata?.ragContext // 🔥 Pass RAG context
           }
         })
       });
@@ -300,12 +314,18 @@ Generate a complete, production-ready React component.
       }
 
       const saveData = await saveResponse.json();
-      console.log('Saved to templates.json:', saveData);
+      console.log('Saved to templates.json with RAG context:', saveData);
 
       if (saveData.success) {
         setTemplateId(saveData.templateInfo?.templateId);
         setSaveSuccess(true);
-        alert(`✅ Experiment saved to templates.json!\n\nTemplate ID: ${saveData.templateInfo?.templateId}\nYou can now find it in your experiment templates.`);
+        
+        // 🔥 Show detailed success message with RAG info
+        const ragInfo = data.metadata?.usedTemplate 
+          ? `\n\nBased on: ${data.metadata.usedTemplate} (${(data.metadata.templateSimilarityScore * 100).toFixed(0)}% match)`
+          : '';
+        
+        alert(`✅ Experiment saved to templates.json!${ragInfo}\n\nTemplate ID: ${saveData.templateInfo?.templateId}\nYou can now find it in your experiment templates.`);
         setTimeout(() => setSaveSuccess(false), 3000);
       } else {
         throw new Error(saveData.message || 'Failed to save');
@@ -386,6 +406,12 @@ Generate a complete, production-ready React component.
             <SidebarTrigger className="-ml-1" />
             <div>
               <h1 className="text-xl font-semibold text-foreground">Visual Flow Builder</h1>
+              {/* 🔥 NEW: Show RAG context if available */}
+              {ragContext?.usedTemplate && (
+                <p className="text-xs text-muted-foreground">
+                  Based on: {ragContext.usedTemplate} ({(ragContext.templateSimilarityScore * 100).toFixed(0)}% match)
+                </p>
+              )}
             </div>
           </div>
 
@@ -431,6 +457,11 @@ Generate a complete, production-ready React component.
               <CheckCircle2 className="h-4 w-4 text-success" />
               <AlertDescription className="text-success">
                 AI Experiment generated and saved successfully!
+                {ragContext?.usedTemplate && (
+                  <div className="text-xs mt-1">
+                    Based on {ragContext.usedTemplate}
+                  </div>
+                )}
               </AlertDescription>
             </Alert>
           )}
