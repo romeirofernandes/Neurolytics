@@ -6,6 +6,7 @@ import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, Cart
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip as LeafletTooltip } from 'react-leaflet';
+import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 const StroopEmotionAnalytics = () => {
@@ -216,67 +217,63 @@ const StroopEmotionAnalytics = () => {
             <CardDescription>Emotional states mapped across India</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[350px] rounded-lg overflow-hidden border">
+            <div className="h-[350px] rounded-lg overflow-hidden border bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
               <MapContainer 
                 center={[20.5937, 78.9629]} 
-                zoom={6} 
+                zoom={5} 
                 style={{ height: '100%', width: '100%' }}
                 scrollWheelZoom={false}
+                zoomControl={false}
+                attributionControl={false}
               >
                 <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
                 />
                 {participantData.map((participant) => (
                   <CircleMarker
                     key={participant.id}
                     center={[participant.lat, participant.lng]}
-                    radius={12}
+                    radius={8}
                     fillColor={getEmotionColor(participant.dominantEmotion)}
                     color="#fff"
                     weight={2}
                     opacity={1}
-                    fillOpacity={0.8}
+                    fillOpacity={0.9}
                   >
                     <Popup>
-                      <div className="text-sm">
-                        <p className="font-bold text-base mb-1">{participant.id}</p>
-                        <p className="text-xs text-muted-foreground mb-2">{participant.city}</p>
-                        <div className="space-y-1">
-                          <p><span className="font-semibold">Age:</span> {participant.age}</p>
-                          <p><span className="font-semibold">Gender:</span> {participant.gender}</p>
-                          <p><span className="font-semibold">Emotion:</span> <span style={{ color: getEmotionColor(participant.dominantEmotion) }}>{participant.dominantEmotion}</span></p>
-                          <p><span className="font-semibold">Stroop Effect:</span> {participant.stroopEffect}ms</p>
-                          <p><span className="font-semibold">Accuracy:</span> {participant.accuracy}%</p>
-                        </div>
+                      <div className="p-1">
+                        <p className="font-bold text-sm">{participant.city.split(',')[0]}</p>
+                        <p className="text-xs mt-1" style={{ color: getEmotionColor(participant.dominantEmotion) }}>
+                          {participant.dominantEmotion}
+                        </p>
                       </div>
                     </Popup>
-                    <LeafletTooltip direction="top" offset={[0, -10]} opacity={0.9}>
-                      <span className="font-semibold">{participant.city.split(',')[0]}</span>
+                    <LeafletTooltip direction="top" offset={[0, -8]} opacity={1} permanent>
+                      <span className="text-xs font-semibold">{participant.city.split(',')[0]}</span>
                     </LeafletTooltip>
                   </CircleMarker>
                 ))}
               </MapContainer>
             </div>
-            <div className="mt-4 flex flex-wrap gap-4 justify-center text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#94a3b8' }}></div>
+            <div className="mt-3 flex flex-wrap gap-3 justify-center text-xs">
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#94a3b8' }}></div>
                 <span>Neutral</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#3b82f6' }}></div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#3b82f6' }}></div>
                 <span>Focused</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#f59e0b' }}></div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#f59e0b' }}></div>
                 <span>Anxious</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#10b981' }}></div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#10b981' }}></div>
                 <span>Happy</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#ec4899' }}></div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#ec4899' }}></div>
                 <span>Surprised</span>
               </div>
             </div>

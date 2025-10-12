@@ -6,6 +6,7 @@ import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, Cart
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip as LeafletTooltip } from 'react-leaflet';
+import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 const HanoiAnalytics = ({ templateId }) => {
@@ -301,45 +302,39 @@ const HanoiAnalytics = ({ templateId }) => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="h-[350px] rounded-lg overflow-hidden border">
+          <div className="h-[350px] rounded-lg overflow-hidden border bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
             <MapContainer 
               center={[20.5937, 78.9629]} 
-              zoom={6} 
+              zoom={5} 
               style={{ height: '100%', width: '100%' }}
               scrollWheelZoom={false}
+              zoomControl={false}
+              attributionControl={false}
             >
               <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
               />
               {participantData.map((participant) => (
                 <CircleMarker
                   key={participant.id}
                   center={[participant.lat, participant.lng]}
-                  radius={15}
+                  radius={8}
                   fillColor={getEfficiencyColor(participant.efficiency)}
                   color="#fff"
                   weight={2}
                   opacity={1}
-                  fillOpacity={0.8}
+                  fillOpacity={0.9}
                 >
                   <Popup>
-                    <div className="p-2">
-                      <p className="font-semibold text-sm mb-1">{participant.id}</p>
-                      <p className="text-xs mb-1">{participant.city}</p>
-                      <p className="text-xs">Age: {participant.age} | {participant.gender}</p>
-                      <p className="text-xs">Education: {participant.education}</p>
-                      <div className="mt-2 pt-2 border-t">
-                        <p className="text-xs">Moves: {participant.moves} (Optimal: {participant.optimalMoves})</p>
-                        <p className="text-xs">Time: {participant.time}s</p>
-                        <p className="text-xs font-semibold" style={{ color: getEfficiencyColor(participant.efficiency) }}>
-                          Efficiency: {participant.efficiency.toFixed(1)}%
-                        </p>
-                      </div>
+                    <div className="p-1">
+                      <p className="font-bold text-sm">{participant.city.split(',')[0]}</p>
+                      <p className="text-xs mt-1" style={{ color: getEfficiencyColor(participant.efficiency) }}>
+                        {participant.efficiency.toFixed(1)}% Efficient
+                      </p>
                     </div>
                   </Popup>
-                  <LeafletTooltip direction="top" offset={[0, -10]} opacity={0.9}>
-                    {participant.city.split(',')[0]}
+                  <LeafletTooltip direction="top" offset={[0, -8]} opacity={1} permanent>
+                    <span className="text-xs font-semibold">{participant.city.split(',')[0]}</span>
                   </LeafletTooltip>
                 </CircleMarker>
               ))}
@@ -347,22 +342,22 @@ const HanoiAnalytics = ({ templateId }) => {
           </div>
           
           {/* Map Legend */}
-          <div className="mt-4 flex flex-wrap gap-4 justify-center">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#10b981' }}></div>
-              <span className="text-sm">Excellent (≥85%)</span>
+          <div className="mt-3 flex flex-wrap gap-3 justify-center text-xs">
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#10b981' }}></div>
+              <span>Excellent (≥85%)</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#3b82f6' }}></div>
-              <span className="text-sm">Good (70-84%)</span>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#3b82f6' }}></div>
+              <span>Good (70-84%)</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#f59e0b' }}></div>
-              <span className="text-sm">Average (60-69%)</span>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#f59e0b' }}></div>
+              <span>Average (60-69%)</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#ef4444' }}></div>
-              <span className="text-sm">Poor (&lt;60%)</span>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#ef4444' }}></div>
+              <span>Poor (&lt;60%)</span>
             </div>
           </div>
         </CardContent>
