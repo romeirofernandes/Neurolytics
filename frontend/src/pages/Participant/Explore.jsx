@@ -36,14 +36,20 @@ const ParticipantExplore = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
-  // Get unique categories
-  const categories = ['all', ...new Set(templatesData.map(t => t.category))];
+  // Get unique categories (filter out undefined/null)
+  const categories = ['all', ...new Set(templatesData.map(t => t.category).filter(Boolean))];
 
   // Filter templates based on search and category
+  // Only show experiments with researcher field (actual experiments, not templates)
   const filteredTemplates = templatesData.filter(template => {
-    const matchesSearch = template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         template.shortDescription.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         template.keywords.some(k => k.toLowerCase().includes(searchQuery.toLowerCase()));
+    // First check if it has a researcher (only show actual experiments)
+    if (!template.researcher) {
+      return false;
+    }
+    
+    const matchesSearch = template.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         template.shortDescription?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         (template.keywords && template.keywords.some(k => k.toLowerCase().includes(searchQuery.toLowerCase())));
     const matchesCategory = selectedCategory === 'all' || template.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
@@ -186,34 +192,44 @@ const ParticipantExplore = () => {
                         <div className="p-3 rounded-lg bg-primary/10">
                           <Icon className="h-6 w-6 text-primary" />
                         </div>
-                        <Badge 
-                          variant="outline" 
-                          className={getDifficultyColor(template.difficulty)}
-                        >
-                          {template.difficulty}
-                        </Badge>
+                        {template.difficulty && (
+                          <Badge 
+                            variant="outline" 
+                            className={getDifficultyColor(template.difficulty)}
+                          >
+                            {template.difficulty}
+                          </Badge>
+                        )}
                       </div>
                       <CardTitle className="group-hover:text-primary transition-colors">
                         {template.name}
                       </CardTitle>
-                      <CardDescription className="text-xs text-muted-foreground">
-                        {template.fullName}
-                      </CardDescription>
+                      {template.fullName && (
+                        <CardDescription className="text-xs text-muted-foreground">
+                          {template.fullName}
+                        </CardDescription>
+                      )}
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {template.shortDescription}
-                      </p>
+                      {template.shortDescription && (
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {template.shortDescription}
+                        </p>
+                      )}
                       
                       <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <FaClock className="h-3 w-3" />
-                          {template.duration}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <FaTrophy className="h-3 w-3" />
-                          {template.trials}
-                        </div>
+                        {template.duration && (
+                          <div className="flex items-center gap-1">
+                            <FaClock className="h-3 w-3" />
+                            {template.duration}
+                          </div>
+                        )}
+                        {template.trials && (
+                          <div className="flex items-center gap-1">
+                            <FaTrophy className="h-3 w-3" />
+                            {template.trials}
+                          </div>
+                        )}
                       </div>
 
                       {template.requiresCamera && (
@@ -223,19 +239,33 @@ const ParticipantExplore = () => {
                         </Badge>
                       )}
 
-                      <div className="flex items-center justify-between pt-2 border-t">
-                        <span className="text-xs font-medium text-muted-foreground">
-                          {template.category}
-                        </span>
-                        <Button 
-                          size="sm" 
-                          variant="ghost"
-                          className="group-hover:text-primary"
-                        >
-                          View Details
-                          <FaArrowRight className="ml-2 h-4 w-4" />
-                        </Button>
-                      </div>
+                      {template.category && (
+                        <div className="flex items-center justify-between pt-2 border-t">
+                          <span className="text-xs font-medium text-muted-foreground">
+                            {template.category}
+                          </span>
+                          <Button 
+                            size="sm" 
+                            variant="ghost"
+                            className="group-hover:text-primary"
+                          >
+                            View Details
+                            <FaArrowRight className="ml-2 h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
+                      {!template.category && (
+                        <div className="flex items-center justify-end pt-2 border-t">
+                          <Button 
+                            size="sm" 
+                            variant="ghost"
+                            className="group-hover:text-primary"
+                          >
+                            View Details
+                            <FaArrowRight className="ml-2 h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 );

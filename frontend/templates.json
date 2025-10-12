@@ -772,5 +772,42 @@
       ]
     },
     "createdAt": "2025-10-12T03:21:38.646Z"
+  },
+  {
+    "id": "teststrooptest",
+    "name": "Teststrooptest",
+    "fullName": "Teststrooptest",
+    "shortDescription": "Hello",
+    "detailedDescription": "Hello",
+    "duration": "~15 minutes",
+    "trials": "Variable",
+    "difficulty": "Custom",
+    "category": "AI Generated",
+    "measures": [
+      "Custom measures"
+    ],
+    "icon": "Sparkles",
+    "color": "from-purple-500 to-pink-500",
+    "requiresCamera": false,
+    "keywords": [
+      "teststrooptest",
+      "ai-generated",
+      "custom"
+    ],
+    "researchAreas": [
+      "Custom Research"
+    ],
+    "publications": [],
+    "researcher": {
+      "id": "68ea3c551baea56718cb37a7",
+      "name": "Russel Daniel Paul",
+      "email": "russ@gmail.com",
+      "institution": "",
+      "designation": "",
+      "fieldOfStudy": "",
+      "orcId": null
+    },
+    "createdAt": "2025-10-12T06:14:41.180Z",
+    "experimentId": "68eb4751396f4a4bd5897f33"
   }
 ]
