@@ -13,7 +13,7 @@ import {
   FaArrowRight, FaChartLine
 } from 'react-icons/fa';
 import { Search } from 'lucide-react';
-import templatesData from '../../../templates.json';
+import templatesData from '../../../public/templates.json';
 
 // Icon mapping for templates
 const iconMap = {

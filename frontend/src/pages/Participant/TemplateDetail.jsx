@@ -14,7 +14,7 @@ import {
   FaPlay, FaCheckCircle, FaExclamationCircle, FaBook,
   FaUsers, FaChartLine, FaFileAlt
 } from 'react-icons/fa';
-import templatesData from '../../../templates.json';
+import templatesData from '../../../public/templates.json';
 
 // Icon mapping
 const iconMap = {

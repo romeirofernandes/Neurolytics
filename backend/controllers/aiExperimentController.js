@@ -342,7 +342,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
     }
 
     // Update templates.json with researcher information
-    const templatesJsonPath = path.join(__dirname, '../../frontend/templates.json');
+    const templatesJsonPath = path.join(__dirname, '../../frontend/public/templates.json');
     
     try {
       // Fetch researcher details from database

@@ -12,7 +12,7 @@ import { Loader2 } from 'lucide-react';
 import { FaArrowLeft, FaCheckCircle, FaExclamationCircle, FaSpinner, FaChartLine, FaDownload, FaBrain, FaCamera } from 'react-icons/fa';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import templatesData from '../../../templates.json';
+import templatesData from '../../../public/templates.json';
 import ConsentDisplay from '../../components/experiment/ConsentDisplay';
 import { BARTTemplate } from '../../components/experiment/templates/BARTTemplate';
 import { StroopTemplate } from '../../components/experiment/templates/StroopTemplate';

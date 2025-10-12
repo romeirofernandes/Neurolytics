@@ -21,7 +21,7 @@ import {
   BarChart3,
   Zap
 } from 'lucide-react';
-import templatesData from '../../../templates.json';
+import templatesData from '../../../public/templates.json';
 
 const Dashboard = () => {
   const { user, isAuthenticated } = useAuth();

@@ -772,5 +772,79 @@
       ]
     },
     "createdAt": "2025-10-12T03:21:38.646Z"
+  },
+  {
+    "id": "teststroop",
+    "name": "Teststroop",
+    "fullName": "Teststroop",
+    "shortDescription": "something",
+    "detailedDescription": "something",
+    "duration": "~15 minutes",
+    "trials": "Variable",
+    "difficulty": "Custom",
+    "category": "AI Generated",
+    "measures": [
+      "Custom measures"
+    ],
+    "icon": "Sparkles",
+    "color": "from-purple-500 to-pink-500",
+    "requiresCamera": false,
+    "keywords": [
+      "teststroop",
+      "ai-generated",
+      "custom"
+    ],
+    "researchAreas": [
+      "Custom Research"
+    ],
+    "publications": [],
+    "researcher": {
+      "id": "68ea3c551baea56718cb37a7",
+      "name": "Russel Daniel Paul",
+      "email": "russ@gmail.com",
+      "institution": "",
+      "designation": "",
+      "fieldOfStudy": "",
+      "orcId": null
+    },
+    "createdAt": "2025-10-12T04:10:21.201Z",
+    "experimentId": "68eb2a2d962e4adbe4382749"
+  },
+  {
+    "id": "romeiro",
+    "name": "Romeiro",
+    "fullName": "Romeiro",
+    "shortDescription": "romeiro",
+    "detailedDescription": "romeiro",
+    "duration": "~15 minutes",
+    "trials": "Variable",
+    "difficulty": "Custom",
+    "category": "AI Generated",
+    "measures": [
+      "Custom measures"
+    ],
+    "icon": "Sparkles",
+    "color": "from-purple-500 to-pink-500",
+    "requiresCamera": false,
+    "keywords": [
+      "romeiro",
+      "ai-generated",
+      "custom"
+    ],
+    "researchAreas": [
+      "Custom Research"
+    ],
+    "publications": [],
+    "researcher": {
+      "id": "68ea3c551baea56718cb37a7",
+      "name": "Russel Daniel Paul",
+      "email": "russ@gmail.com",
+      "institution": "",
+      "designation": "",
+      "fieldOfStudy": "",
+      "orcId": null
+    },
+    "createdAt": "2025-10-12T04:55:11.150Z",
+    "experimentId": "68eb349bc13e1db8cb3bc8c8"
   }
 ]

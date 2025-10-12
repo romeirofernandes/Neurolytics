@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Card, CardContent } from '../../components/ui/card';
 import { Alert, AlertDescription } from '../../components/ui/alert';
 import { AlertCircle, Loader2 } from 'lucide-react';
-import templatesData from '../../../templates.json';
+import templatesData from '../../../public/templates.json';
 
 // Import all template components
 import { BARTTemplate } from '../../components/experiment/templates/BARTTemplate';
