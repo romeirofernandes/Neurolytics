@@ -912,5 +912,31 @@
       "Custom Research"
     ],
     "publications": []
+  },
+  {
+    "id": "lydia",
+    "name": "Lydia",
+    "fullName": "Lydia",
+    "shortDescription": "lids",
+    "detailedDescription": "lids",
+    "duration": "~15 minutes",
+    "trials": "Variable",
+    "difficulty": "Custom",
+    "category": "AI Generated",
+    "measures": [
+      "Custom measures"
+    ],
+    "icon": "Sparkles",
+    "color": "from-purple-500 to-pink-500",
+    "requiresCamera": false,
+    "keywords": [
+      "lydia",
+      "ai-generated",
+      "custom"
+    ],
+    "researchAreas": [
+      "Custom Research"
+    ],
+    "publications": []
   }
 ]
