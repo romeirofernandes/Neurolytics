@@ -12,6 +12,7 @@ import { BarChart3, TrendingUp, Users, Clock, Brain, Target, AlertCircle, Downlo
 import { motion, AnimatePresence } from 'framer-motion';
 import templates from '../../../templates.json';
 import jsPDF from 'jspdf';
+
 import html2canvas from 'html2canvas';
 
 // Import analytics components for each template
@@ -144,24 +145,24 @@ const Analytics = () => {
         return <StroopEmotionAnalytics />;
       case 'bart':
         return <BARTAnalytics />;
-      case 'stroop':
-        return <StroopAnalytics />;
-      case 'flanker':
-        return <FlankerAnalytics />;
-      case 'posner':
-        return <PosnerAnalytics />;
-      case 'simon':
-        return <SimonAnalytics />;
-      case 'gonogo':
-        return <GoNoGoAnalytics />;
-      case 'nback':
-        return <NBackAnalytics />;
-      case 'digitspan':
-        return <DigitSpanAnalytics />;
-      case 'visualsearch':
-        return <VisualSearchAnalytics />;
-      case 'abba':
-        return <ABBAAnalytics />;
+      // case 'stroop':
+      //   return <StroopAnalytics />;
+      // case 'flanker':
+      //   return <FlankerAnalytics />;
+      // case 'posner':
+      //   return <PosnerAnalytics />;
+      // case 'simon':
+      //   return <SimonAnalytics />;
+      // case 'gonogo':
+      //   return <GoNoGoAnalytics />;
+      // case 'nback':
+      //   return <NBackAnalytics />;
+      // case 'digitspan':
+      //   return <DigitSpanAnalytics />;
+      // case 'visualsearch':
+      //   return <VisualSearchAnalytics />;
+      // case 'abba':
+      //   return <ABBAAnalytics />;
       case 'hanoi':
       case 'hanoi1':
         return <HanoiAnalytics templateId={templateId} />;
@@ -205,8 +206,15 @@ const Analytics = () => {
             </CardHeader>
             <CardContent>
               <Tabs value={selectedTemplate} onValueChange={setSelectedTemplate} className="w-full">
-                <TabsList className="w-full grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-2 h-auto p-2 bg-muted/50">
-                  {mainTemplates.map((template, index) => (
+                <TabsList className="w-full grid grid-cols-3 gap-2 h-auto p-2 bg-muted/50">
+                  {mainTemplates
+                    .filter(template => 
+                      template.id === 'stroop-emotion' || 
+                      template.id === 'bart' || 
+                      template.id === 'hanoi' || 
+                      template.id === 'hanoi1'
+                    )
+                    .map((template, index) => (
                     <motion.div
                       key={template.id}
                       initial={{ opacity: 0, y: 20 }}
