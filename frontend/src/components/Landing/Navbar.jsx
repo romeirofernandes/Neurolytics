@@ -14,7 +14,7 @@ const Navbar = () => {
   return (
     <>
       {/* Navigation */}
-      <nav className="container mx-auto max-w-6xl flex items-center justify-between py-4 mt-6">
+      <nav className="container mx-auto max-w-6xl flex items-center justify-between py-4 mt-6 px-4">
         <div className="flex items-center">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
             {/* Use react icon instead of image */}
@@ -60,8 +60,8 @@ const Navbar = () => {
             animate={{ y: 0 }}
             exit={{ y: "-100%" }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-50 flex flex-col p-4 bg-background/95 backdrop-blur-sm md:hidden">
-            <div className="flex items-center justify-between">
+            className="fixed inset-0 z-50 flex flex-col p-6 bg-background/95 backdrop-blur-sm md:hidden">
+            <div className="flex items-center justify-between mb-8">
               <div className="flex items-center">
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
                   {/* Use react icon instead of image */}
@@ -84,7 +84,7 @@ const Navbar = () => {
                 </button>
               </div>
             </div>
-            <div className="mt-8 flex flex-col space-y-4">
+            <div className="flex flex-col space-y-4">
               <InstallPWAButton />
               <button 
                 onClick={() => navigate('/login')}
