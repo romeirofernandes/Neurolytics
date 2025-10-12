@@ -222,45 +222,7 @@ const Dashboard = () => {
               </Card>
             </div>
 
-            {/* Crypto Sponsorship Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5" />
-                  Blockchain Sponsorship
-                </CardTitle>
-                <CardDescription>
-                  Sponsor your experiments on the blockchain for transparent tracking
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {/* Example sponsorship cards - replace with your actual experiments */}
-                  {stats.total > 0 ? (
-                    <>
-                      <CryptoSponsor 
-                        experimentId="stroop-task-001" 
-                        experimentTitle="Stroop Color Task"
-                      />
-                      <CryptoSponsor 
-                        experimentId="bart-task-001" 
-                        experimentTitle="Balloon Analog Risk Task"
-                      />
-                      <CryptoSponsor 
-                        experimentId="posner-task-001" 
-                        experimentTitle="Posner Cueing Task"
-                      />
-                    </>
-                  ) : (
-                    <div className="col-span-full text-center py-8 text-muted-foreground">
-                      <p>Create experiments to enable blockchain sponsorship</p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Notifications and Activity */}
+            {/* Notifications and Blockchain Sponsorship */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               {/* Notifications */}
               <Card>
@@ -309,33 +271,21 @@ const Dashboard = () => {
                 </CardContent>
               </Card>
 
-              {/* Recent Activity */}
+              {/* Blockchain Sponsorship */}
               <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
-                      <Activity className="w-5 h-5" />
-                      Recent Activity
-                    </CardTitle>
-                  </div>
-                  <CardDescription>Your latest research activities</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {recentActivity.map((activity) => {
-                    const Icon = activity.icon;
-                    return (
-                      <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
-                        <div className={`p-2 rounded-full bg-muted ${activity.color}`}>
-                          <Icon className="w-4 h-4" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium break-words">{activity.title}</p>
-                          <p className="text-xs text-muted-foreground break-words">{activity.description}</p>
-                          <p className="text-xs text-muted-foreground mt-1">{activity.time}</p>
-                        </div>
-                      </div>
-                    );
-                  })}
+                
+                <CardContent>
+                  {stats.total > 0 ? (
+                    <CryptoSponsor 
+                      experimentId="stroop-task-001" 
+                      experimentTitle="Stroop Color Task"
+                    />
+                    
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <p>Create experiments to enable blockchain sponsorship</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
