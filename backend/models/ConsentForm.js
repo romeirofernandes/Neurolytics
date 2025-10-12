@@ -9,7 +9,7 @@ const consentFormSchema = new mongoose.Schema({
   // Unique experiment identifier this consent is for
   experimentId: {
     type: String,
-    required: [true, 'Experiment ID is required'],
+    required: false,
     index: true,
     trim: true,
   },
