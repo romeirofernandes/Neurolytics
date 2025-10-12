@@ -30,6 +30,20 @@ import AIExperimentBuilder from './pages/User/AIExperimentBuilder'
 import PreviewExperiment from './pages/Preview/PreviewExperiment'
 import VisualBuilder from './pages/User/VisualBuilder'
 
+// Fix Leaflet default marker icons for Vite/Webpack
+import L from 'leaflet';
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+
+let DefaultIcon = L.icon({
+  iconUrl: icon,
+  shadowUrl: iconShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41]
+});
+
+L.Marker.prototype.options.icon = DefaultIcon;
+
 // Inline route protection components
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated } = useAuth();

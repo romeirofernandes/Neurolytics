@@ -1,24 +1,42 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
-import { Download } from 'lucide-react';
-import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ScatterChart, Scatter, AreaChart, Area, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
+import { Download, MapPin } from 'lucide-react';
+import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ScatterChart, Scatter, AreaChart, Area } from 'recharts';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip as LeafletTooltip } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
 
 const StroopEmotionAnalytics = () => {
+  // Ensure Leaflet CSS is loaded
+  useEffect(() => {
+    console.log('StroopEmotionAnalytics mounted - Leaflet should be available');
+  }, []);
   // 6 participants with realistic Stroop + Emotion data
   const participantData = [
-    { id: 'P001', age: 23, gender: 'Female', education: "Bachelor's", city: 'Mumbai, Maharashtra', congruentRT: 645, incongruentRT: 892, stroopEffect: 247, accuracy: 94.5, dominantEmotion: 'Neutral', emotionVariance: 23.4 },
-    { id: 'P002', age: 28, gender: 'Male', education: "Master's", city: 'Bangalore, Karnataka', congruentRT: 598, incongruentRT: 845, stroopEffect: 247, accuracy: 97.2, dominantEmotion: 'Focused', emotionVariance: 18.7 },
-    { id: 'P003', age: 31, gender: 'Male', education: 'PhD', city: 'Delhi, Delhi', congruentRT: 612, incongruentRT: 823, stroopEffect: 211, accuracy: 98.1, dominantEmotion: 'Neutral', emotionVariance: 15.2 },
-    { id: 'P004', age: 25, gender: 'Female', education: "Bachelor's", city: 'Chennai, Tamil Nadu', congruentRT: 678, incongruentRT: 965, stroopEffect: 287, accuracy: 91.8, dominantEmotion: 'Anxious', emotionVariance: 31.5 },
-    { id: 'P005', age: 29, gender: 'Male', education: "Master's", city: 'Pune, Maharashtra', congruentRT: 623, incongruentRT: 854, stroopEffect: 231, accuracy: 95.6, dominantEmotion: 'Neutral', emotionVariance: 20.1 },
-    { id: 'P006', age: 26, gender: 'Female', education: "Bachelor's", city: 'Hyderabad, Telangana', congruentRT: 654, incongruentRT: 911, stroopEffect: 257, accuracy: 93.3, dominantEmotion: 'Focused', emotionVariance: 22.8 },
+    { id: 'P001', age: 23, gender: 'Female', education: "Bachelor's", city: 'Mumbai, Maharashtra', congruentRT: 645, incongruentRT: 892, stroopEffect: 247, accuracy: 94.5, dominantEmotion: 'Neutral', emotionVariance: 23.4, lat: 19.0760, lng: 72.8777 },
+    { id: 'P002', age: 28, gender: 'Male', education: "Master's", city: 'Bangalore, Karnataka', congruentRT: 598, incongruentRT: 845, stroopEffect: 247, accuracy: 97.2, dominantEmotion: 'Focused', emotionVariance: 18.7, lat: 12.9716, lng: 77.5946 },
+    { id: 'P003', age: 31, gender: 'Male', education: 'PhD', city: 'Delhi, Delhi', congruentRT: 612, incongruentRT: 823, stroopEffect: 211, accuracy: 98.1, dominantEmotion: 'Neutral', emotionVariance: 15.2, lat: 28.7041, lng: 77.1025 },
+    { id: 'P004', age: 25, gender: 'Female', education: "Bachelor's", city: 'Chennai, Tamil Nadu', congruentRT: 678, incongruentRT: 965, stroopEffect: 287, accuracy: 91.8, dominantEmotion: 'Anxious', emotionVariance: 31.5, lat: 13.0827, lng: 80.2707 },
+    { id: 'P005', age: 29, gender: 'Male', education: "Master's", city: 'Pune, Maharashtra', congruentRT: 623, incongruentRT: 854, stroopEffect: 231, accuracy: 95.6, dominantEmotion: 'Neutral', emotionVariance: 20.1, lat: 18.5204, lng: 73.8567 },
+    { id: 'P006', age: 26, gender: 'Female', education: "Bachelor's", city: 'Hyderabad, Telangana', congruentRT: 654, incongruentRT: 911, stroopEffect: 257, accuracy: 93.3, dominantEmotion: 'Focused', emotionVariance: 22.8, lat: 17.3850, lng: 78.4867 },
   ];
 
   const avgStroopEffect = (participantData.reduce((sum, p) => sum + p.stroopEffect, 0) / participantData.length).toFixed(1);
   const avgAccuracy = (participantData.reduce((sum, p) => sum + p.accuracy, 0) / participantData.length).toFixed(1);
+
+  // Get color based on dominant emotion
+  const getEmotionColor = (emotion) => {
+    switch(emotion) {
+      case 'Neutral': return '#94a3b8';
+      case 'Focused': return '#3b82f6';
+      case 'Anxious': return '#f59e0b';
+      case 'Happy': return '#10b981';
+      case 'Surprised': return '#ec4899';
+      default: return '#6b7280';
+    }
+  };
 
   // Emotion distribution across all trials
   const emotionData = [
@@ -188,6 +206,83 @@ const StroopEmotionAnalytics = () => {
 
       {/* Main Performance Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Geographic Distribution Map */}
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MapPin className="w-5 h-5" />
+              Participant Geographic Distribution
+            </CardTitle>
+            <CardDescription>Emotional states mapped across India</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[350px] rounded-lg overflow-hidden border">
+              <MapContainer 
+                center={[20.5937, 78.9629]} 
+                zoom={6} 
+                style={{ height: '100%', width: '100%' }}
+                scrollWheelZoom={false}
+              >
+                <TileLayer
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+                {participantData.map((participant) => (
+                  <CircleMarker
+                    key={participant.id}
+                    center={[participant.lat, participant.lng]}
+                    radius={12}
+                    fillColor={getEmotionColor(participant.dominantEmotion)}
+                    color="#fff"
+                    weight={2}
+                    opacity={1}
+                    fillOpacity={0.8}
+                  >
+                    <Popup>
+                      <div className="text-sm">
+                        <p className="font-bold text-base mb-1">{participant.id}</p>
+                        <p className="text-xs text-muted-foreground mb-2">{participant.city}</p>
+                        <div className="space-y-1">
+                          <p><span className="font-semibold">Age:</span> {participant.age}</p>
+                          <p><span className="font-semibold">Gender:</span> {participant.gender}</p>
+                          <p><span className="font-semibold">Emotion:</span> <span style={{ color: getEmotionColor(participant.dominantEmotion) }}>{participant.dominantEmotion}</span></p>
+                          <p><span className="font-semibold">Stroop Effect:</span> {participant.stroopEffect}ms</p>
+                          <p><span className="font-semibold">Accuracy:</span> {participant.accuracy}%</p>
+                        </div>
+                      </div>
+                    </Popup>
+                    <LeafletTooltip direction="top" offset={[0, -10]} opacity={0.9}>
+                      <span className="font-semibold">{participant.city.split(',')[0]}</span>
+                    </LeafletTooltip>
+                  </CircleMarker>
+                ))}
+              </MapContainer>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-4 justify-center text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#94a3b8' }}></div>
+                <span>Neutral</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#3b82f6' }}></div>
+                <span>Focused</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#f59e0b' }}></div>
+                <span>Anxious</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#10b981' }}></div>
+                <span>Happy</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: '#ec4899' }}></div>
+                <span>Surprised</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Congruent vs Incongruent RT */}
         <Card>
           <CardHeader>
