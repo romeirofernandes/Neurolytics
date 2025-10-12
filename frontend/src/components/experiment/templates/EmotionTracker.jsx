@@ -183,6 +183,17 @@ const EmotionTracker = ({ participantId, experimentId, onComplete }) => {
     };
   }, [isLoaded]);
 
+  // Keep video stream connected when experiment starts
+  useEffect(() => {
+    if (experimentStarted && videoRef.current && streamRef.current) {
+      console.log("🔄 Reconnecting video stream for experiment view...");
+      videoRef.current.srcObject = streamRef.current;
+      videoRef.current.play()
+        .then(() => console.log("✅ Video stream reconnected successfully"))
+        .catch(err => console.error("Error reconnecting video:", err));
+    }
+  }, [experimentStarted]);
+
   // 3. Preview emotion detection (before experiment starts)
   const startPreviewDetection = useCallback(() => {
     if (!videoRef.current || !canvasRef.current) return;
@@ -283,15 +294,28 @@ const EmotionTracker = ({ participantId, experimentId, onComplete }) => {
 
   // 5. Emotion detection function (during experiment)
   const detectEmotion = useCallback(async () => {
-    if (!isTrackingRef.current || !videoRef.current || !cameraReady) return;
+    if (!isTrackingRef.current || !videoRef.current || !cameraReady) {
+      console.log("⚠️ Detection skipped:", { 
+        isTracking: isTrackingRef.current, 
+        hasVideo: !!videoRef.current, 
+        cameraReady 
+      });
+      return;
+    }
 
     try {
       const video = videoRef.current;
       
       if (video.paused || video.ended || !video.videoWidth) {
-        console.log("⚠️ Video not ready for detection");
+        console.log("⚠️ Video not ready:", {
+          paused: video.paused,
+          ended: video.ended,
+          dimensions: `${video.videoWidth}x${video.videoHeight}`
+        });
         return;
       }
+
+      console.log("🔍 Running detection... Video:", `${video.videoWidth}x${video.videoHeight}`);
 
       const detections = await faceapi
         .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ 
@@ -307,6 +331,8 @@ const EmotionTracker = ({ participantId, experimentId, onComplete }) => {
         const dominantEmotion = Object.keys(emotions).reduce((a, b) =>
           emotions[a] > emotions[b] ? a : b
         );
+
+        console.log("✅ Face detected! Emotion:", dominantEmotion, `(${(emotions[dominantEmotion] * 100).toFixed(0)}%)`);
 
         const emotionRecord = {
           participantId,
@@ -331,6 +357,7 @@ const EmotionTracker = ({ participantId, experimentId, onComplete }) => {
           const displaySize = { width: video.videoWidth, height: video.videoHeight };
           
           if (canvas.width !== displaySize.width || canvas.height !== displaySize.height) {
+            console.log("📐 Updating canvas dimensions to:", displaySize);
             faceapi.matchDimensions(canvas, displaySize);
           }
           
@@ -364,6 +391,7 @@ const EmotionTracker = ({ participantId, experimentId, onComplete }) => {
         }).catch(err => console.error("Error saving emotion (non-critical):", err.message));
 
       } else {
+        console.log("⚠️ No face detected in frame");
         setFaceDetected(false);
         setCurrentEmotion("No face detected");
         setEmotionConfidence(0);
@@ -506,9 +534,43 @@ const EmotionTracker = ({ participantId, experimentId, onComplete }) => {
     }
 
     console.log("🚀 Starting experiment...");
+    
+    // Ensure video stream is maintained
+    if (videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+      videoRef.current.play().catch(err => console.error("Error playing video:", err));
+    }
+    
     setExperimentStarted(true);
-    startEmotionTracking();
-    generateTrial();
+    
+    // Small delay to ensure DOM is updated before starting tracking
+    setTimeout(() => {
+      // Re-attach stream to video element after state change
+      if (videoRef.current && streamRef.current) {
+        videoRef.current.srcObject = streamRef.current;
+        videoRef.current.play()
+          .then(() => {
+            console.log("✅ Video stream maintained during transition");
+            startEmotionTracking();
+            generateTrial();
+          })
+          .catch(err => {
+            console.error("Error playing video:", err);
+            // Try again
+            setTimeout(() => {
+              if (videoRef.current && streamRef.current) {
+                videoRef.current.srcObject = streamRef.current;
+                videoRef.current.play();
+              }
+            }, 100);
+            startEmotionTracking();
+            generateTrial();
+          });
+      } else {
+        startEmotionTracking();
+        generateTrial();
+      }
+    }, 100);
   };
 
   // === RENDER ===
@@ -649,16 +711,69 @@ const EmotionTracker = ({ participantId, experimentId, onComplete }) => {
               )}
             </div>
 
-            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6 space-y-3">
-              <h3 className="font-semibold text-blue-900 dark:text-blue-100">Instructions:</h3>
-              <ul className="space-y-2 text-blue-800 dark:text-blue-200 text-sm">
-                <li>• <strong>Before starting:</strong> Make sure your face is clearly visible and emotion is being detected</li>
-                <li>• Camera will track your facial expressions during the task</li>
-                <li>• Identify the <strong>COLOR</strong> of the word (ignore the text)</li>
-                <li>• Keys: <strong>R</strong>=Red, <strong>G</strong>=Green, <strong>B</strong>=Blue, <strong>Y</strong>=Yellow</li>
-                <li>• 10 practice trials + 40 test trials (~5-7 minutes)</li>
-                <li>• Keep your face visible to the camera throughout</li>
-              </ul>
+            <div className="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-300 dark:border-blue-700 rounded-lg p-6 space-y-4">
+              <h3 className="font-bold text-xl text-blue-900 dark:text-blue-100 flex items-center gap-2">
+                <AlertCircle className="w-6 h-6" />
+                How to Play - READ CAREFULLY!
+              </h3>
+              
+              <div className="bg-white dark:bg-slate-800 border-2 border-red-500 rounded-lg p-4 space-y-2">
+                <p className="font-bold text-lg text-red-600 dark:text-red-400">⚠️ MOST IMPORTANT RULE:</p>
+                <p className="text-base text-foreground">
+                  Press the key for the <span className="text-2xl font-black text-red-600 dark:text-red-400 underline">COLOR</span> you see, 
+                  <span className="font-bold"> NOT the word!</span>
+                </p>
+              </div>
+
+              <div className="space-y-3 text-sm text-blue-800 dark:text-blue-200">
+                <div className="flex items-start gap-3">
+                  <span className="font-bold text-base">Example 1:</span>
+                  <div>
+                    <p className="mb-1">Word <span className="font-bold text-green-600" style={{ fontSize: '18px' }}>GREEN</span> shown in <span className="font-bold text-red-600">RED color</span></p>
+                    <p className="font-bold">→ Press <kbd className="px-2 py-1 bg-red-600 text-white rounded">R</kbd> (for RED color)</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-3">
+                  <span className="font-bold text-base">Example 2:</span>
+                  <div>
+                    <p className="mb-1">Word <span className="font-bold text-red-600" style={{ fontSize: '18px' }}>RED</span> shown in <span className="font-bold text-yellow-600">YELLOW color</span></p>
+                    <p className="font-bold">→ Press <kbd className="px-2 py-1 bg-yellow-500 text-black rounded">Y</kbd> (for YELLOW color)</p>
+                  </div>
+                </div>
+
+                <div className="border-t-2 border-blue-300 dark:border-blue-700 pt-3 mt-4">
+                  <p className="font-semibold text-base mb-2">Keyboard Controls:</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="flex items-center gap-2">
+                      <kbd className="px-3 py-2 bg-red-600 text-white rounded font-bold">R</kbd>
+                      <span>= Red</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <kbd className="px-3 py-2 bg-green-600 text-white rounded font-bold">G</kbd>
+                      <span>= Green</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <kbd className="px-3 py-2 bg-blue-600 text-white rounded font-bold">B</kbd>
+                      <span>= Blue</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <kbd className="px-3 py-2 bg-yellow-500 text-black rounded font-bold">Y</kbd>
+                      <span>= Yellow</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t-2 border-blue-300 dark:border-blue-700 pt-3 mt-4">
+                  <p className="font-semibold text-base">What to expect:</p>
+                  <ul className="space-y-1 ml-4 mt-2">
+                    <li>• 10 practice trials (to learn)</li>
+                    <li>• 40 test trials (for real data)</li>
+                    <li>• Takes about 5-7 minutes</li>
+                    <li>• Your face will be tracked throughout</li>
+                  </ul>
+                </div>
+              </div>
             </div>
 
             <Button
@@ -702,27 +817,31 @@ const EmotionTracker = ({ participantId, experimentId, onComplete }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+      {/* Camera Feed - Always visible in corner */}
       <div className="fixed top-4 right-4 z-50">
         <Card className="w-80 shadow-2xl">
           <CardContent className="p-3 space-y-2">
-            <div className="relative">
+            <div className="relative w-full" style={{ aspectRatio: '4/3' }}>
               <video
                 ref={videoRef}
                 autoPlay
                 playsInline
                 muted
-                style={{ width: '100%', height: 'auto' }}
-                className="rounded-lg border border-slate-300 dark:border-slate-600"
+                className="rounded-lg border border-slate-300 dark:border-slate-600 w-full h-full object-cover"
               />
               <canvas
                 ref={canvasRef}
-                className="absolute top-0 left-0 rounded-lg pointer-events-none"
-                style={{ width: '100%', height: 'auto' }}
+                className="absolute top-0 left-0 rounded-lg pointer-events-none w-full h-full"
               />
-              <div className="absolute top-2 left-2 flex items-center gap-1 bg-red-600 text-white px-2 py-1 rounded text-xs font-bold">
+              <div className="absolute top-2 left-2 flex items-center gap-1 bg-red-600 text-white px-2 py-1 rounded text-xs font-bold shadow-lg">
                 <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
                 LIVE
               </div>
+              {!faceDetected && (
+                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-amber-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
+                  No Face
+                </div>
+              )}
             </div>
             
             <div className="flex items-center justify-between text-sm p-2 bg-secondary rounded">
@@ -734,6 +853,9 @@ const EmotionTracker = ({ participantId, experimentId, onComplete }) => {
                 />
                 <span className="font-semibold capitalize">
                   {currentEmotion || "Detecting..."}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {emotionConfidence ? `${(emotionConfidence * 100).toFixed(0)}%` : ''}
                 </span>
               </div>
             </div>
