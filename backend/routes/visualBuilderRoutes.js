@@ -18,7 +18,7 @@ router.post('/save', async (req, res) => {
       });
     }
 
-    const templatesPath = path.join(__dirname, '../../frontend/templates.json');
+    const templatesPath = path.join(__dirname, '../../frontend/public/templates.json');
     let templates = [];
     
     try {
@@ -55,7 +55,7 @@ router.post('/save', async (req, res) => {
 // Get all visual builder experiments
 router.get('/experiments', async (req, res) => {
   try {
-    const templatesPath = path.join(__dirname, '../../frontend/templates.json');
+    const templatesPath = path.join(__dirname, '../../frontend/public/templates.json');
     const data = await fs.readFile(templatesPath, 'utf8');
     const templates = JSON.parse(data);
     
@@ -191,7 +191,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
     }
 
     // Update templates.json
-    const templatesJsonPath = path.join(__dirname, '../../frontend/templates.json');
+    const templatesJsonPath = path.join(__dirname, '../../frontend/public/templates.json');
     let templates = [];
     
     try {

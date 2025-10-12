@@ -22,7 +22,7 @@ import {
   Copy,
   ExternalLink
 } from 'lucide-react';
-import templatesData from '../../../templates.json';
+import templatesData from '../../../public/templates.json';
 
 const MyExperiments = () => {
   const { user, isAuthenticated } = useAuth();

@@ -10,7 +10,7 @@ import { Badge } from '../../components/ui/badge';
 import { Separator } from '../../components/ui/separator';
 import { BarChart3, TrendingUp, Users, Clock, Brain, Target, AlertCircle, Download, FileText, Sparkles, Activity } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import templates from '../../../templates.json';
+import templates from '../../../public/templates.json';
 import jsPDF from 'jspdf';
 
 import html2canvas from 'html2canvas';
