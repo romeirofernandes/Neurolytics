@@ -83,6 +83,7 @@ const VisualBuilder = () => {
   const [templateId, setTemplateId] = useState(null);
   const [showBuildPanel, setShowBuildPanel] = useState(false);
   const [activeTab, setActiveTab] = useState('builder');
+  const [ragContext, setRagContext] = useState(null); // 🔥 ADD THIS
 
   // Load from localStorage on mount
   useEffect(() => {
