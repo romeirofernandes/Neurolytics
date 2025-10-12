@@ -73,7 +73,7 @@ const App = () => {
     <ThemeProvider>
       <AuthProvider>
         <ParticipantProvider>
-          <div>
+          <div className="overflow-x-hidden">
             <Routes>
               {/* Public routes - accessible to everyone */}
               <Route path="/" element={<Landing />} />

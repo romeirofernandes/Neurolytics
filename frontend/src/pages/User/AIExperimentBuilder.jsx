@@ -316,27 +316,27 @@ What would you like to build today?`,
           </div>
         </header>
 
-        <main className="flex-1 overflow-hidden p-6">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 sm:p-6">
           <div className="h-full max-w-7xl mx-auto">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
               <TabsList className="grid w-full max-w-md grid-cols-3 mb-4">
                 <TabsTrigger value="chat" className="gap-2">
                   <MessageSquare className="w-4 h-4" />
-                  Chat
+                  <span className="hidden sm:inline">Chat</span>
                 </TabsTrigger>
                 <TabsTrigger value="code" className="gap-2" disabled={!generatedCode}>
                   <Code className="w-4 h-4" />
-                  Code
+                  <span className="hidden sm:inline">Code</span>
                 </TabsTrigger>
                 <TabsTrigger value="build" className="gap-2" disabled={!currentExperiment}>
                   <Rocket className="w-4 h-4" />
-                  Build & Share
+                  <span className="hidden sm:inline">Build</span>
                 </TabsTrigger>
               </TabsList>
 
               <div className="flex-1 overflow-hidden">
                 <TabsContent value="chat" className="h-full m-0">
-                  <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-full">
+                  <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6 h-full">
                     {/* Quick Actions Sidebar */}
                     <Card className="lg:col-span-1 h-fit">
                       <CardHeader>
@@ -390,37 +390,44 @@ What would you like to build today?`,
                     </Card>
 
                     {/* Chat Area */}
-                    <div className="lg:col-span-3 flex flex-col h-full">
+                    <div className="lg:col-span-3 flex flex-col h-full min-w-0">
                       <Card className="flex-1 flex flex-col overflow-hidden">
-                        <CardContent className="flex-1 overflow-y-auto p-6 space-y-4">
+                        <CardContent className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
                           {messages.map((msg, idx) => (
                             <div
                               key={idx}
                               className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                             >
                               <div
-                                className={`max-w-[80%] rounded-lg p-4 ${
+                                className={`max-w-[85%] sm:max-w-[80%] rounded-lg p-3 sm:p-4 break-words ${
                                   msg.role === 'user'
                                     ? 'bg-primary text-primary-foreground'
                                     : 'bg-muted'
                                 }`}
                               >
-                                <div className="prose prose-sm dark:prose-invert max-w-none">
+                                <div className="prose prose-sm dark:prose-invert max-w-none overflow-x-auto">
                                   <ReactMarkdown
                                     components={{
                                       code({ node, inline, className, children, ...props }) {
                                         const match = /language-(\w+)/.exec(className || '');
                                         return !inline && match ? (
-                                          <SyntaxHighlighter
-                                            style={vscDarkPlus}
-                                            language={match[1]}
-                                            PreTag="div"
-                                            {...props}
-                                          >
-                                            {String(children).replace(/\n$/, '')}
-                                          </SyntaxHighlighter>
+                                          <div className="overflow-x-auto max-w-full">
+                                            <SyntaxHighlighter
+                                              style={vscDarkPlus}
+                                              language={match[1]}
+                                              PreTag="div"
+                                              customStyle={{
+                                                margin: 0,
+                                                maxWidth: '100%',
+                                                overflowX: 'auto'
+                                              }}
+                                              {...props}
+                                            >
+                                              {String(children).replace(/\n$/, '')}
+                                            </SyntaxHighlighter>
+                                          </div>
                                         ) : (
-                                          <code {...props}>
+                                          <code className="break-words" {...props}>
                                             {children}
                                           </code>
                                         );
@@ -603,6 +610,88 @@ What would you like to build today?`,
         </main>
       </SidebarInset>
     </SidebarProvider>
+  );
+};
+
+const LivePreview = ({ code }) => {
+  const [PreviewComponent, setPreviewComponent] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!code) return;
+
+    try {
+      // Wrap code in a safe execution context
+      const wrappedCode = `
+        ${code}
+        return typeof CustomExperimentTemplate !== 'undefined' ? CustomExperimentTemplate : null;
+      `;
+
+      const ComponentFactory = new Function(
+        'React',
+        'useState',
+        'useEffect',
+        'Card',
+        'CardContent',
+        'CardDescription',
+        'CardHeader',
+        'CardTitle',
+        'Button',
+        wrappedCode
+      );
+
+      const Component = ComponentFactory(
+        React,
+        useState,
+        useEffect,
+        Card,
+        CardContent,
+        CardDescription,
+        CardHeader,
+        CardTitle,
+        Button
+      );
+
+      if (Component) {
+        setPreviewComponent(() => Component);
+        setError(null);
+      } else {
+        setError('Component not found in code');
+      }
+    } catch (err) {
+      console.error('Preview error:', err);
+      setError(err.message);
+    }
+  }, [code]);
+
+  if (!code) {
+    return (
+      <div className="flex items-center justify-center h-full text-muted-foreground">
+        <p>Generate code to see preview</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+        <p className="text-red-800 dark:text-red-200 text-sm">Preview Error: {error}</p>
+      </div>
+    );
+  }
+
+  if (!PreviewComponent) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="border rounded-lg p-4 bg-background">
+      <PreviewComponent onComplete={(data) => console.log('Preview complete:', data)} />
+    </div>
   );
 };
 
