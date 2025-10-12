@@ -1,6 +1,10 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Button } from '../ui/button';
+import { Download } from 'lucide-react';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ScatterChart, Scatter, AreaChart, Area, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const StroopEmotionAnalytics = () => {
   // 6 participants with realistic Stroop + Emotion data
@@ -94,8 +98,66 @@ const StroopEmotionAnalytics = () => {
 
   const COLORS = ['#3b82f6', '#ec4899', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4'];
 
+  const downloadPDF = () => {
+    try {
+      const doc = new jsPDF();
+      const margin = 20;
+      let yPosition = margin;
+
+      doc.setFontSize(20);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Stroop + Emotion Analytics', margin, yPosition);
+      yPosition += 20;
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Generated: ${new Date().toLocaleString()}`, margin, yPosition);
+      yPosition += 20;
+
+      autoTable(doc, {
+        startY: yPosition,
+        head: [['Metric', 'Value']],
+        body: [
+          ['Total Participants', '6'],
+          ['Avg Stroop Effect', `${avgStroopEffect}ms`],
+          ['Avg Accuracy', `${avgAccuracy}%`]
+        ],
+        theme: 'grid',
+        headStyles: { fillColor: [249, 250, 251], textColor: [26, 26, 26], fontStyle: 'bold' },
+        margin: { left: margin, right: margin }
+      });
+
+      yPosition = doc.lastAutoTable.finalY + 15;
+
+      autoTable(doc, {
+        startY: yPosition,
+        head: [['ID', 'Age', 'Gender', 'Education', 'Stroop Effect', 'Accuracy', 'Dominant Emotion', 'Emotion Variance']],
+        body: participantData.map(p => [
+          p.id, p.age.toString(), p.gender, p.education,
+          `${p.stroopEffect}ms`, `${p.accuracy}%`, p.dominantEmotion, `${p.emotionVariance}%`
+        ]),
+        theme: 'grid',
+        headStyles: { fillColor: [249, 250, 251], textColor: [26, 26, 26], fontStyle: 'bold' },
+        bodyStyles: { fontSize: 9 },
+        margin: { left: margin, right: margin }
+      });
+
+      doc.save(`StroopEmotion-analytics-${Date.now()}.pdf`);
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      alert('Failed to generate PDF. Please try again.');
+    }
+  };
+
   return (
     <div className="space-y-6">
+      <div className="flex justify-end">
+        <Button onClick={downloadPDF} variant="outline" className="gap-2">
+          <Download className="h-4 w-4" />
+          Download PDF Report
+        </Button>
+      </div>
+
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
@@ -204,142 +266,6 @@ const StroopEmotionAnalytics = () => {
                 <Area type="monotone" dataKey="anxious" stackId="1" stroke="#f59e0b" fill="#f59e0b" />
                 <Area type="monotone" dataKey="focused" stackId="1" stroke="#3b82f6" fill="#3b82f6" />
               </AreaChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Demographics */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Gender Distribution</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
-                <Pie data={genderData} cx="50%" cy="50%" labelLine={false} label={({ name, value }) => `${name}: ${value}`} outerRadius={70} dataKey="value">
-                  {genderData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Education Level</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
-                <Pie data={educationData} cx="50%" cy="50%" labelLine={false} label={({ name, value }) => `${name}: ${value}`} outerRadius={70} dataKey="value">
-                  {educationData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Age Distribution</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={ageDistribution}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="range" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="count" fill="#06b6d4" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Advanced Analytics */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Emotion Variance vs Performance */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Emotion Stability vs Stroop Effect</CardTitle>
-            <CardDescription>How emotional variance affects cognitive control</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <ScatterChart>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="variance" name="Emotion Variance" />
-                <YAxis dataKey="stroopEffect" name="Stroop Effect (ms)" />
-                <Tooltip cursor={{ strokeDasharray: '3 3' }} />
-                <Scatter name="Participants" data={emotionPerformanceData} fill="#ec4899" />
-              </ScatterChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* City Distribution */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Geographic Distribution</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={cityData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="city" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="count" fill="#14b8a6" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Performance Radar */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Multi-Dimensional Performance Profile</CardTitle>
-            <CardDescription>Top 3 performers across metrics</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <RadarChart data={radarData.slice(0, 3)}>
-                <PolarGrid />
-                <PolarAngleAxis dataKey="participant" />
-                <PolarRadiusAxis domain={[0, 100]} />
-                <Radar name="Speed" dataKey="speedScore" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.5} />
-                <Radar name="Accuracy" dataKey="accuracy" stroke="#10b981" fill="#10b981" fillOpacity={0.5} />
-                <Radar name="Control" dataKey="controlScore" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.5} />
-                <Tooltip />
-                <Legend />
-              </RadarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Accuracy Distribution */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Accuracy Scores by Participant</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={participantData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="id" />
-                <YAxis domain={[85, 100]} />
-                <Tooltip />
-                <Bar dataKey="accuracy" fill="#10b981" />
-              </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
