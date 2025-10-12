@@ -34,18 +34,23 @@ const EmotionTracker = ({ participantId, experimentId, onComplete }) => {
   const [showFixation, setShowFixation] = useState(false);
 
   const words = ['RED', 'GREEN', 'BLUE', 'YELLOW'];
-  const colors = { RED: 'red', GREEN: 'green', BLUE: 'blue', YELLOW: 'yellow' };
+  const colors = { 
+    RED: 'var(--color-error)',     // Using --color-error from index.css
+    GREEN: 'var(--color-success)',   // Using --color-success from index.css
+    BLUE: 'var(--color-info)',    // Using --color-info from index.css
+    YELLOW: 'var(--color-warning)'   // Using --color-warning from index.css
+  };
   const keys = { r: 'RED', g: 'GREEN', b: 'BLUE', y: 'YELLOW' };
 
-  // Emotion colors for visual feedback
+  // Emotion colors for visual feedback using index.css variables
   const emotionColors = {
-    happy: '#10B981',
-    sad: '#3B82F6',
-    angry: '#EF4444',
-    fearful: '#8B5CF6',
-    disgusted: '#F59E0B',
-    surprised: '#EC4899',
-    neutral: '#6B7280',
+    happy: 'var(--color-success)',    // --color-success
+    sad: 'var(--color-info)',      // --color-info
+    angry: 'var(--color-error)',    // --color-error
+    fearful: 'var(--color-highlight)',  // --color-highlight
+    disgusted: 'var(--color-warning)', // --color-warning
+    surprised: 'hsl(var(--chart-4))', // Using chart-4 color from index.css
+    neutral: 'var(--color-neutral)',   // --color-neutral
   };
 
   // 1. Load face-api.js models
@@ -598,203 +603,199 @@ const EmotionTracker = ({ participantId, experimentId, onComplete }) => {
 
   if (!experimentStarted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
-        <Card className="max-w-2xl w-full">
-          <CardHeader>
-            <CardTitle className="text-3xl text-center">Stroop Task with Emotion Tracking</CardTitle>
-            <CardDescription className="text-center text-base mt-2">
+      <div className="min-h-screen bg-background overflow-y-auto">
+        <div className="container mx-auto px-4 py-8 max-w-7xl">
+          {/* Header */}
+          <div className="text-center mb-8 space-y-2">
+            <h1 className="text-4xl md:text-5xl font-bold text-foreground">
+              Stroop Task with Emotion Tracking
+            </h1>
+            <p className="text-base text-muted-foreground max-w-2xl mx-auto">
               Combines classic cognitive task with real-time facial emotion recognition
-            </CardDescription>
-          </CardHeader>
-          
-          <CardContent className="space-y-6">
-            <div className="flex flex-col items-center gap-4">
-              <div className="relative rounded-lg overflow-hidden border-4 border-slate-300 dark:border-slate-600 bg-black shadow-2xl">
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  style={{ width: '400px', height: '300px', objectFit: 'cover' }}
-                  className="rounded-lg"
-                />
-                <canvas
-                  ref={canvasRef}
-                  className="absolute top-0 left-0 pointer-events-none"
-                  style={{ width: '400px', height: '300px' }}
-                />
-                {!cameraReady && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/70">
-                    <div className="text-white text-center">
-                      <Camera className="w-12 h-12 mx-auto mb-2 animate-pulse" />
-                      <p className="text-sm">Starting camera...</p>
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-6 items-start">
+            {/* Left: Camera Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Camera className="w-5 h-5" />
+                  Camera Setup
+                </CardTitle>
+                <CardDescription>Position yourself for face tracking</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="relative rounded-lg overflow-hidden bg-black border">
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="w-full aspect-video object-cover"
+                  />
+                  <canvas
+                    ref={canvasRef}
+                    className="absolute top-0 left-0 w-full h-full pointer-events-none"
+                  />
+                  
+                  {!cameraReady && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-primary/90">
+                      <div className="text-primary-foreground text-center space-y-3">
+                        <div className="w-16 h-16 mx-auto border-4 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                        <p className="font-semibold">Initializing Camera...</p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {cameraReady && !faceDetected && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <div className="text-center space-y-3 p-4 rounded-lg bg-black/70 backdrop-blur-sm border-2 border-warning animate-pulse">
+                        <AlertCircle className="w-12 h-12 mx-auto text-warning" />
+                        <p className="text-white font-semibold">Position Your Face</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Status Indicators */}
+                <div className="grid grid-cols-3 gap-3">
+                  <div className={`p-3 rounded-md text-center transition-colors ${isLoaded ? 'bg-success/10 border border-success/30' : 'bg-muted'}`}>
+                    <div className="flex flex-col items-center gap-1.5">
+                      {isLoaded ? (
+                        <CheckCircle2 className="w-5 h-5 text-success" />
+                      ) : (
+                        <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                      )}
+                      <span className={`text-xs font-medium ${isLoaded ? 'text-success' : 'text-muted-foreground'}`}>
+                        {isLoaded ? 'Models' : 'Loading'}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className={`p-3 rounded-md text-center transition-colors ${cameraReady ? 'bg-success/10 border border-success/30' : 'bg-muted'}`}>
+                    <div className="flex flex-col items-center gap-1.5">
+                      {cameraReady ? (
+                        <Video className="w-5 h-5 text-success" />
+                      ) : (
+                        <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                      )}
+                      <span className={`text-xs font-medium ${cameraReady ? 'text-success' : 'text-muted-foreground'}`}>
+                        {cameraReady ? 'Camera' : 'Starting'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className={`p-3 rounded-md text-center transition-colors ${faceDetected ? 'bg-success/10 border border-success/30' : 'bg-warning/10 border border-warning/30'}`}>
+                    <div className="flex flex-col items-center gap-1.5">
+                      {faceDetected ? (
+                        <CheckCircle2 className="w-5 h-5 text-success" />
+                      ) : (
+                        <AlertCircle className="w-5 h-5 text-warning" />
+                      )}
+                      <span className={`text-xs font-medium ${faceDetected ? 'text-success' : 'text-warning'}`}>
+                        {faceDetected ? 'Face' : 'No Face'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Emotion Display */}
+                {currentEmotion && faceDetected && (
+                  <div className="p-4 rounded-lg bg-muted border">
+                    <div className="text-center space-y-2">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        Current Emotion
+                      </p>
+                      <div className="flex items-center gap-2 justify-center">
+                        <div 
+                          className="w-4 h-4 rounded-full"
+                          style={{ backgroundColor: emotionColors[currentEmotion] }}
+                        />
+                        <span className="text-2xl font-bold capitalize" style={{ color: emotionColors[currentEmotion] }}>
+                          {currentEmotion}
+                        </span>
+                        <span className="text-lg font-semibold text-muted-foreground">
+                          {(emotionConfidence * 100).toFixed(0)}%
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-center gap-1 text-xs text-success">
+                        <CheckCircle2 className="w-3 h-3" />
+                        <span>Tracking Active</span>
+                      </div>
                     </div>
                   </div>
                 )}
-                {cameraReady && !faceDetected && (
-                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-amber-500 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-lg animate-pulse">
-                    ⚠️ Position your face in the frame
-                  </div>
-                )}
-              </div>
+              </CardContent>
+            </Card>
 
-              <div className="flex gap-6 text-sm">
-                <div className="flex items-center gap-2">
-                  {isLoaded ? (
-                    <>
-                      <CheckCircle2 className="w-5 h-5 text-green-600" />
-                      <span className="text-green-600 font-semibold">Models Ready</span>
-                    </>
-                  ) : (
-                    <>
-                      <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                      <span className="text-muted-foreground">Loading models...</span>
-                    </>
-                  )}
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  {cameraReady ? (
-                    <>
-                      <Video className="w-5 h-5 text-green-600 animate-pulse" />
-                      <span className="text-green-600 font-semibold">Camera Active</span>
-                    </>
-                  ) : (
-                    <>
-                      <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                      <span className="text-muted-foreground">Starting camera...</span>
-                    </>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-2">
-                  {faceDetected ? (
-                    <>
-                      <CheckCircle2 className="w-5 h-5 text-green-600" />
-                      <span className="text-green-600 font-semibold">Face Detected</span>
-                    </>
-                  ) : (
-                    <>
-                      <AlertCircle className="w-5 h-5 text-amber-600" />
-                      <span className="text-amber-600 font-semibold">Looking for face...</span>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {currentEmotion && faceDetected && (
-                <div className="px-6 py-3 bg-gradient-to-r from-primary/10 to-primary/20 rounded-xl border-2 border-primary/30 shadow-lg">
-                  <div className="text-center space-y-2">
-                    <div className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
-                      Current Emotion Detected
-                    </div>
-                    <div className="flex items-center gap-3 justify-center">
-                      <div 
-                        className="w-4 h-4 rounded-full shadow-lg"
-                        style={{ 
-                          backgroundColor: emotionColors[currentEmotion],
-                          animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
-                        }}
-                      />
-                      <span className="text-2xl font-bold capitalize" style={{ color: emotionColors[currentEmotion] }}>
-                        {currentEmotion}
-                      </span>
-                      <span className="text-lg font-semibold text-muted-foreground">
-                        {(emotionConfidence * 100).toFixed(0)}%
-                      </span>
-                    </div>
-                    <div className="text-xs text-green-600 font-medium">
-                      ✓ Emotion tracking working correctly!
+            {/* Right: Instructions Section */}
+            <div className="space-y-4">
+              <Card className="border-destructive/50 bg-destructive/5">
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h3 className="font-bold text-destructive mb-1">MOST IMPORTANT RULE</h3>
+                      <p className="text-sm text-foreground">
+                        Press the key for the <span className="font-black text-destructive text-base underline">COLOR</span> you see,{' '}
+                        <span className="font-bold">NOT the word!</span>
+                      </p>
                     </div>
                   </div>
-                </div>
-              )}
-            </div>
+                </CardContent>
+              </Card>
 
-            <div className="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-300 dark:border-blue-700 rounded-lg p-6 space-y-4">
-              <h3 className="font-bold text-xl text-blue-900 dark:text-blue-100 flex items-center gap-2">
-                <AlertCircle className="w-6 h-6" />
-                How to Play - READ CAREFULLY!
-              </h3>
-              
-              <div className="bg-white dark:bg-slate-800 border-2 border-red-500 rounded-lg p-4 space-y-2">
-                <p className="font-bold text-lg text-red-600 dark:text-red-400">⚠️ MOST IMPORTANT RULE:</p>
-                <p className="text-base text-foreground">
-                  Press the key for the <span className="text-2xl font-black text-red-600 dark:text-red-400 underline">COLOR</span> you see, 
-                  <span className="font-bold"> NOT the word!</span>
-                </p>
-              </div>
-
-              <div className="space-y-3 text-sm text-blue-800 dark:text-blue-200">
-                <div className="flex items-start gap-3">
-                  <span className="font-bold text-base">Example 1:</span>
-                  <div>
-                    <p className="mb-1">Word <span className="font-bold text-green-600" style={{ fontSize: '18px' }}>GREEN</span> shown in <span className="font-bold text-red-600">RED color</span></p>
-                    <p className="font-bold">→ Press <kbd className="px-2 py-1 bg-red-600 text-white rounded">R</kbd> (for RED color)</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-3">
-                  <span className="font-bold text-base">Example 2:</span>
-                  <div>
-                    <p className="mb-1">Word <span className="font-bold text-red-600" style={{ fontSize: '18px' }}>RED</span> shown in <span className="font-bold text-yellow-600">YELLOW color</span></p>
-                    <p className="font-bold">→ Press <kbd className="px-2 py-1 bg-yellow-500 text-black rounded">Y</kbd> (for YELLOW color)</p>
-                  </div>
-                </div>
-
-                <div className="border-t-2 border-blue-300 dark:border-blue-700 pt-3 mt-4">
-                  <p className="font-semibold text-base mb-2">Keyboard Controls:</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="flex items-center gap-2">
-                      <kbd className="px-3 py-2 bg-red-600 text-white rounded font-bold">R</kbd>
-                      <span>= Red</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <kbd className="px-3 py-2 bg-green-600 text-white rounded font-bold">G</kbd>
-                      <span>= Green</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <kbd className="px-3 py-2 bg-blue-600 text-white rounded font-bold">B</kbd>
-                      <span>= Blue</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <kbd className="px-3 py-2 bg-yellow-500 text-black rounded font-bold">Y</kbd>
-                      <span>= Yellow</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="border-t-2 border-blue-300 dark:border-blue-700 pt-3 mt-4">
-                  <p className="font-semibold text-base">What to expect:</p>
-                  <ul className="space-y-1 ml-4 mt-2">
-                    <li>• 10 practice trials (to learn)</li>
-                    <li>• 40 test trials (for real data)</li>
-                    <li>• Takes about 5-7 minutes</li>
-                    <li>• Your face will be tracked throughout</li>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">What to Expect</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-1.5 text-sm">
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                      <span>10 practice trials (to learn)</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                      <span>40 test trials (actual data)</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                      <span>Approximately 5-7 minutes</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                      <span>Emotions tracked throughout</span>
+                    </li>
                   </ul>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             </div>
+          </div>
 
+          {/* Start Button */}
+          <div className="mt-8 max-w-2xl mx-auto space-y-4">
             <Button
               onClick={startExperiment}
               disabled={!isLoaded || !cameraReady || !faceDetected}
-              className="w-full h-14 text-lg font-bold shadow-lg"
+              className="w-full h-14 text-lg font-semibold"
+              size="lg"
             >
               {!isLoaded ? (
                 <span className="flex items-center gap-2">
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Loading models...
+                  <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  Loading AI Models...
                 </span>
               ) : !cameraReady ? (
                 <span className="flex items-center gap-2">
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Starting camera...
+                  <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  Initializing Camera...
                 </span>
               ) : !faceDetected ? (
                 <span className="flex items-center gap-2">
                   <AlertCircle className="w-5 h-5" />
-                  Waiting for face detection...
+                  Waiting for Face Detection...
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
@@ -805,12 +806,15 @@ const EmotionTracker = ({ participantId, experimentId, onComplete }) => {
             </Button>
             
             {!faceDetected && cameraReady && (
-              <p className="text-center text-sm text-amber-600 font-medium">
-                ⚠️ Please position your face clearly in front of the camera to enable the start button
-              </p>
+              <div className="p-3 bg-warning/10 border border-warning/50 rounded-md text-center">
+                <p className="text-sm text-warning-foreground font-medium flex items-center justify-center gap-2">
+                  <AlertCircle className="w-4 h-4" />
+                  Please position your face clearly in the camera frame
+                </p>
+              </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     );
   }
