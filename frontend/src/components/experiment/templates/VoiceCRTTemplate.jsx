@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { AlertCircle, Mic, MicOff, Volume2, CheckCircle2, Clock, MessageSquare } from 'lucide-react';
+import { AlertCircle, Mic, MicOff, Volume2, CheckCircle2, Clock, MessageSquare, StopCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import VoiceManager from '@/utils/VoiceManager';
 import axios from 'axios';
@@ -22,6 +22,8 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
   const [confidence, setConfidence] = useState(0);
   const [fallbackMode, setFallbackMode] = useState(false);
   const [typedAnswer, setTypedAnswer] = useState('');
+  const [showAnswerInput, setShowAnswerInput] = useState(false);
+  const [recordingMode, setRecordingMode] = useState('voice'); // 'voice' or 'type'
   
   // Timing
   const trialStartTimeRef = useRef(0);
@@ -57,12 +59,12 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
     }
   ];
 
-  // Settings - INCREASED TIMEOUTS
+  // Settings
   const settings = {
     language: 'en-IN',
     maxTrialDurationMs: 15000,
     interTrialIntervalMs: 2000,
-    speechTimeoutMs: 12000,
+    speechTimeoutMs: 30000, // Increased timeout since it's manual now
     allowTypedFallback: true,
     continuous: false,
     interimResults: false
@@ -81,7 +83,6 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
 
   // 1. Initialize Voice Manager
   useEffect(() => {
-    // Check if Web Speech API is supported
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
       setIsVoiceSupported(true);
@@ -106,13 +107,11 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
   const handleConsent = async () => {
     if (isVoiceSupported) {
       try {
-        // Request microphone permission
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        stream.getTracks().forEach(track => track.stop()); // Stop immediately, just checking permission
+        stream.getTracks().forEach(track => track.stop());
         setIsMicPermissionGranted(true);
         console.log("✅ Microphone permission granted");
         
-        // Initialize VoiceManager after permission granted
         try {
           voiceManagerRef.current = new VoiceManager({
             lang: settings.language,
@@ -141,7 +140,6 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
 
   // 3. Start experiment
   const handleStartExperiment = () => {
-    // Validate props before starting
     if (!participantId || !experimentId) {
       console.error("❌ Cannot start experiment: Missing participantId or experimentId");
       alert("Error: Missing experiment configuration. Please try again.");
@@ -167,138 +165,101 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
     setConfidence(0);
     setTypedAnswer('');
     setCurrentResult(null);
+    setShowAnswerInput(false);
+    setRecordingMode('voice');
     trialStartTimeRef.current = performance.now();
 
-    // Show question, then start listening after 2 seconds
+    // Show question for reading
     setTimeout(() => {
-      if (!fallbackMode) {
-        startListening();
-      } else {
-        setPhase('listening'); // In fallback, just show input
-      }
-    }, 2000);
+      setPhase('listening');
+    }, 3000);
   };
 
-  // 5. Start listening - FIXED VERSION
-  const startListening = () => {
+  // 5. Start recording manually
+  const handleStartRecording = () => {
     if (!voiceManagerRef.current) {
       console.error("❌ Voice Manager not initialized");
-      setFallbackMode(true);
-      setPhase('listening');
       return;
     }
 
     console.log("🎤 Starting to listen...");
-    setPhase('listening');
     setIsListening(true);
+    setTranscript('');
+    setConfidence(0);
     speechStartTimeRef.current = performance.now();
 
-    // Clear any existing timeout
     if (speechTimeoutRef.current) {
       clearTimeout(speechTimeoutRef.current);
       speechTimeoutRef.current = null;
     }
 
-    // Start speech recognition
     voiceManagerRef.current.start(
-      // onResult callback
-      async ({ transcript: voiceTranscript, confidence: voiceConfidence, isFinal }) => {
-        console.log("🎤 Speech detected:", voiceTranscript, "Confidence:", voiceConfidence, "isFinal:", isFinal);
+      ({ transcript: voiceTranscript, confidence: voiceConfidence }) => {
+        console.log("🎤 Speech detected:", voiceTranscript, "Confidence:", voiceConfidence);
         
-        // Only process if we have a transcript
         if (voiceTranscript && voiceTranscript.trim()) {
-          const speechEndTime = performance.now();
-          const reactionTime = Math.round(speechEndTime - trialStartTimeRef.current);
-          
           setTranscript(voiceTranscript);
           setConfidence(voiceConfidence);
-          
-          // Stop listening
-          setIsListening(false);
-          voiceManagerRef.current.stop();
-
-          // Clear timeout
-          if (speechTimeoutRef.current) {
-            clearTimeout(speechTimeoutRef.current);
-            speechTimeoutRef.current = null;
-          }
-
-          // Process result
-          await processTrialResult(voiceTranscript, voiceConfidence, reactionTime, speechEndTime);
         }
       },
-      // onEnd callback - DON'T immediately restart
       () => {
         console.log("🎤 Speech recognition ended");
-        
-        // Only handle if we're still in listening phase and haven't got a result
-        if (isListening && !transcript) {
-          console.log("⚠️ Recognition ended without transcript");
-          // Don't automatically restart - let user see what happened
-          setIsListening(false);
-        }
       },
-      // onError callback
       (error) => {
         console.error("❌ Speech recognition error:", error);
         setIsListening(false);
         
-        // Clear timeout
         if (speechTimeoutRef.current) {
           clearTimeout(speechTimeoutRef.current);
           speechTimeoutRef.current = null;
         }
-        
-        // Switch to fallback mode
-        if (error.error === 'not-allowed' || error.error === 'service-not-allowed') {
-          alert("Microphone access was denied. Switching to typed input mode.");
-          setFallbackMode(true);
-          setPhase('listening');
-        }
       }
     );
 
-    // Set timeout - only if no response received
     speechTimeoutRef.current = setTimeout(() => {
-      if (isListening && !transcript) {
-        console.log("⏱️ Speech timeout - no response received");
-        if (voiceManagerRef.current) {
-          voiceManagerRef.current.stop();
-        }
-        setIsListening(false);
-        
-        // Offer to switch to typing
-        if (confirm("No speech detected. Would you like to type your answer instead?")) {
-          setFallbackMode(true);
-          setPhase('listening');
-        } else {
-          // Record empty response
-          processTrialResult("", 0, settings.speechTimeoutMs, performance.now());
-        }
+      if (isListening) {
+        console.log("⏱️ Speech timeout - auto stopping");
+        handleStopRecording();
       }
     }, settings.speechTimeoutMs);
   };
 
-  // 6. Retry listening button
-  const handleRetryListening = () => {
-    setTranscript('');
-    setConfidence(0);
-    startListening();
+  // 6. Stop recording manually
+  const handleStopRecording = () => {
+    if (voiceManagerRef.current) {
+      voiceManagerRef.current.stop();
+    }
+    setIsListening(false);
+    
+    if (speechTimeoutRef.current) {
+      clearTimeout(speechTimeoutRef.current);
+      speechTimeoutRef.current = null;
+    }
+
+    // Show answer input section
+    setShowAnswerInput(true);
   };
 
-  // 7. Process trial result
+  // 7. Switch to typing mode
+  const handleSwitchToTyping = () => {
+    if (isListening && voiceManagerRef.current) {
+      voiceManagerRef.current.stop();
+      setIsListening(false);
+    }
+    setRecordingMode('type');
+    setShowAnswerInput(true);
+  };
+
+  // 8. Process trial result
   const processTrialResult = async (voiceTranscript, voiceConfidence, reactionTime, speechEndTime) => {
-    // Validate props before processing
     if (!participantId || !experimentId) {
       console.error("❌ Cannot process result: Missing participantId or experimentId");
-      console.log("Current props:", { participantId, experimentId });
       alert("Error: Missing experiment configuration. Results cannot be saved.");
       return;
     }
 
     const question = questions[currentTrial];
     
-    // Check if answer is correct
     const isCorrect = question.correctKeywords.some(keyword => 
       voiceTranscript.toLowerCase().includes(keyword.toLowerCase())
     );
@@ -316,7 +277,7 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
       speechEndTimestamp: speechEndTime,
       isCorrect: isCorrect ? 1 : 0,
       correctAnswer: question.correctAnswer,
-      mode: fallbackMode ? 'typed' : 'voice',
+      mode: recordingMode === 'type' ? 'typed' : 'voice',
       createdAt: new Date().toISOString()
     };
 
@@ -325,7 +286,6 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
     setCurrentResult(result);
     setResults(prev => [...prev, result]);
 
-    // Save to backend
     try {
       console.log("💾 Saving to backend:", result);
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/voice-responses`, result);
@@ -335,26 +295,32 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
       console.error("Error details:", error.response?.data);
     }
 
-    // Show feedback
     setPhase('feedback');
 
-    // Move to next trial after delay
     setTimeout(() => {
       setCurrentTrial(prev => prev + 1);
     }, settings.interTrialIntervalMs);
   };
 
-  // 8. Handle typed submission (fallback mode)
-  const handleSubmitTyped = () => {
+  // 9. Handle submit answer
+  const handleSubmitAnswer = () => {
+    const finalAnswer = recordingMode === 'type' ? typedAnswer : transcript;
+    
+    if (!finalAnswer.trim()) {
+      alert("Please provide an answer before submitting.");
+      return;
+    }
+
     const reactionTime = Math.round(performance.now() - trialStartTimeRef.current);
-    processTrialResult(typedAnswer, 1.0, reactionTime, performance.now());
+    const conf = recordingMode === 'type' ? 1.0 : confidence;
+    
+    processTrialResult(finalAnswer, conf, reactionTime, performance.now());
   };
 
-  // 9. Finish experiment
+  // 10. Finish experiment
   const finishExperiment = () => {
     setPhase('complete');
     
-    // Calculate summary
     const correctAnswers = results.filter(r => r.isCorrect === 1).length;
     const totalReactionTime = results.reduce((sum, r) => sum + r.reactionTimeMs, 0);
     
@@ -367,7 +333,6 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
 
     console.log("🎉 Experiment complete:", summary);
 
-    // Call onComplete callback if provided
     if (onComplete) {
       onComplete({
         results,
@@ -442,9 +407,10 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
               <p className="font-semibold">What happens during the test:</p>
               <ul className="space-y-2 list-disc list-inside text-muted-foreground">
                 <li>You'll see reasoning questions on screen</li>
-                <li>Speak your answer aloud clearly</li>
-                <li>Your speech is converted to text automatically</li>
-                <li>Response time and accuracy are measured</li>
+                <li>Choose to speak or type your answer</li>
+                <li>Click "Start Recording" to speak your answer</li>
+                <li>Click "Stop Recording" when done speaking</li>
+                <li>Review and submit your answer</li>
                 <li>Takes approximately 5-7 minutes</li>
               </ul>
             </div>
@@ -453,7 +419,7 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  Web Speech API is not supported in your browser. You can still participate using typed responses instead.
+                  Web Speech API is not supported in your browser. You can still participate using typed responses.
                 </AlertDescription>
               </Alert>
             )}
@@ -472,7 +438,7 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
                 )}
               </Button>
               <Button onClick={handleDeclineConsent} variant="outline" className="flex-1" size="lg">
-                Use Typed Responses Instead
+                Use Typed Responses Only
               </Button>
             </div>
           </CardContent>
@@ -495,19 +461,11 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
               <p className="text-blue-900 dark:text-blue-100 mb-4 font-semibold">How it works:</p>
               <ol className="space-y-3 text-blue-800 dark:text-blue-200 list-decimal list-inside">
                 <li>You'll see a reasoning question on screen</li>
-                <li>Read the question carefully</li>
-                {!fallbackMode ? (
-                  <>
-                    <li>When you see "🎤 LISTENING", speak your answer clearly</li>
-                    <li>Your speech will be automatically converted to text</li>
-                    <li>If recognition fails, you can retry or type your answer</li>
-                  </>
-                ) : (
-                  <>
-                    <li>Type your answer in the text box</li>
-                    <li>Click Submit when ready</li>
-                  </>
-                )}
+                <li>Read the question carefully (you have 3 seconds)</li>
+                <li>Choose to speak or type your answer</li>
+                <li><strong>For voice:</strong> Click "Start Recording" → Speak → Click "Stop Recording"</li>
+                <li><strong>For typing:</strong> Click "Type Instead" and enter your answer</li>
+                <li>Review your answer and click "Submit"</li>
                 <li>You'll get immediate feedback</li>
                 <li>There are {questions.length} questions total</li>
               </ol>
@@ -524,14 +482,14 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Mic className="w-4 h-4 text-green-600" />
                 <span className="text-green-600 font-medium">Microphone ready</span>
-                <span>• Speak clearly in a quiet environment</span>
+                <span>• You control when to start and stop recording</span>
               </div>
             )}
 
             {fallbackMode && (
               <div className="flex items-center gap-2 text-sm text-amber-600">
                 <MicOff className="w-4 h-4" />
-                <span className="font-medium">Fallback mode: Typed responses</span>
+                <span className="font-medium">Typing mode enabled</span>
               </div>
             )}
 
@@ -563,6 +521,21 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
   // Question phase
   if (phase === 'question') {
     const question = questions[currentTrial];
+    
+    // Add safety check here - this was missing!
+    if (!question) {
+      console.error('❌ Question not found for trial:', currentTrial);
+      // Auto-advance to next phase or finish
+      if (currentTrial >= questions.length) {
+        finishExperiment();
+      }
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
         <Card className="max-w-3xl w-full">
@@ -582,11 +555,7 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
               </p>
             </div>
             <div className="mt-6 text-center text-muted-foreground">
-              {!fallbackMode ? (
-                <p className="animate-pulse">Prepare to speak your answer...</p>
-              ) : (
-                <p>Prepare to type your answer...</p>
-              )}
+              <p>Prepare your answer...</p>
             </div>
           </CardContent>
         </Card>
@@ -597,6 +566,16 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
   // Listening phase
   if (phase === 'listening') {
     const question = questions[currentTrial];
+    
+    // Safety check - if question is undefined, show loading
+    if (!question) {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
         <Card className="max-w-3xl w-full">
@@ -610,90 +589,127 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
               </p>
             </div>
 
-            {!fallbackMode ? (
+            {recordingMode === 'voice' && !showAnswerInput && !fallbackMode && (
               <div className="text-center space-y-4">
-                <div className="flex items-center justify-center gap-3">
-                  <div className="relative">
-                    <Mic className="w-16 h-16 text-red-600 animate-pulse" />
-                    <div className="absolute inset-0 bg-red-600/20 rounded-full animate-ping" />
-                  </div>
-                </div>
-                <p className="text-2xl font-bold text-red-600 animate-pulse">
-                  🎤 LISTENING...
-                </p>
-                <p className="text-muted-foreground">
-                  Speak your answer clearly now
-                </p>
-                {transcript && (
-                  <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                    <p className="text-sm text-muted-foreground mb-1">You said:</p>
-                    <p className="text-lg font-medium">{transcript}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Confidence: {(confidence * 100).toFixed(0)}%
+                {!isListening ? (
+                  <>
+                    <div className="flex flex-col items-center gap-4">
+                      <Button 
+                        onClick={handleStartRecording}
+                        size="lg"
+                        className="bg-red-600 hover:bg-red-700"
+                      >
+                        <Mic className="w-5 h-5 mr-2" />
+                        Start Recording
+                      </Button>
+                      <Button 
+                        onClick={handleSwitchToTyping}
+                        variant="outline"
+                        size="sm"
+                      >
+                        <MessageSquare className="w-4 h-4 mr-2" />
+                        Type Instead
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-center gap-3">
+                      <div className="relative">
+                        <Mic className="w-16 h-16 text-red-600 animate-pulse" />
+                        <div className="absolute inset-0 bg-red-600/20 rounded-full animate-ping" />
+                      </div>
+                    </div>
+                    <p className="text-2xl font-bold text-red-600 animate-pulse">
+                      🎤 RECORDING...
                     </p>
-                  </div>
-                )}
-                
-                {/* Retry and Fallback buttons */}
-                {isListening && (
-                  <div className="flex gap-3 justify-center mt-6">
+                    <p className="text-muted-foreground">
+                      Speak your answer clearly now
+                    </p>
+                    {transcript && (
+                      <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                        <p className="text-sm text-muted-foreground mb-1">You said:</p>
+                        <p className="text-lg font-medium">{transcript}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Confidence: {(confidence * 100).toFixed(0)}%
+                        </p>
+                      </div>
+                    )}
                     <Button 
-                      onClick={() => {
-                        if (voiceManagerRef.current) {
-                          voiceManagerRef.current.stop();
-                        }
-                        setIsListening(false);
-                        setTimeout(() => handleRetryListening(), 500);
-                      }}
-                      variant="outline"
-                      size="sm"
+                      onClick={handleStopRecording}
+                      size="lg"
+                      variant="destructive"
+                      className="mt-4"
                     >
-                      Retry
+                      <StopCircle className="w-5 h-5 mr-2" />
+                      Stop Recording
                     </Button>
-                    <Button 
-                      onClick={() => {
-                        if (voiceManagerRef.current) {
-                          voiceManagerRef.current.stop();
-                        }
-                        setIsListening(false);
-                        setFallbackMode(true);
-                        setPhase('listening');
-                      }}
-                      variant="outline"
-                      size="sm"
-                    >
-                      Type Instead
-                    </Button>
-                  </div>
+                  </>
                 )}
               </div>
-            ) : (
+            )}
+
+            {/* Show typing interface if fallback mode OR explicitly chosen */}
+            {(fallbackMode || recordingMode === 'type' || showAnswerInput) && (
               <div className="space-y-4">
                 <div className="flex items-center gap-2 text-lg font-semibold">
                   <MessageSquare className="w-5 h-5 text-primary" />
-                  <span>Type your answer:</span>
+                  <span>{recordingMode === 'type' ? 'Type your answer:' : 'Review/Edit your answer:'}</span>
                 </div>
+                
+                {recordingMode === 'voice' && transcript && (
+                  <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <p className="text-sm text-muted-foreground mb-1">Transcribed from voice:</p>
+                    <p className="text-base font-medium">{transcript}</p>
+                  </div>
+                )}
+                
                 <Input
                   type="text"
-                  value={typedAnswer}
-                  onChange={(e) => setTypedAnswer(e.target.value)}
-                  placeholder="Enter your answer here..."
+                  value={recordingMode === 'type' ? typedAnswer : transcript}
+                  onChange={(e) => {
+                    if (recordingMode === 'type') {
+                      setTypedAnswer(e.target.value);
+                    } else {
+                      setTranscript(e.target.value);
+                    }
+                  }}
+                  placeholder="Enter or edit your answer here..."
                   className="text-lg p-6"
                   autoFocus
                   onKeyPress={(e) => {
-                    if (e.key === 'Enter' && typedAnswer.trim()) {
-                      handleSubmitTyped();
+                    if (e.key === 'Enter') {
+                      const answer = recordingMode === 'type' ? typedAnswer : transcript;
+                      if (answer.trim()) {
+                        handleSubmitAnswer();
+                      }
                     }
                   }}
                 />
-                <Button 
-                  onClick={handleSubmitTyped} 
-                  disabled={!typedAnswer.trim()}
-                  className="w-full"
-                  size="lg"
-                >
-                  Submit Answer
-                </Button>
+                
+                <div className="flex gap-3">
+                  <Button 
+                    onClick={handleSubmitAnswer}
+                    disabled={recordingMode === 'type' ? !typedAnswer.trim() : !transcript.trim()}
+                    className="flex-1"
+                    size="lg"
+                  >
+                    Submit Answer
+                  </Button>
+                  {recordingMode === 'voice' && showAnswerInput && !fallbackMode && (
+                    <Button 
+                      onClick={() => {
+                        setShowAnswerInput(false);
+                        setTranscript('');
+                        setConfidence(0);
+                      }}
+                      variant="outline"
+                      size="lg"
+                    >
+                      Record Again
+                    </Button>
+                  )}
+                </div>
               </div>
             )}
           </CardContent>
@@ -702,7 +718,7 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
     );
   }
 
-  // FIXED: Check if currentResult exists before rendering feedback
+  // Feedback phase
   if (phase === 'feedback') {
     if (!currentResult) {
       return (
@@ -713,6 +729,14 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
     }
 
     const question = questions[currentTrial];
+    if (!question) {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      );
+    }
+
     const isCorrect = currentResult.isCorrect === 1;
 
     return (
@@ -761,7 +785,7 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
               <div className="flex items-center justify-between text-sm text-muted-foreground pt-4 border-t">
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4" />
-                  <span>Response Time: {currentResult.reactionTimeMs}ms</span>
+                  <span>Response Time: {(currentResult.reactionTimeMs / 1000).toFixed(2)}s</span>
                 </div>
                 <span>Score: {results.filter(r => r.isCorrect === 1).length} / {currentTrial + 1}</span>
               </div>
@@ -772,55 +796,312 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
     );
   }
 
+  // Complete phase with comprehensive report
   if (phase === 'complete') {
     const correctAnswers = results.filter(r => r.isCorrect === 1).length;
+    const incorrectAnswers = results.length - correctAnswers;
     const totalReactionTime = results.reduce((sum, r) => sum + r.reactionTimeMs, 0);
+    const voiceResponses = results.filter(r => r.mode === 'voice').length;
+    const typedResponses = results.filter(r => r.mode === 'typed').length;
     
     const summary = {
       totalTrials: results.length,
       correctAnswers,
+      incorrectAnswers,
       accuracy: results.length > 0 ? Math.round((correctAnswers / results.length) * 100) : 0,
-      averageReactionTime: results.length > 0 ? Math.round(totalReactionTime / results.length) : 0
+      averageReactionTime: results.length > 0 ? Math.round(totalReactionTime / results.length) : 0,
+      totalTime: Math.round(totalReactionTime / 1000),
+      voiceResponses,
+      typedResponses,
+      fastestResponse: results.length > 0 ? Math.min(...results.map(r => r.reactionTimeMs)) : 0,
+      slowestResponse: results.length > 0 ? Math.max(...results.map(r => r.reactionTimeMs)) : 0
     };
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
-        <Card className="max-w-2xl w-full">
+        <Card className="max-w-5xl w-full">
           <CardHeader>
-            <CardTitle className="text-2xl flex items-center gap-2">
-              <CheckCircle2 className="w-6 h-6 text-green-600" />
-              Experiment Complete!
-            </CardTitle>
-            <CardDescription>Voice-Based Cognitive Reflection Test</CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-3xl flex items-center gap-3">
+                  <CheckCircle2 className="w-8 h-8 text-green-600" />
+                  Experiment Complete!
+                </CardTitle>
+                <CardDescription className="text-lg mt-2">
+                  Voice-Based Cognitive Reflection Test - Comprehensive Report
+                </CardDescription>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-muted-foreground">Experiment ID</p>
+                <p className="text-xs font-mono">{experimentId}</p>
+              </div>
+            </div>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-6 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-900/10 rounded-xl border border-blue-200 dark:border-blue-800 text-center">
-                <p className="text-sm text-muted-foreground mb-2">Accuracy</p>
-                <p className="text-4xl font-bold text-blue-600">{summary.accuracy}%</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {summary.correctAnswers} / {summary.totalTrials} correct
-                </p>
-              </div>
+          <CardContent className="space-y-8">
+            
+            {/* Performance Overview */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-primary" />
+                Performance Overview
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div className="p-6 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-900/10 rounded-xl border border-blue-200 dark:border-blue-800 text-center">
+                  <p className="text-sm text-muted-foreground mb-2">Accuracy</p>
+                  <p className="text-4xl font-bold text-blue-600">{summary.accuracy}%</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {summary.correctAnswers} of {summary.totalTrials}
+                  </p>
+                </div>
 
-              <div className="p-6 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-900/10 rounded-xl border border-purple-200 dark:border-purple-800 text-center">
-                <p className="text-sm text-muted-foreground mb-2">Avg Response Time</p>
-                <p className="text-4xl font-bold text-purple-600">{summary.averageReactionTime}</p>
-                <p className="text-xs text-muted-foreground mt-1">milliseconds</p>
+                <div className="p-6 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-900/10 rounded-xl border border-green-200 dark:border-green-800 text-center">
+                  <p className="text-sm text-muted-foreground mb-2">Correct</p>
+                  <p className="text-4xl font-bold text-green-600">{summary.correctAnswers}</p>
+                  <p className="text-xs text-muted-foreground mt-1">answers</p>
+                </div>
+
+                <div className="p-6 bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-900/10 rounded-xl border border-red-200 dark:border-red-800 text-center">
+                  <p className="text-sm text-muted-foreground mb-2">Incorrect</p>
+                  <p className="text-4xl font-bold text-red-600">{summary.incorrectAnswers}</p>
+                  <p className="text-xs text-muted-foreground mt-1">answers</p>
+                </div>
+
+                <div className="p-6 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-900/10 rounded-xl border border-purple-200 dark:border-purple-800 text-center">
+                  <p className="text-sm text-muted-foreground mb-2">Avg Time</p>
+                  <p className="text-4xl font-bold text-purple-600">{(summary.averageReactionTime / 1000).toFixed(1)}s</p>
+                  <p className="text-xs text-muted-foreground mt-1">per question</p>
+                </div>
+
+                <div className="p-6 bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-900/10 rounded-xl border border-amber-200 dark:border-amber-800 text-center">
+                  <p className="text-sm text-muted-foreground mb-2">Total Time</p>
+                  <p className="text-4xl font-bold text-amber-600">{summary.totalTime}s</p>
+                  <p className="text-xs text-muted-foreground mt-1">overall</p>
+                </div>
               </div>
             </div>
 
+            {/* Response Method Analysis */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <MessageSquare className="w-5 h-5 text-primary" />
+                Response Method Breakdown
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="p-6 bg-slate-50 dark:bg-slate-900 rounded-xl border">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <Mic className="w-5 h-5 text-red-600" />
+                      <span className="font-medium">Voice Responses</span>
+                    </div>
+                    <span className="text-3xl font-bold">{summary.voiceResponses}</span>
+                  </div>
+                  <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-red-600 transition-all duration-500"
+                      style={{ width: `${(summary.voiceResponses / summary.totalTrials) * 100}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2 text-center">
+                    {Math.round((summary.voiceResponses / summary.totalTrials) * 100)}% of responses
+                  </p>
+                </div>
+
+                <div className="p-6 bg-slate-50 dark:bg-slate-900 rounded-xl border">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <MessageSquare className="w-5 h-5 text-blue-600" />
+                      <span className="font-medium">Typed Responses</span>
+                    </div>
+                    <span className="text-3xl font-bold">{summary.typedResponses}</span>
+                  </div>
+                  <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-blue-600 transition-all duration-500"
+                      style={{ width: `${(summary.typedResponses / summary.totalTrials) * 100}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2 text-center">
+                    {Math.round((summary.typedResponses / summary.totalTrials) * 100)}% of responses
+                  </p>
+                </div>
+
+                <div className="p-6 bg-slate-50 dark:bg-slate-900 rounded-xl border">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Fastest Response</span>
+                      <span className="font-semibold">{(summary.fastestResponse / 1000).toFixed(2)}s</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Slowest Response</span>
+                      <span className="font-semibold">{(summary.slowestResponse / 1000).toFixed(2)}s</span>
+                    </div>
+                    <div className="flex items-center justify-between pt-3 border-t">
+                      <span className="text-sm text-muted-foreground">Response Range</span>
+                      <span className="font-semibold">{((summary.slowestResponse - summary.fastestResponse) / 1000).toFixed(2)}s</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Detailed Question-by-Question Results */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <Clock className="w-5 h-5 text-primary" />
+                Detailed Question Results
+              </h3>
+              <div className="border rounded-xl overflow-hidden">
+                <div className="bg-slate-100 dark:bg-slate-800 px-6 py-3 border-b">
+                  <div className="grid grid-cols-12 gap-4 text-sm font-semibold">
+                    <div className="col-span-1">Q#</div>
+                    <div className="col-span-2">Result</div>
+                    <div className="col-span-4">Your Answer</div>
+                    <div className="col-span-3">Correct Answer</div>
+                    <div className="col-span-1">Mode</div>
+                    <div className="col-span-1">Time</div>
+                  </div>
+                </div>
+                <div className="divide-y">
+                  {results.map((result, index) => {
+                    const question = questions.find(q => q.id === result.questionId);
+                    const isCorrect = result.isCorrect === 1;
+                    
+                    return (
+                      <div key={index} className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                        <div className="grid grid-cols-12 gap-4 items-center">
+                          <div className="col-span-1">
+                            <span className="font-semibold text-lg">#{index + 1}</span>
+                          </div>
+                          
+                          <div className="col-span-2">
+                            {isCorrect ? (
+                              <div className="flex items-center gap-1 text-green-600">
+                                <CheckCircle2 className="w-5 h-5" />
+                                <span className="font-medium">Correct</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-1 text-red-600">
+                                <AlertCircle className="w-5 h-5" />
+                                <span className="font-medium">Incorrect</span>
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="col-span-4">
+                            <p className="text-sm line-clamp-2">{result.transcript || '(No response)'}</p>
+                          </div>
+                          
+                          <div className="col-span-3">
+                            <p className="text-sm font-medium text-green-700 dark:text-green-300">
+                              {question?.correctAnswer}
+                            </p>
+                          </div>
+                          
+                          <div className="col-span-1">
+                            <div className="flex items-center gap-1 text-xs">
+                              {result.mode === 'voice' ? (
+                                <Mic className="w-3 h-3 text-red-600" />
+                              ) : (
+                                <MessageSquare className="w-3 h-3 text-blue-600" />
+                              )}
+                              <span className="capitalize">{result.mode}</span>
+                            </div>
+                          </div>
+                          
+                          <div className="col-span-1">
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                              <Clock className="w-3 h-3" />
+                              <span>{(result.reactionTimeMs / 1000).toFixed(1)}s</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Expandable explanation */}
+                        <details className="mt-3">
+                          <summary className="text-xs text-primary cursor-pointer hover:underline">
+                            Show explanation
+                          </summary>
+                          <div className="mt-2 p-3 bg-slate-100 dark:bg-slate-800 rounded text-sm">
+                            <p className="text-muted-foreground mb-1"><strong>Question:</strong> {question?.text}</p>
+                            <p className="text-muted-foreground"><strong>Explanation:</strong> {question?.explanation}</p>
+                          </div>
+                        </details>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Performance Insights */}
+            <div>
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <AlertCircle className="w-5 h-5 text-primary" />
+                Performance Insights
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className={`p-6 rounded-xl border ${
+                  summary.accuracy >= 66 
+                    ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+                    : summary.accuracy >= 33
+                    ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
+                    : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+                }`}>
+                  <h4 className="font-semibold mb-2">Accuracy Assessment</h4>
+                  <p className="text-sm text-muted-foreground">
+                    {summary.accuracy >= 66 
+                      ? '🌟 Excellent! You demonstrated strong analytical thinking and avoided common cognitive biases.'
+                      : summary.accuracy >= 33
+                      ? '👍 Good effort! These questions are designed to be tricky. Consider taking more time to analyze each problem.'
+                      : '💡 These questions are intentionally challenging! Don\'t worry - most people find them difficult on first attempt.'}
+                  </p>
+                </div>
+
+                <div className="p-6 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+                  <h4 className="font-semibold mb-2">Response Time Analysis</h4>
+                  <p className="text-sm text-muted-foreground">
+                    {summary.averageReactionTime < 8000
+                      ? '⚡ You responded quickly! Fast responses can sometimes indicate intuitive (vs. analytical) thinking.'
+                      : summary.averageReactionTime < 15000
+                      ? '⏱️ You took a moderate amount of time, suggesting a balance between intuition and analysis.'
+                      : '🤔 You took your time to think carefully, which often leads to more accurate responses in cognitive reflection tasks.'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Success Message */}
             <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6">
-              <p className="text-sm text-green-800 dark:text-green-200">
-                ✅ Your responses have been recorded and saved. Thank you for participating!
-              </p>
-              <p className="text-xs text-muted-foreground mt-2">
-                Mode: {fallbackMode ? 'Typed Input' : 'Voice Recognition'}
-              </p>
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="w-6 h-6 text-green-600 mt-1 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-green-800 dark:text-green-200 mb-2">
+                    ✅ All responses have been recorded and saved successfully!
+                  </p>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Thank you for participating in this cognitive reflection test. Your anonymous data contributes to research on decision-making and analytical thinking.
+                  </p>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="flex items-center gap-1">
+                      <span className="text-muted-foreground">Participant ID:</span>
+                      <span className="font-mono">{participantId}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-muted-foreground">Completed:</span>
+                      <span>{new Date().toLocaleString()}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <Button onClick={() => onComplete && onComplete({ results, summary })} className="w-full" size="lg">
-              Continue
+            {/* Continue Button */}
+            <Button 
+              onClick={() => onComplete && onComplete({ results, summary, experimentId, participantId })} 
+              className="w-full" 
+              size="lg"
+            >
+              Continue to Next Section
             </Button>
           </CardContent>
         </Card>
