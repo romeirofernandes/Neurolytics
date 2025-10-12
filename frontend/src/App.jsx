@@ -17,6 +17,7 @@ import ParticipantRegister from './pages/Participant/Register'
 import ParticipantDashboard from './pages/Participant/Dashboard'
 import ParticipantExplore from './pages/Participant/Explore'
 import ParticipatedExperiments from './pages/Participant/ParticipatedExperiments'
+import Achievements from './pages/Participant/Achievements'
 import TemplateDetail from './pages/Participant/TemplateDetail'
 import RunExperiment from './pages/Participant/RunExperiment'
 import NotFoundPage from './pages/404Page'
@@ -210,6 +211,11 @@ const App = () => {
               <Route path="/participant/participated" element={
                 <ProtectedParticipantRoute>
                   <ParticipatedExperiments />
+                </ProtectedParticipantRoute>
+              } />
+              <Route path="/participant/achievements" element={
+                <ProtectedParticipantRoute>
+                  <Achievements />
                 </ProtectedParticipantRoute>
               } />
               
