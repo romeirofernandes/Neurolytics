@@ -346,7 +346,7 @@ const AIExperimentBuilder = () => {
                             className="w-full justify-start text-xs h-8"
                             onClick={() => handleQuickAction('createStroop')}
                           >
-                            🎨 Stroop Task
+                             Stroop Task
                           </Button>
                         </div>
 
@@ -358,7 +358,7 @@ const AIExperimentBuilder = () => {
                             className="w-full justify-start text-xs h-8"
                             onClick={() => handleQuickAction('createNBack')}
                           >
-                            🔤 N-Back (2-Back)
+                             N-Back (2-Back)
                           </Button>
                         </div>
 
@@ -370,7 +370,7 @@ const AIExperimentBuilder = () => {
                             className="w-full justify-start text-xs h-8"
                             onClick={() => handleQuickAction('createBART')}
                           >
-                            🎈 BART (Risk)
+                            BART (Risk)
                           </Button>
                         </div>
 
@@ -382,7 +382,7 @@ const AIExperimentBuilder = () => {
                             className="w-full justify-start text-xs h-8"
                             onClick={() => handleQuickAction('createFlanker')}
                           >
-                            ◀️ Flanker Task
+                             Flanker Task
                           </Button>
                           <Button
                             variant="outline"
@@ -390,7 +390,7 @@ const AIExperimentBuilder = () => {
                             className="w-full justify-start text-xs h-8"
                             onClick={() => handleQuickAction('createPosner')}
                           >
-                            📍 Posner Cueing
+                             Posner Cueing
                           </Button>
                         </div>
 
@@ -402,7 +402,7 @@ const AIExperimentBuilder = () => {
                             className="w-full justify-start text-xs h-8"
                             onClick={() => handleQuickAction('createGoNoGo')}
                           >
-                            🛑 Go/No-Go
+                             Go/No-Go
                           </Button>
                           <Button
                             variant="outline"
@@ -410,7 +410,7 @@ const AIExperimentBuilder = () => {
                             className="w-full justify-start text-xs h-8"
                             onClick={() => handleQuickAction('createHanoi')}
                           >
-                            🗼 Tower of Hanoi
+                             Tower of Hanoi
                           </Button>
                         </div>
 
@@ -421,7 +421,7 @@ const AIExperimentBuilder = () => {
                             className="w-full justify-start text-xs h-8"
                             onClick={() => handleQuickAction('modifyTiming')}
                           >
-                            ⚙️ Adjust Timing
+                             Adjust Timing
                           </Button>
                         </div>
                       </CardContent>
