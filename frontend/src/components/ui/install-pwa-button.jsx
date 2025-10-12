@@ -21,6 +21,7 @@ export function InstallPWAButton() {
 
     // Listen for the install prompt
     const handler = (e) => {
+      console.log('beforeinstallprompt event fired!'); // Debug log
       e.preventDefault();
       setDeferredPrompt(e);
     };
@@ -29,6 +30,7 @@ export function InstallPWAButton() {
 
     // Listen for app installed event
     const installedHandler = () => {
+      console.log('App installed successfully!'); // Debug log
       setIsInstalled(true);
       setDeferredPrompt(null);
     };
@@ -42,7 +44,9 @@ export function InstallPWAButton() {
   }, []);
 
   const handleInstallClick = async () => {
+    console.log('Install button clicked, deferredPrompt:', deferredPrompt);
     if (!deferredPrompt) {
+      alert('Install not available. Try:\n1. Use Chrome/Edge\n2. Visit on HTTPS\n3. Interact with page first\n4. Clear cache and reload');
       return;
     }
 
@@ -52,6 +56,8 @@ export function InstallPWAButton() {
     if (outcome === 'accepted') {
       console.log('User accepted the install prompt');
       setIsInstalled(true);
+    } else {
+      console.log('User dismissed the install prompt');
     }
 
     setDeferredPrompt(null);
