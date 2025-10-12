@@ -456,15 +456,15 @@
     ]
   },
   {
-    "id": "custom-nbacktemplate",
-    "name": "Custom NBackTemplate",
-    "fullName": "Custom NBackTemplate",
-    "shortDescription": "Salary",
-    "detailedDescription": "Salary",
-    "duration": "~15 minutes",
-    "trials": "Variable",
+    "id": "reactiontimememorytest",
+    "name": "Reaction Time & Memory Test",
+    "fullName": "Reaction Time & Memory Test",
+    "shortDescription": "A cognitive experiment measuring reaction time to visual stimuli and short-term memory recall",
+    "detailedDescription": "A cognitive experiment measuring reaction time to visual stimuli and short-term memory recall",
+    "duration": "~2 minutes",
+    "trials": "40 trials",
     "difficulty": "Custom",
-    "category": "AI Generated",
+    "category": "Visual Builder",
     "measures": [
       "Custom measures"
     ],
@@ -472,14 +472,305 @@
     "color": "from-purple-500 to-pink-500",
     "requiresCamera": false,
     "keywords": [
-      "custom-nbacktemplate",
+      "reaction-time-memory-test",
+      "visual-builder",
       "ai-generated",
       "custom"
     ],
     "researchAreas": [
       "Custom Research"
     ],
-    "publications": []
+    "publications": [],
+    "source": "visual-builder-ai",
+    "visualFlow": {
+      "nodes": [
+        {
+          "id": "node-1",
+          "type": "experiment",
+          "position": {
+            "x": 250,
+            "y": 50
+          },
+          "data": {
+            "label": "Welcome Instructions",
+            "blockType": "instruction",
+            "config": {
+              "text": "Welcome! You will see a series of images. Press SPACE as quickly as possible when you see a GREEN circle. Remember the images shown, as you'll be tested later. Press Continue to start.",
+              "buttonText": "Start Experiment"
+            }
+          },
+          "width": 207,
+          "height": 130,
+          "selected": true,
+          "dragging": false
+        },
+        {
+          "id": "node-2",
+          "type": "experiment",
+          "position": {
+            "x": 250,
+            "y": 200
+          },
+          "data": {
+            "label": "Get Ready",
+            "blockType": "fixation",
+            "config": {
+              "symbol": "+",
+              "duration": 1000,
+              "size": 40
+            }
+          },
+          "width": 200,
+          "height": 146
+        },
+        {
+          "id": "node-3",
+          "type": "experiment",
+          "position": {
+            "x": 250,
+            "y": 350
+          },
+          "data": {
+            "label": "Memory Item - Cat",
+            "blockType": "stimulus",
+            "config": {
+              "stimulusType": "text",
+              "content": "🐱 CAT",
+              "duration": 2000,
+              "position": "center"
+            }
+          },
+          "width": 200,
+          "height": 166
+        },
+        {
+          "id": "node-4",
+          "type": "experiment",
+          "position": {
+            "x": 250,
+            "y": 500
+          },
+          "data": {
+            "label": "Brief Pause",
+            "blockType": "fixation",
+            "config": {
+              "symbol": "+",
+              "duration": 500,
+              "size": 40
+            }
+          },
+          "width": 200,
+          "height": 146
+        },
+        {
+          "id": "node-5",
+          "type": "experiment",
+          "position": {
+            "x": 250,
+            "y": 650
+          },
+          "data": {
+            "label": "Green Circle Target",
+            "blockType": "stimulus",
+            "config": {
+              "stimulusType": "text",
+              "content": "🟢",
+              "duration": 2000,
+              "position": "center"
+            }
+          },
+          "width": 200,
+          "height": 166
+        },
+        {
+          "id": "node-6",
+          "type": "experiment",
+          "position": {
+            "x": 250,
+            "y": 800
+          },
+          "data": {
+            "label": "Quick Response",
+            "blockType": "response",
+            "config": {
+              "responseType": "keyboard",
+              "choices": [
+                "space"
+              ],
+              "timeout": 2000,
+              "correctResponse": "space"
+            }
+          },
+          "width": 200,
+          "height": 130
+        },
+        {
+          "id": "node-7",
+          "type": "experiment",
+          "position": {
+            "x": 250,
+            "y": 950
+          },
+          "data": {
+            "label": "Performance Feedback",
+            "blockType": "feedback",
+            "config": {
+              "correctText": "Great! Fast response ✓",
+              "incorrectText": "Too slow or missed ✗",
+              "duration": 1000,
+              "showAccuracy": true
+            }
+          },
+          "width": 219,
+          "height": 146
+        },
+        {
+          "id": "node-8",
+          "type": "experiment",
+          "position": {
+            "x": 250,
+            "y": 1100
+          },
+          "data": {
+            "label": "Memory Check",
+            "blockType": "survey",
+            "config": {
+              "question": "Which image did you see earlier?",
+              "questionType": "multiple-choice",
+              "options": [
+                "Cat",
+                "Dog",
+                "Bird",
+                "Tree"
+              ]
+            }
+          },
+          "width": 200,
+          "height": 130
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge-1-2",
+          "source": "node-1",
+          "target": "node-2",
+          "type": "smoothstep",
+          "animated": true,
+          "style": {
+            "strokeWidth": 3,
+            "stroke": "#6366f1"
+          },
+          "markerEnd": {
+            "type": "arrowclosed",
+            "width": 20,
+            "height": 20,
+            "color": "#6366f1"
+          }
+        },
+        {
+          "id": "edge-2-3",
+          "source": "node-2",
+          "target": "node-3",
+          "type": "smoothstep",
+          "animated": true,
+          "style": {
+            "strokeWidth": 3,
+            "stroke": "#6366f1"
+          },
+          "markerEnd": {
+            "type": "arrowclosed",
+            "width": 20,
+            "height": 20,
+            "color": "#6366f1"
+          }
+        },
+        {
+          "id": "edge-3-4",
+          "source": "node-3",
+          "target": "node-4",
+          "type": "smoothstep",
+          "animated": true,
+          "style": {
+            "strokeWidth": 3,
+            "stroke": "#6366f1"
+          },
+          "markerEnd": {
+            "type": "arrowclosed",
+            "width": 20,
+            "height": 20,
+            "color": "#6366f1"
+          }
+        },
+        {
+          "id": "edge-4-5",
+          "source": "node-4",
+          "target": "node-5",
+          "type": "smoothstep",
+          "animated": true,
+          "style": {
+            "strokeWidth": 3,
+            "stroke": "#6366f1"
+          },
+          "markerEnd": {
+            "type": "arrowclosed",
+            "width": 20,
+            "height": 20,
+            "color": "#6366f1"
+          }
+        },
+        {
+          "id": "edge-5-6",
+          "source": "node-5",
+          "target": "node-6",
+          "type": "smoothstep",
+          "animated": true,
+          "style": {
+            "strokeWidth": 3,
+            "stroke": "#6366f1"
+          },
+          "markerEnd": {
+            "type": "arrowclosed",
+            "width": 20,
+            "height": 20,
+            "color": "#6366f1"
+          }
+        },
+        {
+          "id": "edge-6-7",
+          "source": "node-6",
+          "target": "node-7",
+          "type": "smoothstep",
+          "animated": true,
+          "style": {
+            "strokeWidth": 3,
+            "stroke": "#6366f1"
+          },
+          "markerEnd": {
+            "type": "arrowclosed",
+            "width": 20,
+            "height": 20,
+            "color": "#6366f1"
+          }
+        },
+        {
+          "id": "edge-7-8",
+          "source": "node-7",
+          "target": "node-8",
+          "type": "smoothstep",
+          "animated": true,
+          "style": {
+            "strokeWidth": 3,
+            "stroke": "#6366f1"
+          },
+          "markerEnd": {
+            "type": "arrowclosed",
+            "width": 20,
+            "height": 20,
+            "color": "#6366f1"
+          }
+        }
+      ]
+    },
+    "createdAt": "2025-10-12T03:21:38.646Z"
   }
-  
 ]
