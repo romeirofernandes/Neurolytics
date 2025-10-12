@@ -1,6 +1,10 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Button } from '../ui/button';
+import { Download } from 'lucide-react';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ScatterChart, Scatter, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Area, AreaChart } from 'recharts';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const HanoiAnalytics = ({ templateId }) => {
   // Hardcoded data for 8 participants with realistic Hanoi performance
@@ -90,8 +94,72 @@ const HanoiAnalytics = ({ templateId }) => {
 
   const COLORS = ['#3b82f6', '#ec4899', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4', '#ef4444', '#14b8a6'];
 
+  const downloadPDF = () => {
+    try {
+      const doc = new jsPDF();
+      const margin = 20;
+      let yPosition = margin;
+
+      doc.setFontSize(20);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Tower of Hanoi Analytics', margin, yPosition);
+      yPosition += 10;
+
+      doc.setFontSize(14);
+      doc.text(isExtended ? '(5 Discs Version)' : '(3 Discs Version)', margin, yPosition);
+      yPosition += 15;
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Generated: ${new Date().toLocaleString()}`, margin, yPosition);
+      yPosition += 20;
+
+      autoTable(doc, {
+        startY: yPosition,
+        head: [['Metric', 'Value']],
+        body: [
+          ['Total Participants', '8'],
+          ['Average Moves', avgMoves],
+          ['Average Time', `${avgTime}s`],
+          ['Average Efficiency', `${avgEfficiency}%`],
+          ['Optimal Moves', isExtended ? '31' : '7']
+        ],
+        theme: 'grid',
+        headStyles: { fillColor: [249, 250, 251], textColor: [26, 26, 26], fontStyle: 'bold' },
+        margin: { left: margin, right: margin }
+      });
+
+      yPosition = doc.lastAutoTable.finalY + 15;
+
+      autoTable(doc, {
+        startY: yPosition,
+        head: [['ID', 'Age', 'Gender', 'Education', 'City', 'Moves', 'Time (s)', 'Optimal', 'Efficiency']],
+        body: participantData.map(p => [
+          p.id, p.age.toString(), p.gender, p.education, p.city,
+          p.moves.toString(), p.time.toString(), p.optimalMoves.toString(), `${p.efficiency}%`
+        ]),
+        theme: 'grid',
+        headStyles: { fillColor: [249, 250, 251], textColor: [26, 26, 26], fontStyle: 'bold' },
+        bodyStyles: { fontSize: 9 },
+        margin: { left: margin, right: margin }
+      });
+
+      doc.save(`Hanoi-analytics-${Date.now()}.pdf`);
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      alert('Failed to generate PDF. Please try again.');
+    }
+  };
+
   return (
     <div className="space-y-6">
+      <div className="flex justify-end">
+        <Button onClick={downloadPDF} variant="outline" className="gap-2">
+          <Download className="h-4 w-4" />
+          Download PDF Report
+        </Button>
+      </div>
+
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>

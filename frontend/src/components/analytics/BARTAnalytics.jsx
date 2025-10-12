@@ -1,6 +1,10 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Button } from '../ui/button';
+import { Download } from 'lucide-react';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ScatterChart, Scatter, AreaChart, Area } from 'recharts';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const BARTAnalytics = () => {
   // 5 participants with realistic BART data
@@ -52,8 +56,178 @@ const BARTAnalytics = () => {
     { name: 'PhD', value: 1, color: '#8b5cf6' },
   ];
 
+  const downloadPDF = () => {
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 20;
+      let yPosition = margin;
+
+      // Title
+      doc.setFontSize(20);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(26, 26, 26);
+      doc.text('BART Analytics Report', margin, yPosition);
+      yPosition += 10;
+      
+      doc.setFontSize(16);
+      doc.text('Balloon Analogue Risk Task', margin, yPosition);
+      yPosition += 15;
+
+      // Date
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(102, 102, 102);
+      doc.text(`Generated: ${new Date().toLocaleString()}`, margin, yPosition);
+      yPosition += 15;
+
+      // Line separator
+      doc.setDrawColor(59, 130, 246);
+      doc.setLineWidth(0.5);
+      doc.line(margin, yPosition, pageWidth - margin, yPosition);
+      yPosition += 15;
+
+      // Summary Statistics
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 64, 175);
+      doc.text('Summary Statistics', margin, yPosition);
+      yPosition += 10;
+
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(55, 65, 81);
+      
+      const summaryData = [
+        ['Metric', 'Value'],
+        ['Total Participants', '5'],
+        ['Average Pumps per Balloon', avgPumps],
+        ['Average Total Earnings', `₹${avgEarnings}`],
+        ['Overall Risk Profile', 'Moderate']
+      ];
+
+      autoTable(doc, {
+        startY: yPosition,
+        head: [summaryData[0]],
+        body: summaryData.slice(1),
+        theme: 'grid',
+        headStyles: { 
+          fillColor: [249, 250, 251],
+          textColor: [26, 26, 26],
+          fontStyle: 'bold',
+          lineWidth: 0.1,
+          lineColor: [209, 213, 219]
+        },
+        bodyStyles: {
+          textColor: [55, 65, 81],
+          lineWidth: 0.1,
+          lineColor: [209, 213, 219]
+        },
+        margin: { left: margin, right: margin },
+        styles: { fontSize: 10 }
+      });
+
+      yPosition = doc.lastAutoTable.finalY + 15;
+
+      // Participant Details
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 64, 175);
+      doc.text('Detailed Participant Data', margin, yPosition);
+      yPosition += 10;
+
+      const participantTableData = participantData.map(p => [
+        p.id,
+        p.age.toString(),
+        p.gender,
+        p.education,
+        p.city,
+        p.avgPumps.toString(),
+        `₹${p.totalEarnings}`,
+        p.explosions.toString(),
+        p.riskScore
+      ]);
+
+      autoTable(doc, {
+        startY: yPosition,
+        head: [['ID', 'Age', 'Gender', 'Education', 'City', 'Avg Pumps', 'Earnings', 'Explosions', 'Risk Score']],
+        body: participantTableData,
+        theme: 'grid',
+        headStyles: { 
+          fillColor: [249, 250, 251],
+          textColor: [26, 26, 26],
+          fontStyle: 'bold',
+          lineWidth: 0.1,
+          lineColor: [209, 213, 219]
+        },
+        bodyStyles: {
+          textColor: [55, 65, 81],
+          lineWidth: 0.1,
+          lineColor: [209, 213, 219],
+          fontSize: 9
+        },
+        margin: { left: margin, right: margin },
+        styles: { fontSize: 9 }
+      });
+
+      yPosition = doc.lastAutoTable.finalY + 15;
+
+      // Add new page for insights
+      if (yPosition > pageHeight - 60) {
+        doc.addPage();
+        yPosition = margin;
+      }
+
+      // Key Insights
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 64, 175);
+      doc.text('Key Insights', margin, yPosition);
+      yPosition += 10;
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(55, 65, 81);
+
+      const insights = [
+        '• Risk-taking behavior shows moderate variation across participants',
+        '• Average pumps per balloon ranges from 22.1 (conservative) to 35.2 (high risk)',
+        '• Total earnings correlate positively with risk-taking propensity',
+        '• Participants with higher education tend to show more strategic risk-taking',
+        '• Risk progression remains relatively stable across trial blocks'
+      ];
+
+      insights.forEach(insight => {
+        if (yPosition > pageHeight - 30) {
+          doc.addPage();
+          yPosition = margin;
+        }
+        doc.text(insight, margin, yPosition);
+        yPosition += 7;
+      });
+
+      doc.save(`BART-analytics-${Date.now()}.pdf`);
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      alert('Failed to generate PDF. Please try again.');
+    }
+  };
+
   return (
     <div className="space-y-6">
+      {/* PDF Download Button */}
+      <div className="flex justify-end">
+        <Button 
+          onClick={downloadPDF}
+          variant="outline"
+          className="gap-2"
+        >
+          <Download className="h-4 w-4" />
+          Download PDF Report
+        </Button>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">

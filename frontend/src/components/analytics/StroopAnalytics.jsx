@@ -1,6 +1,10 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Button } from '../ui/button';
+import { Download } from 'lucide-react';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const StroopAnalytics = () => {
   const participantData = [
@@ -17,8 +21,120 @@ const StroopAnalytics = () => {
     { name: 'Female', value: 2, color: '#ec4899' },
   ];
 
+  const downloadPDF = () => {
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 20;
+      let yPosition = margin;
+
+      // Title
+      doc.setFontSize(20);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(26, 26, 26);
+      doc.text('Stroop Task Analytics Report', margin, yPosition);
+      yPosition += 10;
+      
+      doc.setFontSize(16);
+      doc.text('Color-Word Interference Task', margin, yPosition);
+      yPosition += 15;
+
+      // Date
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(102, 102, 102);
+      doc.text(`Generated: ${new Date().toLocaleString()}`, margin, yPosition);
+      yPosition += 15;
+
+      // Line separator
+      doc.setDrawColor(59, 130, 246);
+      doc.setLineWidth(0.5);
+      doc.line(margin, yPosition, pageWidth - margin, yPosition);
+      yPosition += 15;
+
+      // Summary Statistics
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 64, 175);
+      doc.text('Summary Statistics', margin, yPosition);
+      yPosition += 10;
+
+      const summaryData = [
+        ['Metric', 'Value'],
+        ['Total Participants', '4'],
+        ['Average Stroop Effect', `${avgStroopEffect}ms`],
+        ['Average Accuracy', '96.2%']
+      ];
+
+      autoTable(doc, {
+        startY: yPosition,
+        head: [summaryData[0]],
+        body: summaryData.slice(1),
+        theme: 'grid',
+        headStyles: { 
+          fillColor: [249, 250, 251],
+          textColor: [26, 26, 26],
+          fontStyle: 'bold'
+        },
+        margin: { left: margin, right: margin }
+      });
+
+      yPosition = doc.lastAutoTable.finalY + 15;
+
+      // Participant Details
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 64, 175);
+      doc.text('Detailed Participant Data', margin, yPosition);
+      yPosition += 10;
+
+      const participantTableData = participantData.map(p => [
+        p.id,
+        p.age.toString(),
+        p.gender,
+        p.education,
+        p.city,
+        `${p.congruentRT}ms`,
+        `${p.incongruentRT}ms`,
+        `${p.stroopEffect}ms`,
+        `${p.accuracy}%`
+      ]);
+
+      autoTable(doc, {
+        startY: yPosition,
+        head: [['ID', 'Age', 'Gender', 'Education', 'City', 'Congruent RT', 'Incongruent RT', 'Stroop Effect', 'Accuracy']],
+        body: participantTableData,
+        theme: 'grid',
+        headStyles: { 
+          fillColor: [249, 250, 251],
+          textColor: [26, 26, 26],
+          fontStyle: 'bold'
+        },
+        bodyStyles: { fontSize: 9 },
+        margin: { left: margin, right: margin }
+      });
+
+      doc.save(`Stroop-analytics-${Date.now()}.pdf`);
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      alert('Failed to generate PDF. Please try again.');
+    }
+  };
+
   return (
     <div className="space-y-6">
+      {/* PDF Download Button */}
+      <div className="flex justify-end">
+        <Button 
+          onClick={downloadPDF}
+          variant="outline"
+          className="gap-2"
+        >
+          <Download className="h-4 w-4" />
+          Download PDF Report
+        </Button>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">
