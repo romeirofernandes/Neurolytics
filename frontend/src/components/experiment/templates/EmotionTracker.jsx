@@ -784,7 +784,8 @@ const EmotionTracker = ({ participantId, experimentId, onComplete }) => {
               </p>
             )}
           </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
