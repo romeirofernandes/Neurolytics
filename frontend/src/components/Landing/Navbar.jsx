@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { useTheme } from "@/context/ThemeContext";
 import { useNavigate } from "react-router-dom";
 import { FaBrain } from "react-icons/fa";
+import { InstallPWAButton } from '../ui/install-pwa-button';
 
 const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -105,6 +106,7 @@ const Navbar = () => {
           </motion.div>
         )}
       </AnimatePresence>
+      <InstallPWAButton />
     </>
   );
 };
