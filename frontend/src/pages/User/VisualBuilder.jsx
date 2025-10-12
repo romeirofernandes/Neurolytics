@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import ReactFlow, {
@@ -29,12 +29,13 @@ import {
   Download,
   Upload,
   Settings,
-  Play,
+  Eye,
   CheckCircle2,
   Trash2,
-  Copy,
   Sparkles,
-  Info
+  Info,
+  Loader2,
+  X
 } from 'lucide-react';
 
 const nodeTypes = {
@@ -51,9 +52,11 @@ const defaultEdgeOptions = {
   },
   style: {
     strokeWidth: 3,
-    stroke: '#6366f1', // Use hex color instead of CSS variable
+    stroke: '#6366f1',
   },
 };
+
+const STORAGE_KEY = 'visual-builder-state';
 
 const VisualBuilder = () => {
   const { user, isAuthenticated } = useAuth();
@@ -71,6 +74,49 @@ const VisualBuilder = () => {
     enabled: false,
     type: 'full',
   });
+  const [previewVisible, setPreviewVisible] = useState(false);
+  const [generatingAI, setGeneratingAI] = useState(false);
+  const [savedExperimentId, setSavedExperimentId] = useState(null);
+  const [templateId, setTemplateId] = useState(null);
+
+  // Load from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const data = JSON.parse(saved);
+        setNodes(data.nodes || []);
+        setEdges(data.edges || []);
+        setExperimentName(data.experimentName || '');
+        setExperimentDescription(data.experimentDescription || '');
+        setRepetitions(data.repetitions || 1);
+        setRandomization(data.randomization || { enabled: false, type: 'full' });
+        setSavedExperimentId(data.savedExperimentId || null);
+        setTemplateId(data.templateId || null);
+      }
+    } catch (error) {
+      console.error('Failed to load saved state:', error);
+    }
+  }, []);
+
+  // Save to localStorage whenever state changes
+  useEffect(() => {
+    try {
+      const state = {
+        nodes,
+        edges,
+        experimentName,
+        experimentDescription,
+        repetitions,
+        randomization,
+        savedExperimentId,
+        templateId,
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (error) {
+      console.error('Failed to save state:', error);
+    }
+  }, [nodes, edges, experimentName, experimentDescription, repetitions, randomization, savedExperimentId, templateId]);
 
   const onConnect = useCallback(
     (params) => {
@@ -81,7 +127,7 @@ const VisualBuilder = () => {
         animated: true,
         style: {
           strokeWidth: 3,
-          stroke: '#6366f1', // Use hex color instead of CSS variable
+          stroke: '#6366f1',
         },
         markerEnd: {
           type: MarkerType.ArrowClosed,
@@ -132,95 +178,144 @@ const VisualBuilder = () => {
     setSelectedNode(null);
   }, [selectedNode, setNodes]);
 
-  const deleteNode = useCallback((id) => {
-    setNodes((nds) => nds.filter((node) => node.id !== id));
-    setEdges((eds) => eds.filter((edge) => edge.source !== id && edge.target !== id));
-  }, [setNodes, setEdges]);
-
-  const duplicateNode = useCallback((node) => {
-    const newNode = {
-      ...node,
-      id: `node-${Date.now()}-${Math.random()}`,
-      position: {
-        x: node.position.x + 50,
-        y: node.position.y + 50,
-      },
-      data: {
-        ...node.data,
-        label: `${node.data.label} (copy)`,
-      },
-    };
-    setNodes((nds) => [...nds, newNode]);
-  }, [setNodes]);
-
   const clearCanvas = useCallback(() => {
-    if (window.confirm('Are you sure you want to clear the canvas?')) {
+    if (window.confirm('Are you sure you want to clear the canvas? This will delete all nodes and reset the experiment.')) {
       setNodes([]);
       setEdges([]);
+      setExperimentName('');
+      setExperimentDescription('');
+      setRepetitions(1);
+      setRandomization({ enabled: false, type: 'full' });
+      setSavedExperimentId(null);
+      setTemplateId(null);
+      localStorage.removeItem(STORAGE_KEY);
     }
   }, [setNodes, setEdges]);
 
-  const saveExperiment = async () => {
-    if (!experimentName.trim()) {
-      alert('Please enter an experiment name');
+  const generateAIExperiment = async () => {
+    if (!experimentName.trim() || !experimentDescription.trim()) {
+      alert('Please provide both experiment name and description for AI generation');
       return;
     }
 
     if (nodes.length === 0) {
-      alert('Please add at least one node');
+      alert('Please add at least one node to define the experiment structure');
       return;
     }
 
-    setSaving(true);
-    setSaveSuccess(false);
+    setGeneratingAI(true);
 
     try {
-      const experimentId = experimentName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-      
-      const experimentData = {
-        id: experimentId,
-        name: experimentName,
-        fullName: experimentDescription || experimentName,
-        category: 'custom',
-        difficulty: 'medium',
-        duration: `${Math.ceil(nodes.length * repetitions * 2 / 60)} min`,
-        trials: `${nodes.length * repetitions} trials`,
-        description: experimentDescription,
-        source: 'visual-builder',
-        config: {
-          nodes: nodes,
-          edges: edges,
-          randomization: randomization,
-          repetitions: repetitions,
-          flowType: 'node-based'
-        },
-        createdBy: user._id,
-        createdAt: new Date().toISOString()
-      };
+      const flowDescription = `
+Create a React experiment component based on this visual flow design:
 
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/visual-builder/save`, {
+**Experiment Name:** ${experimentName}
+**Description:** ${experimentDescription}
+**Number of Blocks:** ${nodes.length}
+**Repetitions per Block:** ${repetitions}
+**Randomization:** ${randomization.enabled ? 'Enabled' : 'Disabled'}
+
+**Experimental Flow (in sequence):**
+${nodes.map((node, idx) => {
+  const nextNode = edges.find(e => e.source === node.id);
+  const nextNodeData = nextNode ? nodes.find(n => n.id === nextNode.target) : null;
+  
+  return `
+Block ${idx + 1}: ${node.data.label}
+- Type: ${node.data.blockType}
+- Configuration: ${JSON.stringify(node.data.config, null, 2)}
+${nextNodeData ? `- Next: ${nextNodeData.data.label}` : '- Final block'}
+`;
+}).join('\n')}
+
+**Connection Flow:**
+${edges.map(edge => {
+  const sourceNode = nodes.find(n => n.id === edge.source);
+  const targetNode = nodes.find(n => n.id === edge.target);
+  return `${sourceNode?.data.label} → ${targetNode?.data.label}`;
+}).join('\n')}
+
+**Requirements:**
+1. Implement each block type exactly as configured
+2. Follow the connection flow for trial sequencing
+3. Repeat each block ${repetitions} times
+${randomization.enabled ? '4. Randomize the order of trials' : '4. Keep trials in sequential order'}
+5. Collect comprehensive data for each trial
+6. Display clear instructions and feedback
+7. Show progress indicator
+8. Provide summary statistics at the end
+
+Generate a complete, production-ready React component.
+    `.trim();
+
+      console.log('Sending AI generation request...');
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/visual-builder/generate-ai`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ experiment: experimentData })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          description: flowDescription,
+          researcherId: user?.mongoId || 'anonymous',
+        })
       });
 
-      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(`AI generation failed: ${response.statusText}`);
+      }
 
-      if (data.success) {
+      const data = await response.json();
+      console.log('AI generated code successfully');
+
+      if (!data.success) {
+        throw new Error(data.message || 'Failed to generate experiment');
+      }
+
+      // Save directly to templates.json
+      console.log('Saving to templates.json...');
+      
+      const saveResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/visual-builder/save-ai`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: experimentName,
+          description: experimentDescription,
+          componentCode: data.code,
+          researcherId: user?.mongoId || 'anonymous',
+          estimatedDuration: Math.ceil(nodes.length * repetitions * 2 / 60),
+          metadata: {
+            nodeCount: nodes.length,
+            edgeCount: edges.length,
+            repetitions: repetitions,
+            randomized: randomization.enabled,
+            visualFlow: {
+              nodes: nodes,
+              edges: edges
+            }
+          }
+        })
+      });
+
+      if (!saveResponse.ok) {
+        throw new Error(`Failed to save: ${saveResponse.statusText}`);
+      }
+
+      const saveData = await saveResponse.json();
+      console.log('Saved to templates.json:', saveData);
+
+      if (saveData.success) {
+        setTemplateId(saveData.templateInfo?.templateId);
         setSaveSuccess(true);
+        alert(`✅ Experiment saved to templates.json!\n\nTemplate ID: ${saveData.templateInfo?.templateId}\nYou can now find it in your experiment templates.`);
         setTimeout(() => setSaveSuccess(false), 3000);
       } else {
-        throw new Error(data.error || 'Failed to save');
+        throw new Error(saveData.message || 'Failed to save');
       }
+
     } catch (error) {
-      console.error('Save error:', error);
-      alert('Failed to save experiment: ' + error.message);
+      console.error('AI Generation error:', error);
+      alert('Failed to generate AI experiment: ' + error.message);
     } finally {
-      setSaving(false);
+      setGeneratingAI(false);
     }
   };
 
@@ -240,27 +335,41 @@ const VisualBuilder = () => {
     a.href = url;
     a.download = `${experimentName.replace(/\s+/g, '-')}-flow.json`;
     a.click();
+    URL.revokeObjectURL(url);
   };
 
   const importJSON = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        try {
-          const data = JSON.parse(event.target.result);
-          setExperimentName(data.name || '');
-          setExperimentDescription(data.description || '');
-          setNodes(data.nodes || []);
-          setEdges(data.edges || []);
-          setRandomization(data.randomization || { enabled: false, type: 'full' });
-          setRepetitions(data.repetitions || 1);
-        } catch (error) {
-          alert('Invalid JSON file');
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const data = JSON.parse(event.target.result);
+        
+        // Validate the JSON structure
+        if (!data.nodes || !Array.isArray(data.nodes)) {
+          throw new Error('Invalid JSON: missing nodes array');
         }
-      };
-      reader.readAsText(file);
-    }
+
+        // Import the data
+        setExperimentName(data.name || '');
+        setExperimentDescription(data.description || '');
+        setNodes(data.nodes || []);
+        setEdges(data.edges || []);
+        setRandomization(data.randomization || { enabled: false, type: 'full' });
+        setRepetitions(data.repetitions || 1);
+
+        alert(`✅ Successfully imported experiment: ${data.name || 'Untitled'}`);
+      } catch (error) {
+        console.error('Import error:', error);
+        alert('❌ Invalid JSON file: ' + error.message);
+      }
+    };
+    reader.readAsText(file);
+    
+    // Reset the file input so the same file can be imported again
+    e.target.value = '';
   };
 
   if (!isAuthenticated) {
@@ -280,40 +389,66 @@ const VisualBuilder = () => {
             </div>
           </div>
 
-          <div className="flex gap-4">
-            <Button onClick={clearCanvas} variant="outline" className="p-4">
+          <div className="flex gap-2">
+            {templateId && (
+              <Button 
+                onClick={() => setPreviewVisible(!previewVisible)} 
+                variant="outline" 
+                size="sm"
+                className="gap-2"
+              >
+                <Eye className="w-4 h-4" />
+                {previewVisible ? 'Hide Preview' : 'Preview'}
+              </Button>
+            )}
+            <Button onClick={clearCanvas} variant="outline" size="sm">
               <Trash2 className="w-4 h-4" />
-              Clear
             </Button>
-            <Button onClick={saveExperiment} disabled={saving} className="gap-2">
-              <Save className="w-4 h-4" />
-              {saving ? 'Saving...' : 'Save'}
+            <Button 
+              onClick={generateAIExperiment} 
+              disabled={generatingAI || nodes.length === 0}
+              className="gap-2"
+              variant="default"
+            >
+              {generatingAI ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4" />
+                  Generate AI Experiment
+                </>
+              )}
             </Button>
           </div>
         </header>
 
-        <main className="flex-1 h-[calc(100vh-4rem)] relative">
+        <main className="flex-1 h-[calc(100vh-4rem)] relative overflow-hidden">
           {saveSuccess && (
             <Alert className="absolute top-4 right-4 w-96 z-20 border-success bg-success/10">
               <CheckCircle2 className="h-4 w-4 text-success" />
               <AlertDescription className="text-success">
-                Experiment saved successfully!
+                AI Experiment generated and saved successfully!
               </AlertDescription>
             </Alert>
           )}
 
-          {/* Tutorial hint for first-time users */}
+          {/* Tutorial hint */}
           {nodes.length === 0 && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
               <Card className="max-w-md pointer-events-auto">
                 <CardContent className="pt-6 text-center space-y-3">
                   <Info className="h-12 w-12 mx-auto text-primary" />
-                  <h3 className="text-lg font-semibold">Welcome to Visual Builder!</h3>
+                  <h3 className="text-lg font-semibold">Build Your Experiment Flow</h3>
                   <p className="text-sm text-muted-foreground">
-                    Click on blocks in the right panel to add nodes. Connect them with arrows to create your experiment flow.
+                    1. Click blocks in the right panel to add nodes
+                    <br />2. Connect them with arrows
+                    <br />3. Click "Generate AI Experiment" to create a template
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Click any node to edit its properties. Drag nodes to reposition them.
+                    Or import a JSON file to get started quickly
                   </p>
                 </CardContent>
               </Card>
@@ -334,17 +469,17 @@ const VisualBuilder = () => {
                   <Input
                     value={experimentName}
                     onChange={(e) => setExperimentName(e.target.value)}
-                    placeholder="e.g., Stroop Color-Word Task"
+                    placeholder="e.g., Custom Cognitive Task"
                     className="h-8"
                   />
                 </div>
                 <div>
-                  <Label className="text-xs">Description</Label>
+                  <Label className="text-xs">Description *</Label>
                   <textarea
                     className="w-full p-2 border rounded-md bg-background text-xs min-h-[60px]"
                     value={experimentDescription}
                     onChange={(e) => setExperimentDescription(e.target.value)}
-                    placeholder="Brief description of your experiment..."
+                    placeholder="Describe what this experiment measures..."
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
@@ -375,7 +510,7 @@ const VisualBuilder = () => {
                   <Label className="text-xs">Randomize Trial Order</Label>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <Button variant="outline" size="sm" onClick={exportJSON}>
+                  <Button variant="outline" size="sm" onClick={exportJSON} disabled={nodes.length === 0}>
                     <Download className="w-3 h-3 mr-1" />
                     Export
                   </Button>
@@ -386,7 +521,7 @@ const VisualBuilder = () => {
                   <input
                     id="import-flow"
                     type="file"
-                    accept=".json"
+                    accept=".json,application/json"
                     onChange={importJSON}
                     className="hidden"
                   />
@@ -399,7 +534,8 @@ const VisualBuilder = () => {
             <NodePalette onAddNode={addNode} />
           </div>
 
-          <div className="w-full h-full">
+          {/* Main Flow Canvas */}
+          <div className={`w-full ${previewVisible ? 'h-1/2' : 'h-full'}`}>
             <ReactFlow
               nodes={nodes}
               edges={edges}
@@ -436,6 +572,26 @@ const VisualBuilder = () => {
               />
             </ReactFlow>
           </div>
+
+          {/* Preview Panel */}
+          {previewVisible && templateId && (
+            <div className="absolute bottom-0 left-0 right-0 h-1/2 border-t bg-background z-10">
+              <div className="flex items-center justify-between px-4 py-2 border-b bg-muted/30">
+                <h3 className="font-semibold text-sm">Live Preview</h3>
+                <Button variant="ghost" size="sm" onClick={() => setPreviewVisible(false)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="h-[calc(100%-40px)] overflow-hidden">
+                <iframe
+                  src={`http://localhost:5173/preview/${templateId}`}
+                  className="w-full h-full border-0"
+                  title="Experiment Preview"
+                  sandbox="allow-scripts allow-same-origin allow-forms"
+                />
+              </div>
+            </div>
+          )}
 
           <Sheet open={editorOpen} onOpenChange={setEditorOpen}>
             <SheetContent className="overflow-y-auto sm:max-w-xl p-0">

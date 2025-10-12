@@ -4,7 +4,10 @@ import { useParticipant } from '../../context/ParticipantContext';
 import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Alert, AlertDescription } from '../../components/ui/alert';
-import { MarkdownRenderer } from '../../components/ui/MarkdownRenderer';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Loader2 } from 'lucide-react';
 import { FaArrowLeft, FaCheckCircle, FaExclamationCircle, FaSpinner, FaChartLine, FaDownload, FaBrain, FaCamera } from 'react-icons/fa';
 import { jsPDF } from 'jspdf';
@@ -619,7 +622,66 @@ const RunExperiment = () => {
                   <FaChartLine className="h-5 w-5 text-primary" />
                   <h3 className="text-xl font-bold">AI Performance Analysis</h3>
                 </div>
-                <MarkdownRenderer content={aiAnalysis} />
+                <div className="prose prose-sm dark:prose-invert max-w-none">
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      h1: ({ node, ...props }) => <h1 className="text-2xl font-bold mt-6 mb-4 text-foreground" {...props} />,
+                      h2: ({ node, ...props }) => <h2 className="text-xl font-bold mt-5 mb-3 text-foreground border-b pb-2 border-border" {...props} />,
+                      h3: ({ node, ...props }) => <h3 className="text-lg font-semibold mt-4 mb-2 text-foreground" {...props} />,
+                      h4: ({ node, ...props }) => <h4 className="text-base font-semibold mt-3 mb-2 text-foreground" {...props} />,
+                      p: ({ node, ...props }) => <p className="my-3 text-muted-foreground leading-relaxed" {...props} />,
+                      ul: ({ node, ...props }) => <ul className="list-disc pl-6 my-3 space-y-1 text-muted-foreground" {...props} />,
+                      ol: ({ node, ...props }) => <ol className="list-decimal pl-6 my-3 space-y-1 text-muted-foreground" {...props} />,
+                      li: ({ node, ...props }) => <li className="text-muted-foreground" {...props} />,
+                      table: ({ node, ...props }) => (
+                        <div className="my-4 overflow-x-auto">
+                          <table className="min-w-full border-collapse border border-border rounded-lg" {...props} />
+                        </div>
+                      ),
+                      thead: ({ node, ...props }) => <thead className="bg-muted" {...props} />,
+                      tbody: ({ node, ...props }) => <tbody className="divide-y divide-border" {...props} />,
+                      tr: ({ node, ...props }) => <tr className="hover:bg-muted/50 transition-colors" {...props} />,
+                      th: ({ node, ...props }) => <th className="border border-border px-4 py-2 text-left font-semibold text-foreground" {...props} />,
+                      td: ({ node, ...props }) => <td className="border border-border px-4 py-2 text-muted-foreground" {...props} />,
+                      strong: ({ node, ...props }) => <strong className="font-bold text-foreground" {...props} />,
+                      em: ({ node, ...props }) => <em className="italic text-foreground" {...props} />,
+                      code: ({ node, inline, className, children, ...props }) => {
+                        const match = /language-(\w+)/.exec(className || '');
+                        return !inline && match ? (
+                          <SyntaxHighlighter
+                            style={vscDarkPlus}
+                            language={match[1]}
+                            PreTag="div"
+                            className="rounded-lg my-4"
+                            {...props}
+                          >
+                            {String(children).replace(/\n$/, '')}
+                          </SyntaxHighlighter>
+                        ) : (
+                          <code className="bg-muted px-1.5 py-0.5 rounded text-sm font-mono text-primary" {...props}>
+                            {children}
+                          </code>
+                        );
+                      },
+                      pre: ({ node, children, ...props }) => (
+                        <pre className="bg-muted p-4 rounded-lg my-4 overflow-x-auto text-sm font-mono" {...props}>
+                          {children}
+                        </pre>
+                      ),
+                      blockquote: ({ node, ...props }) => (
+                        <blockquote className="border-l-4 border-primary pl-4 py-2 my-4 italic bg-muted/30 rounded-r-lg text-foreground/80" {...props} />
+                      ),
+                      a: ({ node, ...props }) => (
+                        <a className="text-primary hover:underline font-medium" target="_blank" rel="noopener noreferrer" {...props} />
+                      ),
+                      hr: ({ node, ...props }) => <hr className="my-6 border-border" {...props} />,
+                      img: ({ node, ...props }) => <img className="rounded-lg my-4 max-w-full h-auto" {...props} />,
+                    }}
+                  >
+                    {aiAnalysis}
+                  </ReactMarkdown>
+                </div>
               </CardContent>
             </Card>
           ) : analysisError ? (

@@ -190,6 +190,10 @@ What would you like to build today?`,
 
       const data = await response.json();
 
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || `Server error: ${response.status}`);
+      }
+
       if (data.success) {
         setCurrentExperiment(data.experiment);
         
@@ -206,12 +210,10 @@ What would you like to build today?`,
         
         // Switch to build tab to show the preview
         setActiveTab('build');
-      } else {
-        throw new Error(data.message);
       }
     } catch (error) {
       console.error('Save error:', error);
-      alert('Failed to save experiment');
+      alert(`Failed to save experiment: ${error.message}`);
     } finally {
       setSaving(false);
     }
