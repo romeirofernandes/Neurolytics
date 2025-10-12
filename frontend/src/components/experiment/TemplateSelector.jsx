@@ -13,7 +13,8 @@ import { SimonTemplate } from './templates/SimonTemplate';
 import { DigitSpanTemplate } from './templates/DigitSpanTemplate';
 import { VisualSearchTemplate } from './templates/VisualSearchTemplate';
 import EmotionTracker from './templates/EmotionTracker';
-import { Loader2, ArrowLeft, Brain, Target, Zap, Layers, Puzzle, Download, Filter, Hand, RefreshCw, Move, Hash, Search, Camera, AlertCircle } from 'lucide-react';
+import VoiceCRTTemplate from './templates/VoiceCRTTemplate'; // Added import
+import { Loader2, ArrowLeft, Brain, Target, Zap, Layers, Puzzle, Download, Filter, Hand, RefreshCw, Move, Hash, Search, Camera, AlertCircle, Mic } from 'lucide-react'; // Added Mic icon
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -22,46 +23,46 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 const templates = [
-	{
-		id: 'stroop-emotion',
-		name: 'Stroop + Emotions',
-		fullName: 'Stroop Task with Emotion Tracking',
-		description: 'Measures selective attention and cognitive control while tracking facial emotions',
-		details: 'Combines the classic Stroop color-word interference task with real-time facial emotion recognition. Tracks how emotions change during cognitive conflict and processing.',
-		duration: '~8 minutes',
-		trials: '50 trials (10 training, 40 test)',
-		measures: ['Selective attention', 'Cognitive control', 'Emotional responses', 'Stroop effect', 'Affect during conflict'],
-		component: EmotionTracker,
-		icon: Camera,
-		color: 'from-indigo-500 to-purple-500',
-		requiresCamera: true,
-	},
-	{
-		id: 'bart',
-		name: 'BART',
-		fullName: 'Balloon Analogue Risk Task',
-		description: 'Measures risk-taking behavior and decision-making under uncertainty',
-		details: 'Participants pump up virtual balloons to earn money. Each pump increases earnings but also explosion risk. Used to assess risk propensity in clinical and behavioral research.',
-		duration: '~2 minutes',
-		trials: '33 trials (3 training)',
-		measures: ['Risk-taking propensity', 'Reward sensitivity', 'Decision-making strategy'],
-		component: BARTTemplate,
-		icon: Brain,
-		color: 'from-blue-500 to-cyan-500'
-	},
-	{
-		id: 'stroop',
-		name: 'Stroop Task',
-		fullName: 'Stroop Color-Word Task',
-		description: 'Measures selective attention, processing speed, and cognitive control',
-		details: 'Classic cognitive interference task where participants identify the color of words while ignoring their meaning. Demonstrates automatic processing and executive function.',
-		duration: '~1-2 minutes',
-		trials: '20 trials (5 training)',
-		measures: ['Selective attention', 'Response inhibition', 'Processing speed', 'Stroop effect magnitude'],
-		component: StroopTemplate,
-		icon: Target,
-		color: 'from-purple-500 to-pink-500'
-	},
+    {
+        id: 'stroop-emotion',
+        name: 'Stroop + Emotions',
+        fullName: 'Stroop Task with Emotion Tracking',
+        description: 'Measures selective attention and cognitive control while tracking facial emotions',
+        details: 'Combines the classic Stroop color-word interference task with real-time facial emotion recognition. Tracks how emotions change during cognitive conflict and processing.',
+        duration: '~8 minutes',
+        trials: '50 trials (10 training, 40 test)',
+        measures: ['Selective attention', 'Cognitive control', 'Emotional responses', 'Stroop effect', 'Affect during conflict'],
+        component: EmotionTracker,
+        icon: Camera,
+        color: 'from-indigo-500 to-purple-500',
+        requiresCamera: true,
+    },
+    {
+        id: 'bart',
+        name: 'BART',
+        fullName: 'Balloon Analogue Risk Task',
+        description: 'Measures risk-taking behavior and decision-making under uncertainty',
+        details: 'Participants pump up virtual balloons to earn money. Each pump increases earnings but also explosion risk. Used to assess risk propensity in clinical and behavioral research.',
+        duration: '~2 minutes',
+        trials: '33 trials (3 training)',
+        measures: ['Risk-taking propensity', 'Reward sensitivity', 'Decision-making strategy'],
+        component: BARTTemplate,
+        icon: Brain,
+        color: 'from-blue-500 to-cyan-500'
+    },
+    {
+        id: 'stroop',
+        name: 'Stroop Task',
+        fullName: 'Stroop Color-Word Task',
+        description: 'Measures selective attention, processing speed, and cognitive control',
+        details: 'Classic cognitive interference task where participants identify the color of words while ignoring their meaning. Demonstrates automatic processing and executive function.',
+        duration: '~1-2 minutes',
+        trials: '20 trials (5 training)',
+        measures: ['Selective attention', 'Response inhibition', 'Processing speed', 'Stroop effect magnitude'],
+        component: StroopTemplate,
+        icon: Target,
+        color: 'from-purple-500 to-pink-500'
+    },
   {
     id: 'flanker',
     name: 'Flanker Task',
@@ -75,19 +76,19 @@ const templates = [
     icon: Filter,
     color: 'from-orange-500 to-red-500'
   },
-	{
-		id: 'posner',
-		name: 'Posner Cueing',
-		fullName: 'Posner Spatial Cueing Task',
-		description: 'Assesses spatial attention orienting and visual processing',
-		details: 'Participants respond to targets appearing in cued or uncued locations. Measures the cost and benefit of spatial attention shifting, fundamental to understanding attentional mechanisms.',
-		duration: '~2 minutes',
-		trials: '40 trials',
-		measures: ['Spatial attention', 'Cueing effects', 'Attentional orienting', 'Response time benefits'],
-		component: PosnerTemplate,
-		icon: Zap,
-		color: 'from-yellow-500 to-orange-500'
-	},
+    {
+        id: 'posner',
+        name: 'Posner Cueing',
+        fullName: 'Posner Spatial Cueing Task',
+        description: 'Assesses spatial attention orienting and visual processing',
+        details: 'Participants respond to targets appearing in cued or uncued locations. Measures the cost and benefit of spatial attention shifting, fundamental to understanding attentional mechanisms.',
+        duration: '~2 minutes',
+        trials: '40 trials',
+        measures: ['Spatial attention', 'Cueing effects', 'Attentional orienting', 'Response time benefits'],
+        component: PosnerTemplate,
+        icon: Zap,
+        color: 'from-yellow-500 to-orange-500'
+    },
   {
     id: 'simon',
     name: 'Simon Task',
@@ -153,32 +154,46 @@ const templates = [
     icon: Search,
     color: 'from-indigo-500 to-blue-500'
   },
-	{
-		id: 'abba',
-		name: 'ABBA Task',
-		fullName: 'Action-Based Backward Activation',
-		description: 'Examines action planning and response compatibility effects',
-		details: 'Tests the reversed-compatibility effect where participants plan one response and execute another. Critical for understanding motor planning and cognitive control interactions.',
-		duration: '~2 minutes',
-		trials: '40 trials',
-		measures: ['Action planning', 'Response compatibility', 'Motor control', 'Cognitive flexibility'],
-		component: ABBATemplate,
-		icon: Layers,
-		color: 'from-green-500 to-emerald-500'
-	},
-	{
-		id: 'hanoi',
-		name: 'Tower of Hanoi',
-		fullName: 'Tower of Hanoi Puzzle',
-		description: 'Evaluates planning, problem-solving, and executive function',
-		details: 'Classic problem-solving task requiring participants to move discs between pegs following specific rules. Assesses planning ability, working memory, and strategic thinking.',
-		duration: '~5 minutes',
-		trials: '1 puzzle (3 discs)',
-		measures: ['Planning ability', 'Problem-solving efficiency', 'Working memory', 'Strategic thinking'],
-		component: TowerHanoiTemplate,
-		icon: Puzzle,
-		color: 'from-red-500 to-rose-500'
-	}
+  {
+    id: 'voice-crt',
+    name: 'Voice CRT',
+    fullName: 'Voice-Based Cognitive Reflection Test',
+    description: 'Measures analytical thinking vs intuitive responses using voice input',
+    details: 'Classic cognitive reflection questions answered using voice recognition or typed input. Assesses the ability to override intuitive but incorrect answers with deliberate analytical reasoning. Includes real-time speech-to-text conversion.',
+    duration: '~5-7 minutes',
+    trials: '3 questions',
+    measures: ['Analytical thinking', 'Cognitive reflection', 'Response inhibition', 'Voice fluency', 'Reaction time'],
+    component: VoiceCRTTemplate,
+    icon: Mic,
+    color: 'from-pink-500 to-rose-500',
+    requiresCamera: false,
+  },
+    {
+        id: 'abba',
+        name: 'ABBA Task',
+        fullName: 'Action-Based Backward Activation',
+        description: 'Examines action planning and response compatibility effects',
+        details: 'Tests the reversed-compatibility effect where participants plan one response and execute another. Critical for understanding motor planning and cognitive control interactions.',
+        duration: '~2 minutes',
+        trials: '40 trials',
+        measures: ['Action planning', 'Response compatibility', 'Motor control', 'Cognitive flexibility'],
+        component: ABBATemplate,
+        icon: Layers,
+        color: 'from-green-500 to-emerald-500'
+    },
+    {
+        id: 'hanoi',
+        name: 'Tower of Hanoi',
+        fullName: 'Tower of Hanoi Puzzle',
+        description: 'Evaluates planning, problem-solving, and executive function',
+        details: 'Classic problem-solving task requiring participants to move discs between pegs following specific rules. Assesses planning ability, working memory, and strategic thinking.',
+        duration: '~5 minutes',
+        trials: '1 puzzle (3 discs)',
+        measures: ['Planning ability', 'Problem-solving efficiency', 'Working memory', 'Strategic thinking'],
+        component: TowerHanoiTemplate,
+        icon: Puzzle,
+        color: 'from-red-500 to-rose-500'
+    }
 ];
 
 const TemplateSelector = ({ onTemplateSelect }) => {

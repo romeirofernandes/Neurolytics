@@ -11,6 +11,7 @@ const analysisRoutes = require('./routes/analysisRoutes');
 const emotionsRoutes = require('./routes/emotionsRoutes');
 const aiExperimentRoutes = require('./routes/aiExperimentRoutes');
 const publicExperimentRoutes = require('./routes/publicExperimentRoutes');
+const voiceResponsesRoutes = require('./routes/voiceResponses'); // Changed from import to require
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use('/api/analysis', analysisRoutes);
 app.use('/api/emotions', emotionsRoutes);
 app.use('/api/ai-experiments', aiExperimentRoutes);
 app.use('/public', publicExperimentRoutes); // Public experiment serving
+app.use('/api/voice-responses', voiceResponsesRoutes);
 
 // Health check
 app.get('/', (req, res) => {
