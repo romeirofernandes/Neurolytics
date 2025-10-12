@@ -20,8 +20,19 @@
     "icon": "Camera",
     "color": "from-indigo-500 to-purple-500",
     "requiresCamera": true,
-    "keywords": ["stroop", "emotion", "facial recognition", "cognitive control", "attention", "interference"],
-    "researchAreas": ["Cognitive Psychology", "Affective Neuroscience", "Clinical Psychology"],
+    "keywords": [
+      "stroop",
+      "emotion",
+      "facial recognition",
+      "cognitive control",
+      "attention",
+      "interference"
+    ],
+    "researchAreas": [
+      "Cognitive Psychology",
+      "Affective Neuroscience",
+      "Clinical Psychology"
+    ],
     "publications": [
       "MacLeod, C. M. (1991). Half a century of research on the Stroop effect",
       "Ekman, P., & Friesen, W. V. (1978). Facial Action Coding System"
@@ -47,8 +58,18 @@
     "icon": "Brain",
     "color": "from-blue-500 to-cyan-500",
     "requiresCamera": false,
-    "keywords": ["risk", "decision-making", "reward", "gambling", "impulse control"],
-    "researchAreas": ["Behavioral Economics", "Clinical Psychology", "Addiction Research"],
+    "keywords": [
+      "risk",
+      "decision-making",
+      "reward",
+      "gambling",
+      "impulse control"
+    ],
+    "researchAreas": [
+      "Behavioral Economics",
+      "Clinical Psychology",
+      "Addiction Research"
+    ],
     "publications": [
       "Lejuez, C. W., et al. (2002). Evaluation of a behavioral measure of risk taking",
       "Hunt, M. K., et al. (2005). Construct validity of the BART"
@@ -75,8 +96,18 @@
     "icon": "Target",
     "color": "from-purple-500 to-pink-500",
     "requiresCamera": false,
-    "keywords": ["stroop", "attention", "cognitive control", "interference", "executive function"],
-    "researchAreas": ["Cognitive Psychology", "Neuropsychology", "Clinical Psychology"],
+    "keywords": [
+      "stroop",
+      "attention",
+      "cognitive control",
+      "interference",
+      "executive function"
+    ],
+    "researchAreas": [
+      "Cognitive Psychology",
+      "Neuropsychology",
+      "Clinical Psychology"
+    ],
     "publications": [
       "Stroop, J. R. (1935). Studies of interference in serial verbal reactions",
       "MacLeod, C. M. (1991). Half a century of research on the Stroop effect"
@@ -103,8 +134,18 @@
     "icon": "Filter",
     "color": "from-orange-500 to-red-500",
     "requiresCamera": false,
-    "keywords": ["flanker", "attention", "interference", "cognitive control", "selective attention"],
-    "researchAreas": ["Cognitive Psychology", "Developmental Psychology", "Neuroscience"],
+    "keywords": [
+      "flanker",
+      "attention",
+      "interference",
+      "cognitive control",
+      "selective attention"
+    ],
+    "researchAreas": [
+      "Cognitive Psychology",
+      "Developmental Psychology",
+      "Neuroscience"
+    ],
     "publications": [
       "Eriksen, B. A., & Eriksen, C. W. (1974). Effects of noise letters",
       "Botvinick, M. M., et al. (2001). Conflict monitoring and cognitive control"
@@ -131,8 +172,18 @@
     "icon": "Zap",
     "color": "from-yellow-500 to-orange-500",
     "requiresCamera": false,
-    "keywords": ["posner", "attention", "cueing", "spatial attention", "orienting"],
-    "researchAreas": ["Cognitive Neuroscience", "Attention Research", "Clinical Neuropsychology"],
+    "keywords": [
+      "posner",
+      "attention",
+      "cueing",
+      "spatial attention",
+      "orienting"
+    ],
+    "researchAreas": [
+      "Cognitive Neuroscience",
+      "Attention Research",
+      "Clinical Neuropsychology"
+    ],
     "publications": [
       "Posner, M. I. (1980). Orienting of attention",
       "Posner, M. I., & Petersen, S. E. (1990). The attention system of the human brain"
@@ -159,8 +210,18 @@
     "icon": "Move",
     "color": "from-teal-500 to-cyan-500",
     "requiresCamera": false,
-    "keywords": ["simon", "compatibility", "spatial", "interference", "automatic processing"],
-    "researchAreas": ["Cognitive Psychology", "Neuropsychology", "Human Factors"],
+    "keywords": [
+      "simon",
+      "compatibility",
+      "spatial",
+      "interference",
+      "automatic processing"
+    ],
+    "researchAreas": [
+      "Cognitive Psychology",
+      "Neuropsychology",
+      "Human Factors"
+    ],
     "publications": [
       "Simon, J. R., & Rudell, A. P. (1967). Auditory S-R compatibility",
       "Lu, C. H., & Proctor, R. W. (1995). The influence of irrelevant location information"
@@ -187,8 +248,18 @@
     "icon": "Hand",
     "color": "from-rose-500 to-pink-500",
     "requiresCamera": false,
-    "keywords": ["go no-go", "inhibition", "impulse control", "executive function", "self-control"],
-    "researchAreas": ["Clinical Neuropsychology", "Developmental Psychology", "Cognitive Neuroscience"],
+    "keywords": [
+      "go no-go",
+      "inhibition",
+      "impulse control",
+      "executive function",
+      "self-control"
+    ],
+    "researchAreas": [
+      "Clinical Neuropsychology",
+      "Developmental Psychology",
+      "Cognitive Neuroscience"
+    ],
     "publications": [
       "Donders, F. C. (1969). On the speed of mental processes",
       "Simmonds, D. J., et al. (2008). Meta-analysis of Go/No-go tasks"
@@ -215,8 +286,18 @@
     "icon": "RefreshCw",
     "color": "from-violet-500 to-purple-500",
     "requiresCamera": false,
-    "keywords": ["n-back", "working memory", "memory", "updating", "executive function"],
-    "researchAreas": ["Cognitive Psychology", "Intelligence Research", "Cognitive Neuroscience"],
+    "keywords": [
+      "n-back",
+      "working memory",
+      "memory",
+      "updating",
+      "executive function"
+    ],
+    "researchAreas": [
+      "Cognitive Psychology",
+      "Intelligence Research",
+      "Cognitive Neuroscience"
+    ],
     "publications": [
       "Kirchner, W. K. (1958). Age differences in short-term retention",
       "Jaeggi, S. M., et al. (2008). Improving fluid intelligence with training"
@@ -243,8 +324,18 @@
     "icon": "Hash",
     "color": "from-emerald-500 to-green-500",
     "requiresCamera": false,
-    "keywords": ["digit span", "memory", "short-term memory", "recall", "memory capacity"],
-    "researchAreas": ["Cognitive Psychology", "Clinical Neuropsychology", "Intelligence Testing"],
+    "keywords": [
+      "digit span",
+      "memory",
+      "short-term memory",
+      "recall",
+      "memory capacity"
+    ],
+    "researchAreas": [
+      "Cognitive Psychology",
+      "Clinical Neuropsychology",
+      "Intelligence Testing"
+    ],
     "publications": [
       "Miller, G. A. (1956). The magical number seven, plus or minus two",
       "Wechsler, D. (2008). Wechsler Adult Intelligence Scale"
@@ -271,8 +362,18 @@
     "icon": "Search",
     "color": "from-indigo-500 to-blue-500",
     "requiresCamera": false,
-    "keywords": ["visual search", "attention", "perception", "feature integration", "conjunction"],
-    "researchAreas": ["Cognitive Psychology", "Vision Science", "Human Factors"],
+    "keywords": [
+      "visual search",
+      "attention",
+      "perception",
+      "feature integration",
+      "conjunction"
+    ],
+    "researchAreas": [
+      "Cognitive Psychology",
+      "Vision Science",
+      "Human Factors"
+    ],
     "publications": [
       "Treisman, A. M., & Gelade, G. (1980). A feature-integration theory",
       "Wolfe, J. M. (1994). Guided Search 2.0"
@@ -299,15 +400,25 @@
     "icon": "Layers",
     "color": "from-green-500 to-emerald-500",
     "requiresCamera": false,
-    "keywords": ["ABBA", "action planning", "motor control", "compatibility", "response selection"],
-    "researchAreas": ["Cognitive Psychology", "Motor Control", "Action Research"],
+    "keywords": [
+      "ABBA",
+      "action planning",
+      "motor control",
+      "compatibility",
+      "response selection"
+    ],
+    "researchAreas": [
+      "Cognitive Psychology",
+      "Motor Control",
+      "Action Research"
+    ],
     "publications": [
       "Proctor, R. W., & Vu, K. P. L. (2006). Stimulus-response compatibility principles",
       "Hommel, B. (2011). The Simon effect as tool and heuristic"
     ]
   },
   {
-    "id": "hanoi",
+    "id": "hanoi1",
     "name": "Tower of Hanoi",
     "fullName": "Tower of Hanoi Problem-Solving Task",
     "shortDescription": "Evaluates planning, problem-solving, and executive function",
@@ -327,11 +438,479 @@
     "icon": "Puzzle",
     "color": "from-red-500 to-rose-500",
     "requiresCamera": false,
-    "keywords": ["tower of hanoi", "problem solving", "planning", "executive function", "strategy"],
-    "researchAreas": ["Cognitive Psychology", "Neuropsychology", "Developmental Psychology"],
+    "keywords": [
+      "tower of hanoi",
+      "problem solving",
+      "planning",
+      "executive function",
+      "strategy"
+    ],
+    "researchAreas": [
+      "Cognitive Psychology",
+      "Neuropsychology",
+      "Developmental Psychology"
+    ],
     "publications": [
       "Simon, H. A. (1975). The functional equivalence of problem solving skills",
       "Welsh, M. C., et al. (1991). Towers of Hanoi and London"
     ]
+  },
+  {
+    "id": "custom-nbacktemplate",
+    "name": "Custom NBackTemplate",
+    "fullName": "Custom NBackTemplate",
+    "shortDescription": "Salary",
+    "detailedDescription": "Salary",
+    "duration": "~15 minutes",
+    "trials": "Variable",
+    "difficulty": "Custom",
+    "category": "AI Generated",
+    "measures": [
+      "Custom measures"
+    ],
+    "icon": "Sparkles",
+    "color": "from-purple-500 to-pink-500",
+    "requiresCamera": false,
+    "keywords": [
+      "custom-nbacktemplate",
+      "ai-generated",
+      "custom"
+    ],
+    "researchAreas": [
+      "Custom Research"
+    ],
+    "publications": []
+  },
+  {
+    "id": "hanoi",
+    "name": "Tower of Hanoi (5 Discs)",
+    "fullName": "Tower of Hanoi 5-Disc Problem-Solving Task",
+    "shortDescription": "Advanced planning and problem-solving challenge with 5 discs",
+    "detailedDescription": "The extended Tower of Hanoi with 5 discs provides a significantly more challenging problem-solving task compared to the standard 3-disc version. With an optimal solution requiring 31 moves (2⁵-1), this version tests advanced planning abilities, strategic thinking, and working memory capacity. Perfect for assessing complex cognitive processes and executive function in research contexts.",
+    "duration": "~10-15 minutes",
+    "trials": "1 puzzle (5 discs)",
+    "difficulty": "Advanced",
+    "category": "Problem Solving",
+    "measures": [
+      "Advanced planning",
+      "Problem-solving efficiency",
+      "Working memory capacity",
+      "Strategic thinking",
+      "Number of moves",
+      "Solution time",
+      "Error tracking"
+    ],
+    "icon": "Puzzle",
+    "color": "from-purple-500 to-indigo-500",
+    "requiresCamera": false,
+    "keywords": [
+      "tower of hanoi",
+      "5 discs",
+      "problem solving",
+      "planning",
+      "executive function",
+      "strategy",
+      "cognitive challenge"
+    ],
+    "researchAreas": [
+      "Cognitive Psychology",
+      "Neuropsychology",
+      "Developmental Psychology",
+      "Executive Function Research"
+    ],
+    "publications": [
+      "Simon, H. A. (1975). The functional equivalence of problem solving skills",
+      "Welsh, M. C., et al. (1991). Towers of Hanoi and London"
+    ]
+  },
+  {
+    "id": "jn",
+    "name": "jn",
+    "fullName": "jn",
+    "shortDescription": "tyifgyvbhjm,",
+    "detailedDescription": "tyifgyvbhjm,",
+    "duration": "~15 minutes",
+    "trials": "Variable",
+    "difficulty": "Custom",
+    "category": "AI Generated",
+    "measures": [
+      "Custom measures"
+    ],
+    "icon": "Sparkles",
+    "color": "from-purple-500 to-pink-500",
+    "requiresCamera": false,
+    "keywords": [
+      "jn",
+      "ai-generated",
+      "custom"
+    ],
+    "researchAreas": [
+      "Custom Research"
+    ],
+    "publications": []
+  },
+  {
+    "id": "reni",
+    "name": "reni",
+    "fullName": "reni",
+    "shortDescription": "reni",
+    "detailedDescription": "reni",
+    "duration": "~15 minutes",
+    "trials": "Variable",
+    "difficulty": "Custom",
+    "category": "AI Generated",
+    "measures": [
+      "Custom measures"
+    ],
+    "icon": "Sparkles",
+    "color": "from-purple-500 to-pink-500",
+    "requiresCamera": false,
+    "keywords": [
+      "reni",
+      "ai-generated",
+      "custom"
+    ],
+    "researchAreas": [
+      "Custom Research"
+    ],
+    "publications": []
+  },
+  {
+    "id": "niggasingh",
+    "name": "niggasingh",
+    "fullName": "niggasingh",
+    "shortDescription": "nigapav",
+    "detailedDescription": "nigapav",
+    "duration": "~15 minutes",
+    "trials": "Variable",
+    "difficulty": "Custom",
+    "category": "AI Generated",
+    "measures": [
+      "Custom measures"
+    ],
+    "icon": "Sparkles",
+    "color": "from-purple-500 to-pink-500",
+    "requiresCamera": false,
+    "keywords": [
+      "niggasingh",
+      "ai-generated",
+      "custom"
+    ],
+    "researchAreas": [
+      "Custom Research"
+    ],
+    "publications": []
+  },
+  {
+    "id": "iyftrdgcfh",
+    "name": "iyftrdgcfh",
+    "fullName": "iyftrdgcfh",
+    "shortDescription": "5tydgchv",
+    "detailedDescription": "5tydgchv",
+    "duration": "~15 minutes",
+    "trials": "Variable",
+    "difficulty": "Custom",
+    "category": "AI Generated",
+    "measures": [
+      "Custom measures"
+    ],
+    "icon": "Sparkles",
+    "color": "from-purple-500 to-pink-500",
+    "requiresCamera": false,
+    "keywords": [
+      "iyftrdgcfh",
+      "ai-generated",
+      "custom"
+    ],
+    "researchAreas": [
+      "Custom Research"
+    ],
+    "publications": []
+  },
+  {
+    "id": "hello",
+    "name": "hello",
+    "fullName": "hello",
+    "shortDescription": "hello",
+    "detailedDescription": "hello",
+    "duration": "~15 minutes",
+    "trials": "Variable",
+    "difficulty": "Custom",
+    "category": "AI Generated",
+    "measures": [
+      "Custom measures"
+    ],
+    "icon": "Sparkles",
+    "color": "from-purple-500 to-pink-500",
+    "requiresCamera": false,
+    "keywords": [
+      "hello",
+      "ai-generated",
+      "custom"
+    ],
+    "researchAreas": [
+      "Custom Research"
+    ],
+    "publications": []
+  },
+  {
+    "id": "hell",
+    "name": "hell",
+    "fullName": "hell",
+    "shortDescription": "hell",
+    "detailedDescription": "hell",
+    "duration": "~15 minutes",
+    "trials": "Variable",
+    "difficulty": "Custom",
+    "category": "AI Generated",
+    "measures": [
+      "Custom measures"
+    ],
+    "icon": "Sparkles",
+    "color": "from-purple-500 to-pink-500",
+    "requiresCamera": false,
+    "keywords": [
+      "hell",
+      "ai-generated",
+      "custom"
+    ],
+    "researchAreas": [
+      "Custom Research"
+    ],
+    "publications": []
+  },
+  {
+    "id": "hellll",
+    "name": "hellll",
+    "fullName": "hellll",
+    "shortDescription": "hellll",
+    "detailedDescription": "hellll",
+    "duration": "~15 minutes",
+    "trials": "Variable",
+    "difficulty": "Custom",
+    "category": "AI Generated",
+    "measures": [
+      "Custom measures"
+    ],
+    "icon": "Sparkles",
+    "color": "from-purple-500 to-pink-500",
+    "requiresCamera": false,
+    "keywords": [
+      "hellll",
+      "ai-generated",
+      "custom"
+    ],
+    "researchAreas": [
+      "Custom Research"
+    ],
+    "publications": []
+  },
+  {
+    "id": "hellllll",
+    "name": "hellllll",
+    "fullName": "hellllll",
+    "shortDescription": "hellllll",
+    "detailedDescription": "hellllll",
+    "duration": "~15 minutes",
+    "trials": "Variable",
+    "difficulty": "Custom",
+    "category": "AI Generated",
+    "measures": [
+      "Custom measures"
+    ],
+    "icon": "Sparkles",
+    "color": "from-purple-500 to-pink-500",
+    "requiresCamera": false,
+    "keywords": [
+      "hellllll",
+      "ai-generated",
+      "custom"
+    ],
+    "researchAreas": [
+      "Custom Research"
+    ],
+    "publications": []
+  },
+  {
+    "id": "rom-rom",
+    "name": "rom-rom",
+    "fullName": "rom-rom",
+    "shortDescription": "rom-rom",
+    "detailedDescription": "rom-rom",
+    "duration": "~15 minutes",
+    "trials": "Variable",
+    "difficulty": "Custom",
+    "category": "AI Generated",
+    "measures": [
+      "Custom measures"
+    ],
+    "icon": "Sparkles",
+    "color": "from-purple-500 to-pink-500",
+    "requiresCamera": false,
+    "keywords": [
+      "rom-rom",
+      "ai-generated",
+      "custom"
+    ],
+    "researchAreas": [
+      "Custom Research"
+    ],
+    "publications": []
+  },
+  {
+    "id": "rus",
+    "name": "Rus",
+    "fullName": "Rus",
+    "shortDescription": "Rus",
+    "detailedDescription": "Rus",
+    "duration": "~15 minutes",
+    "trials": "Variable",
+    "difficulty": "Custom",
+    "category": "AI Generated",
+    "measures": [
+      "Custom measures"
+    ],
+    "icon": "Sparkles",
+    "color": "from-purple-500 to-pink-500",
+    "requiresCamera": false,
+    "keywords": [
+      "rus",
+      "ai-generated",
+      "custom"
+    ],
+    "researchAreas": [
+      "Custom Research"
+    ],
+    "publications": []
+  },
+  {
+    "id": "ali",
+    "name": "Ali",
+    "fullName": "Ali",
+    "shortDescription": "Ali",
+    "detailedDescription": "Ali",
+    "duration": "~15 minutes",
+    "trials": "Variable",
+    "difficulty": "Custom",
+    "category": "AI Generated",
+    "measures": [
+      "Custom measures"
+    ],
+    "icon": "Sparkles",
+    "color": "from-purple-500 to-pink-500",
+    "requiresCamera": false,
+    "keywords": [
+      "ali",
+      "ai-generated",
+      "custom"
+    ],
+    "researchAreas": [
+      "Custom Research"
+    ],
+    "publications": []
+  },
+  {
+    "id": "rohan",
+    "name": "Rohan",
+    "fullName": "Rohan",
+    "shortDescription": "Rohan",
+    "detailedDescription": "Rohan",
+    "duration": "~15 minutes",
+    "trials": "Variable",
+    "difficulty": "Custom",
+    "category": "AI Generated",
+    "measures": [
+      "Custom measures"
+    ],
+    "icon": "Sparkles",
+    "color": "from-purple-500 to-pink-500",
+    "requiresCamera": false,
+    "keywords": [
+      "rohan",
+      "ai-generated",
+      "custom"
+    ],
+    "researchAreas": [
+      "Custom Research"
+    ],
+    "publications": []
+  },
+  {
+    "id": "romro",
+    "name": "Romro",
+    "fullName": "Romro",
+    "shortDescription": "Romro",
+    "detailedDescription": "Romro",
+    "duration": "~15 minutes",
+    "trials": "Variable",
+    "difficulty": "Custom",
+    "category": "AI Generated",
+    "measures": [
+      "Custom measures"
+    ],
+    "icon": "Sparkles",
+    "color": "from-purple-500 to-pink-500",
+    "requiresCamera": false,
+    "keywords": [
+      "romro",
+      "ai-generated",
+      "custom"
+    ],
+    "researchAreas": [
+      "Custom Research"
+    ],
+    "publications": []
+  },
+  {
+    "id": "gav",
+    "name": "Gav",
+    "fullName": "Gav",
+    "shortDescription": "Gav",
+    "detailedDescription": "Gav",
+    "duration": "~15 minutes",
+    "trials": "Variable",
+    "difficulty": "Custom",
+    "category": "AI Generated",
+    "measures": [
+      "Custom measures"
+    ],
+    "icon": "Sparkles",
+    "color": "from-purple-500 to-pink-500",
+    "requiresCamera": false,
+    "keywords": [
+      "gav",
+      "ai-generated",
+      "custom"
+    ],
+    "researchAreas": [
+      "Custom Research"
+    ],
+    "publications": []
+  },
+  {
+    "id": "adi",
+    "name": "Adi",
+    "fullName": "Adi",
+    "shortDescription": "Adi",
+    "detailedDescription": "Adi",
+    "duration": "~15 minutes",
+    "trials": "Variable",
+    "difficulty": "Custom",
+    "category": "AI Generated",
+    "measures": [
+      "Custom measures"
+    ],
+    "icon": "Sparkles",
+    "color": "from-purple-500 to-pink-500",
+    "requiresCamera": false,
+    "keywords": [
+      "adi",
+      "ai-generated",
+      "custom"
+    ],
+    "researchAreas": [
+      "Custom Research"
+    ],
+    "publications": []
   }
 ]

@@ -2,8 +2,42 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const Experiment = require('../models/Experiment');
 const ConsentForm = require('../models/ConsentForm');
 const { get } = require("mongoose");
+const fs = require('fs').promises;
+const path = require('path');
+const { 
+  retrieveRelevantTemplates, 
+  extractModifications, 
+  generateRAGPrompt,
+  getAllTemplates,
+  searchTemplates
+} = require('../utils/ragHelper');
+const {
+  buildAndSaveExperiment,
+  rebuildExperiment
+} = require('../utils/experimentBuilder');
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+/**
+ * Sanitize title for safe file operations
+ */
+function sanitizeTitle(title) {
+  return title.replace(/[^a-zA-Z0-9\s-]/g, '').trim();
+}
+
+/**
+ * Validate component name is safe
+ */
+function isValidComponentName(name) {
+  return /^[A-Z][a-zA-Z0-9]*$/.test(name);
+}
+
+/**
+ * Validate filename doesn't contain path traversal
+ */
+function isSafeFilename(filename) {
+  return !filename.includes('..') && !filename.includes('/') && !filename.includes('\\');
+}
 
 /**
  * Chat with AI to build/edit experiments
@@ -22,42 +56,16 @@ const chatWithAI = async (req, res) => {
 
     console.log(`🤖 AI Experiment Builder - Processing message from researcher ${researcherId}`);
 
-    // Build context-aware prompt
-    const systemPrompt = `You are an expert AI assistant for building psychological experiments. You help researchers create, modify, and refine experimental templates.
+    // RAG: Retrieve relevant templates
+    const relevantTemplates = retrieveRelevantTemplates(message, 3);
+    const modifications = extractModifications(message);
+    
+    console.log(`📚 RAG: Found ${relevantTemplates.length} relevant templates`);
+    console.log(`   - Best match: ${relevantTemplates[0]?.name} (score: ${relevantTemplates[0]?.similarityScore})`);
+    console.log(`🔧 Detected ${modifications.length} modifications:`, modifications.map(m => m.description));
 
-CAPABILITIES:
-- Create new experiment templates from scratch
-- Modify existing templates (trials, stimuli, timing, conditions)
-- Suggest best practices for experimental design
-- Help with randomization, counterbalancing, and trial structure
-- Provide JSX/React code for experiment components
-- Validate experimental paradigms
-
-EXPERIMENT STRUCTURE:
-Each experiment has:
-- Basic info (title, description, duration)
-- Trials array with phases (fixation, stimulus, response, feedback)
-- Stimuli configuration (colors, words, images, sounds)
-- Response options (keyboard keys, buttons, clicks)
-- Randomization settings
-- Data collection points
-
-RESPONSE FORMAT:
-Always respond with:
-1. Conversational explanation
-2. Code snippet if modifications are needed
-3. Suggestions for improvement
-4. Questions to clarify requirements
-
-CURRENT CONTEXT:
-${currentExperiment ? `Working on experiment: ${currentExperiment.title}\nCurrent config: ${JSON.stringify(currentExperiment.config, null, 2)}` : 'No experiment loaded - ready to create new one'}
-
-Conversation so far:
-${conversationHistory ? conversationHistory.map(h => `${h.role}: ${h.content}`).join('\n') : 'New conversation'}
-
-Researcher's message: ${message}
-
-Provide helpful, technical, and actionable guidance. Use markdown for formatting. Include code blocks with \`\`\`jsx for React components.`;
+    // Build RAG-enhanced prompt
+    const systemPrompt = generateRAGPrompt(message, relevantTemplates, modifications);
 
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
     const result = await model.generateContent(systemPrompt);
@@ -75,7 +83,10 @@ Provide helpful, technical, and actionable guidance. Use markdown for formatting
       success: true,
       message: aiMessage,
       code: extractedCode,
-      suggestions: extractSuggestions(aiMessage)
+      suggestions: extractSuggestions(aiMessage),
+      usedTemplate: relevantTemplates[0]?.name || null,
+      templateSimilarityScore: relevantTemplates[0]?.similarityScore || 0,
+      modifications: modifications
     });
 
   } catch (error) {
@@ -198,8 +209,18 @@ const saveAIExperiment = async (req, res) => {
       });
     }
 
+    // Sanitize title to prevent path traversal and injection
+    const sanitizedTitle = sanitizeTitle(title);
+    if (!sanitizedTitle) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid title - must contain alphanumeric characters'
+      });
+    }
+
+    // Create the experiment in database
     const experiment = new Experiment({
-      title,
+      title: sanitizedTitle,
       description,
       researcherId,
       templateType: templateType || 'custom-ai-generated',
@@ -214,12 +235,175 @@ const saveAIExperiment = async (req, res) => {
 
     await experiment.save();
 
-    console.log(`✅ AI experiment saved: ${experiment._id}`);
+    console.log(`✅ AI experiment saved to DB: ${experiment._id}`);
+
+    // 🔨 BUILD STANDALONE VERSION
+    console.log(`🔨 Building standalone experiment for public access...`);
+    const buildResult = await buildAndSaveExperiment(
+      experiment._id,
+      componentCode,
+      sanitizedTitle,
+      description
+    );
+    
+    if (!buildResult.success) {
+      console.error(`❌ Build failed: ${buildResult.error}`);
+    } else {
+      console.log(`✅ Standalone build successful! Public ID: ${buildResult.publicId}`);
+    }
+
+    // Generate template ID and component name from sanitized title
+    const templateId = sanitizedTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    
+    // Generate component name - ensure it starts with a letter
+    let componentName = sanitizedTitle
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join('')
+      .replace(/[^a-zA-Z0-9]/g, '');
+    
+    // If component name starts with a number, prefix with 'Custom'
+    if (/^\d/.test(componentName)) {
+      componentName = 'Custom' + componentName;
+    }
+    
+    // Add Template suffix
+    componentName = componentName + 'Template';
+
+    // Validate component name for security
+    if (!isValidComponentName(componentName)) {
+      console.error('❌ Invalid component name generated:', componentName);
+      return res.status(400).json({
+        success: false,
+        message: 'Generated component name is invalid. Please use a title that starts with a letter.'
+      });
+    }
+
+    // Prepare the component code with proper export
+    let finalComponentCode = componentCode;
+    
+    // Check if component already has export, if not add it
+    if (!componentCode.includes('export const') && !componentCode.includes('export default')) {
+      // Extract component name from code or use generated name - safe regex with length limit
+      const componentMatch = componentCode.match(/const\s+(\w{1,50})\s*=\s*\(/);
+      const existingComponentName = componentMatch ? componentMatch[1] : componentName;
+      
+      // Validate and safely replace
+      if (/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(existingComponentName)) {
+        const escapedName = existingComponentName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        finalComponentCode = componentCode.replace(
+          new RegExp(`const\\s+${escapedName}\\s*=`),
+          `export const ${componentName} =`
+        );
+      }
+    }
+
+    // Add necessary imports if not present
+    if (!finalComponentCode.includes('import')) {
+      const imports = `import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+
+`;
+      finalComponentCode = imports + finalComponentCode;
+    }
+
+    // Save as JSX file in templates folder - with path validation
+    const templatesDir = path.join(__dirname, '../../frontend/src/components/experiment/templates');
+    const safeFileName = `${componentName}.jsx`;
+    
+    // Validate filename doesn't contain path traversal
+    if (!isSafeFilename(safeFileName)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid filename generated'
+      });
+    }
+    
+    const templateFilePath = path.join(templatesDir, safeFileName);
+    
+    // Verify the resolved path is within the templates directory
+    const resolvedPath = path.resolve(templateFilePath);
+    const resolvedTemplatesDir = path.resolve(templatesDir);
+    if (!resolvedPath.startsWith(resolvedTemplatesDir)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid file path - security violation'
+      });
+    }
+    
+    try {
+      await fs.writeFile(templateFilePath, finalComponentCode, 'utf-8');
+      console.log(`✅ Template file created: ${templateFilePath}`);
+    } catch (fileError) {
+      console.error('❌ Error writing template file:', fileError);
+      // Continue even if file write fails - experiment is already saved in DB
+    }
+
+    // Update templates.json
+    const templatesJsonPath = path.join(__dirname, '../../frontend/templates.json');
+    
+    try {
+      const templatesData = await fs.readFile(templatesJsonPath, 'utf-8');
+      const templates = JSON.parse(templatesData);
+      
+      // Check if template already exists
+      const existingIndex = templates.findIndex(t => t.id === templateId);
+      
+      const newTemplate = {
+        id: templateId,
+        name: sanitizedTitle,
+        fullName: sanitizedTitle,
+        shortDescription: description || `AI-generated experiment: ${sanitizedTitle}`,
+        detailedDescription: description || `This is a custom experiment created using the AI Experiment Builder. ${sanitizedTitle}`,
+        duration: `~${estimatedDuration || 15} minutes`,
+        trials: "Variable",
+        difficulty: "Custom",
+        category: "AI Generated",
+        measures: ["Custom measures"],
+        icon: "Sparkles",
+        color: "from-purple-500 to-pink-500",
+        requiresCamera: false,
+        keywords: [templateId, "ai-generated", "custom"],
+        researchAreas: ["Custom Research"],
+        publications: []
+      };
+      
+      if (existingIndex !== -1) {
+        // Update existing template
+        templates[existingIndex] = newTemplate;
+        console.log(`✅ Updated existing template in templates.json: ${templateId}`);
+      } else {
+        // Add new template
+        templates.push(newTemplate);
+        console.log(`✅ Added new template to templates.json: ${templateId}`);
+      }
+      
+      await fs.writeFile(templatesJsonPath, JSON.stringify(templates, null, 2), 'utf-8');
+      console.log(`✅ templates.json updated successfully`);
+    } catch (jsonError) {
+      console.error('❌ Error updating templates.json:', jsonError);
+      // Continue even if JSON update fails - experiment and file are already saved
+    }
 
     res.status(201).json({
       success: true,
       experiment,
-      message: 'AI-generated experiment saved successfully'
+      build: buildResult.success ? {
+        publicId: buildResult.publicId,
+        previewUrl: `/public/preview/${buildResult.publicId}`,
+        publicUrl: `/public/experiment/${buildResult.publicId}`,
+        status: 'built'
+      } : {
+        status: 'failed',
+        error: buildResult.error
+      },
+      templateInfo: {
+        templateId,
+        componentName,
+        filePath: `src/components/experiment/templates/${componentName}.jsx`
+      },
+      message: 'AI-generated experiment saved successfully and added to templates'
     });
 
   } catch (error) {
@@ -335,6 +519,154 @@ const publishExperiment = async (req, res) => {
   }
 };
 
+/**
+ * Build/rebuild experiment to standalone HTML
+ * @route POST /api/ai-experiments/:experimentId/build
+ */
+const buildExperiment = async (req, res) => {
+  try {
+    const { experimentId } = req.params;
+    
+    const experiment = await Experiment.findById(experimentId);
+    if (!experiment) {
+      return res.status(404).json({
+        success: false,
+        message: 'Experiment not found'
+      });
+    }
+    
+    if (!experiment.config || !experiment.config.componentCode) {
+      return res.status(400).json({
+        success: false,
+        message: 'No component code found in experiment'
+      });
+    }
+    
+    console.log(`🔨 Building experiment: ${experiment.title}`);
+    
+    const buildResult = await rebuildExperiment(
+      experiment._id,
+      experiment.config.componentCode,
+      experiment.title,
+      experiment.description
+    );
+    
+    if (!buildResult.success) {
+      return res.status(500).json({
+        success: false,
+        message: 'Build failed',
+        error: buildResult.error
+      });
+    }
+    
+    res.status(200).json({
+      success: true,
+      message: 'Experiment built successfully',
+      publicId: buildResult.publicId,
+      previewUrl: `/public/preview/${buildResult.publicId}`,
+      publicUrl: `/public/experiment/${buildResult.publicId}`,
+      buildVersion: buildResult.builtExperiment.buildVersion
+    });
+    
+  } catch (error) {
+    console.error('❌ Build error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error building experiment',
+      error: error.message
+    });
+  }
+};
+
+/**
+ * Get build status and public URLs
+ * @route GET /api/ai-experiments/:experimentId/build-status
+ */
+const getBuildStatus = async (req, res) => {
+  try {
+    const { experimentId } = req.params;
+    
+    const BuiltExperiment = require('../models/BuiltExperiment');
+    const builtExp = await BuiltExperiment.findOne({ experimentId });
+    
+    if (!builtExp) {
+      return res.status(404).json({
+        success: false,
+        message: 'No build found for this experiment',
+        built: false
+      });
+    }
+    
+    res.status(200).json({
+      success: true,
+      built: true,
+      publicId: builtExp.publicId,
+      buildStatus: builtExp.buildStatus,
+      buildVersion: builtExp.buildVersion,
+      isPublic: builtExp.isPublic,
+      accessCount: builtExp.accessCount,
+      previewUrl: `/public/preview/${builtExp.publicId}`,
+      publicUrl: `/public/experiment/${builtExp.publicId}`,
+      urls: {
+        preview: `${process.env.API_URL || 'http://localhost:5000'}/public/preview/${builtExp.publicId}`,
+        public: `${process.env.API_URL || 'http://localhost:5000'}/public/experiment/${builtExp.publicId}`,
+        info: `${process.env.API_URL || 'http://localhost:5000'}/public/info/${builtExp.publicId}`
+      },
+      lastBuildAt: builtExp.updatedAt,
+      buildError: builtExp.buildError
+    });
+    
+  } catch (error) {
+    console.error('❌ Error fetching build status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching build status',
+      error: error.message
+    });
+  }
+};
+
+/**
+ * Toggle public access
+ * @route POST /api/ai-experiments/:experimentId/toggle-public
+ */
+const togglePublicAccess = async (req, res) => {
+  try {
+    const { experimentId } = req.params;
+    
+    const BuiltExperiment = require('../models/BuiltExperiment');
+    const builtExp = await BuiltExperiment.findOne({ experimentId });
+    
+    if (!builtExp) {
+      return res.status(404).json({
+        success: false,
+        message: 'No build found. Build the experiment first.'
+      });
+    }
+    
+    builtExp.isPublic = !builtExp.isPublic;
+    await builtExp.save();
+    
+    console.log(`🔓 Public access ${builtExp.isPublic ? 'enabled' : 'disabled'} for: ${builtExp.title}`);
+    
+    res.status(200).json({
+      success: true,
+      isPublic: builtExp.isPublic,
+      publicId: builtExp.publicId,
+      publicUrl: builtExp.isPublic ? `/public/experiment/${builtExp.publicId}` : null,
+      message: `Public access ${builtExp.isPublic ? 'enabled' : 'disabled'}`
+    });
+    
+  } catch (error) {
+    console.error('❌ Error toggling public access:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error toggling public access',
+      error: error.message
+    });
+  }
+};
+
 const getAIExperiment = async (req, res) => {
   try {
     const { experimentId } = req.params;
@@ -379,5 +711,8 @@ module.exports = {
   saveAIExperiment,
   getAIExperiment,
   canPublishExperiment,
-  publishExperiment
+  publishExperiment,
+  buildExperiment,
+  getBuildStatus,
+  togglePublicAccess
 };

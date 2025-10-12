@@ -25,6 +25,7 @@ import { AlertCircle } from 'lucide-react'
 import { Button } from './components/ui/button'
 import TestModels from './pages/TestModels'
 import AIExperimentBuilder from './pages/User/AIExperimentBuilder'
+import PreviewExperiment from './pages/Preview/PreviewExperiment'
 
 // Inline route protection components
 const ProtectedRoute = ({ children }) => {
@@ -181,6 +182,9 @@ const App = () => {
               <Route path="/experiment/:experimentId" element={
                 <PublicExperimentPage />
               } />
+              
+              {/* Public preview route - no authentication required */}
+              <Route path="/preview/:templateId" element={<PreviewExperiment />} />
               
               <Route path="/test-models" element={<TestModels />} />
               

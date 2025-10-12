@@ -5,16 +5,16 @@ import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Alert, AlertDescription } from '../../components/ui/alert';
 import { MarkdownRenderer } from '../../components/ui/MarkdownRenderer';
-import { 
-  ArrowLeft, CheckCircle, AlertCircle, Loader2, 
-  TrendingUp, Download, Share2 
-} from 'lucide-react';
+import { FaArrowLeft, FaCheckCircle, FaExclamationCircle, FaSpinner, FaChartLine, FaDownload, FaBrain, FaCamera } from 'react-icons/fa';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import templatesData from '../../../templates.json';
 import { BARTTemplate } from '../../components/experiment/templates/BARTTemplate';
 import { StroopTemplate } from '../../components/experiment/templates/StroopTemplate';
 import { PosnerTemplate } from '../../components/experiment/templates/PosnerTemplate';
 import { ABBATemplate } from '../../components/experiment/templates/ABBATemplate';
 import { TowerHanoiTemplate } from '../../components/experiment/templates/TowerHanoiTemplate';
+import { HanoiTowerTemplate } from '../../components/experiment/templates/Tile5HanoiTemplate';
 import { FlankerTemplate } from '../../components/experiment/templates/FlankerTemplate';
 import { GoNoGoTemplate } from '../../components/experiment/templates/GoNoGoTemplate';
 import { NBackTemplate } from '../../components/experiment/templates/NBackTemplate';
@@ -23,13 +23,14 @@ import { DigitSpanTemplate } from '../../components/experiment/templates/DigitSp
 import { VisualSearchTemplate } from '../../components/experiment/templates/VisualSearchTemplate';
 import EmotionTracker from '../../components/experiment/templates/EmotionTracker';
 
-// Template component mapping
-const templateComponents = {
+// Base template component mapping
+const baseTemplateComponents = {
   'bart': BARTTemplate,
   'stroop': StroopTemplate,
   'posner': PosnerTemplate,
   'abba': ABBATemplate,
-  'hanoi': TowerHanoiTemplate,
+  'hanoi': HanoiTowerTemplate,  // Maps to Tile5HanoiTemplate (5 disks)
+  'hanoi1': TowerHanoiTemplate,  // Original 3-disk version
   'flanker': FlankerTemplate,
   'gonogo': GoNoGoTemplate,
   'nback': NBackTemplate,
@@ -37,6 +38,53 @@ const templateComponents = {
   'digitspan': DigitSpanTemplate,
   'visualsearch': VisualSearchTemplate,
   'stroop-emotion': EmotionTracker
+};
+
+/**
+ * Dynamically load component for AI-generated templates
+ */
+const loadDynamicComponent = async (templateId) => {
+  try {
+    // Try to find the template in templates.json
+    const template = templatesData.find(t => t.id === templateId);
+    if (!template) {
+      console.error('Template not found in templates.json:', templateId);
+      return null;
+    }
+
+    // Generate component name from template ID
+    const componentName = templateId
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join('') + 'Template';
+
+    console.log('Attempting to load component:', componentName);
+
+    // Try to dynamically import the component
+    const module = await import(`../../components/experiment/templates/${componentName}.jsx`);
+    
+    // Try to find the component in multiple ways:
+    // 1. Named export matching the expected name
+    // 2. Default export
+    // 3. Any named export (for incorrectly named components)
+    if (module[componentName]) {
+      return module[componentName];
+    } else if (module.default) {
+      return module.default;
+    } else {
+      // Get first named export if exists
+      const exports = Object.keys(module).filter(key => key !== 'default' && key !== '__esModule');
+      if (exports.length > 0) {
+        console.warn(`Component ${componentName} not found, using ${exports[0]} instead`);
+        return module[exports[0]];
+      }
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Failed to load dynamic component:', error);
+    return null;
+  }
 };
 
 const RunExperiment = () => {
@@ -50,12 +98,44 @@ const RunExperiment = () => {
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [analyzingResults, setAnalyzingResults] = useState(false);
   const [analysisError, setAnalysisError] = useState(null);
+  const [TemplateComponent, setTemplateComponent] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
 
   useEffect(() => {
-    const foundTemplate = templatesData.find(t => t.id === templateId);
-    if (foundTemplate) {
+    const loadTemplate = async () => {
+      setLoading(true);
+      setLoadError(null);
+
+      // Find template in templates.json
+      const foundTemplate = templatesData.find(t => t.id === templateId);
+      if (!foundTemplate) {
+        setLoadError('Template not found');
+        setLoading(false);
+        return;
+      }
       setTemplate(foundTemplate);
-    }
+
+      // Try to load from base components first
+      if (baseTemplateComponents[templateId]) {
+        setTemplateComponent(() => baseTemplateComponents[templateId]);
+        setLoading(false);
+        return;
+      }
+
+      // Try to dynamically load AI-generated component
+      const dynamicComponent = await loadDynamicComponent(templateId);
+      if (dynamicComponent) {
+        setTemplateComponent(() => dynamicComponent);
+        setLoading(false);
+        return;
+      }
+
+      setLoadError('Component not found');
+      setLoading(false);
+    };
+
+    loadTemplate();
   }, [templateId]);
 
   const handleExperimentComplete = async (results) => {
@@ -106,23 +186,267 @@ const RunExperiment = () => {
   };
 
   const downloadResults = () => {
-    const dataStr = JSON.stringify(experimentResults, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    const exportFileDefaultName = `${templateId}_results_${new Date().toISOString()}.json`;
-    
-    const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileDefaultName);
-    linkElement.click();
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 20;
+      const maxWidth = pageWidth - (margin * 2);
+      let yPosition = margin;
+
+      // Title
+      doc.setFontSize(20);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(26, 26, 26);
+      doc.text(`${template.name}`, margin, yPosition);
+      yPosition += 10;
+      
+      doc.setFontSize(16);
+      doc.text('Experiment Results', margin, yPosition);
+      yPosition += 15;
+
+      // Date
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(102, 102, 102);
+      doc.text(`Generated: ${new Date().toLocaleString()}`, margin, yPosition);
+      yPosition += 15;
+
+      // Add a line separator
+      doc.setDrawColor(59, 130, 246);
+      doc.setLineWidth(0.5);
+      doc.line(margin, yPosition, pageWidth - margin, yPosition);
+      yPosition += 10;
+
+      if (aiAnalysis) {
+        // Helper function to parse inline markdown formatting
+        const parseInlineMarkdown = (text) => {
+          const segments = [];
+          let remaining = text;
+          
+          const pattern = /(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g;
+          let match;
+          let lastIndex = 0;
+          
+          while ((match = pattern.exec(remaining)) !== null) {
+            if (match.index > lastIndex) {
+              segments.push({
+                text: remaining.substring(lastIndex, match.index),
+                style: 'normal'
+              });
+            }
+            
+            const matched = match[0];
+            if (matched.startsWith('**') && matched.endsWith('**')) {
+              segments.push({
+                text: matched.slice(2, -2),
+                style: 'bold'
+              });
+            } else if (matched.startsWith('*') && matched.endsWith('*') && !matched.startsWith('**')) {
+              segments.push({
+                text: matched.slice(1, -1),
+                style: 'italic'
+              });
+            } else if (matched.startsWith('`') && matched.endsWith('`')) {
+              segments.push({
+                text: matched.slice(1, -1),
+                style: 'code'
+              });
+            }
+            
+            lastIndex = pattern.lastIndex;
+          }
+          
+          if (lastIndex < remaining.length) {
+            segments.push({
+              text: remaining.substring(lastIndex),
+              style: 'normal'
+            });
+          }
+          
+          return segments;
+        };
+        
+        // Helper function to render text with formatting
+        const renderFormattedText = (text, x, y, maxW) => {
+          const segments = parseInlineMarkdown(text);
+          let currentX = x;
+          const lineHeight = 6;
+          let currentY = y;
+          
+          for (const segment of segments) {
+            if (segment.style === 'bold') {
+              doc.setFont('helvetica', 'bold');
+              doc.setTextColor(26, 26, 26);
+            } else if (segment.style === 'italic') {
+              doc.setFont('helvetica', 'italic');
+              doc.setTextColor(55, 65, 81);
+            } else if (segment.style === 'code') {
+              doc.setFont('courier', 'normal');
+              doc.setFontSize(10);
+              doc.setTextColor(79, 70, 229);
+            } else {
+              doc.setFont('helvetica', 'normal');
+              doc.setFontSize(11);
+              doc.setTextColor(55, 65, 81);
+            }
+            
+            const words = segment.text.split(' ');
+            for (let w = 0; w < words.length; w++) {
+              const word = words[w] + (w < words.length - 1 ? ' ' : '');
+              const wordWidth = doc.getTextWidth(word);
+              
+              if (currentX + wordWidth > x + maxW) {
+                currentY += lineHeight;
+                currentX = x;
+                
+                if (currentY > pageHeight - 30) {
+                  doc.addPage();
+                  currentY = margin;
+                }
+              }
+              
+              doc.text(word, currentX, currentY);
+              currentX += wordWidth;
+            }
+          }
+          
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(11);
+          doc.setTextColor(55, 65, 81);
+          
+          return currentY + lineHeight + 2;
+        };
+        
+        const lines = aiAnalysis.split('\n');
+        
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i].trim();
+          
+          if (yPosition > pageHeight - 30) {
+            doc.addPage();
+            yPosition = margin;
+          }
+
+          if (line.startsWith('## ')) {
+            yPosition += 5;
+            doc.setFontSize(16);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(30, 64, 175);
+            const text = line.substring(3);
+            doc.text(text, margin, yPosition);
+            yPosition += 8;
+            
+            doc.setDrawColor(219, 234, 254);
+            doc.setLineWidth(0.5);
+            doc.line(margin, yPosition, pageWidth - margin, yPosition);
+            yPosition += 8;
+          } else if (line.startsWith('### ')) {
+            yPosition += 4;
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(30, 64, 175);
+            const text = line.substring(4);
+            doc.text(text, margin, yPosition);
+            yPosition += 7;
+          } else if (line.startsWith('- ') || line.startsWith('* ')) {
+            const text = line.substring(2);
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(55, 65, 81);
+            doc.text('•', margin + 2, yPosition);
+            yPosition = renderFormattedText(text, margin + 7, yPosition, maxWidth - 7);
+          } else if (line.startsWith('> ')) {
+            yPosition += 2;
+            doc.setDrawColor(59, 130, 246);
+            doc.setLineWidth(2);
+            doc.line(margin, yPosition - 3, margin, yPosition + 8);
+            
+            const text = line.substring(2);
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'italic');
+            doc.setTextColor(75, 85, 99);
+            yPosition = renderFormattedText(text, margin + 6, yPosition, maxWidth - 6);
+            yPosition += 2;
+          } else if (line.includes('|') && line.trim().length > 0) {
+            const tableLines = [line];
+            let j = i + 1;
+            while (j < lines.length && lines[j].includes('|')) {
+              tableLines.push(lines[j].trim());
+              j++;
+            }
+            
+            if (tableLines.length > 2) {
+              const headers = tableLines[0].split('|').filter(c => c.trim()).map(c => c.trim());
+              const data = tableLines.slice(2).map(row => 
+                row.split('|').filter(c => c.trim()).map(c => c.trim())
+              );
+              
+              autoTable(doc, {
+                startY: yPosition,
+                head: [headers],
+                body: data,
+                theme: 'grid',
+                headStyles: { 
+                  fillColor: [249, 250, 251],
+                  textColor: [26, 26, 26],
+                  fontStyle: 'bold',
+                  lineWidth: 0.1,
+                  lineColor: [209, 213, 219]
+                },
+                bodyStyles: {
+                  textColor: [55, 65, 81],
+                  lineWidth: 0.1,
+                  lineColor: [209, 213, 219]
+                },
+                margin: { left: margin, right: margin },
+                styles: { fontSize: 10 }
+              });
+              
+              yPosition = doc.lastAutoTable.finalY + 10;
+              i = j - 1;
+            }
+          } else if (line.length > 0) {
+            yPosition = renderFormattedText(line, margin, yPosition, maxWidth);
+          }
+        }
+      } else {
+        doc.setFontSize(11);
+        doc.setTextColor(102, 102, 102);
+        doc.text('No analysis available.', margin, yPosition);
+      }
+
+      doc.save(`${templateId}-results-${Date.now()}.pdf`);
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      alert('Failed to generate PDF. Please try again.');
+    }
   };
 
-  if (!template) {
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="max-w-md">
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center justify-center py-8">
+              <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+              <p className="text-muted-foreground">Loading experiment...</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Error state
+  if (loadError || !template) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Alert variant="destructive" className="max-w-md">
-          <AlertCircle className="h-4 w-4" />
+          <FaExclamationCircle className="h-4 w-4" />
           <AlertDescription>
-            Experiment template not found.
+            {loadError || 'Experiment template not found.'}
           </AlertDescription>
         </Alert>
       </div>
@@ -132,20 +456,20 @@ const RunExperiment = () => {
   // Show completion screen with AI analysis
   if (experimentComplete) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+      <div className="min-h-screen bg-background">
         <div className="container mx-auto p-6 max-w-4xl space-y-6">
           {/* Success Header */}
-          <Card className="border-2 border-green-500/20 bg-green-50/50 dark:bg-green-900/10">
+          <Card className="border-2 border-green-500/20">
             <CardContent className="pt-6">
               <div className="flex items-center gap-4">
                 <div className="p-3 rounded-full bg-green-500/10">
-                  <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
+                  <FaCheckCircle className="h-8 w-8 text-green-600" />
                 </div>
                 <div className="flex-1">
-                  <h2 className="text-2xl font-bold text-green-900 dark:text-green-100">
+                  <h2 className="text-2xl font-bold text-foreground">
                     Experiment Complete!
                   </h2>
-                  <p className="text-green-700 dark:text-green-300 mt-1">
+                  <p className="text-muted-foreground mt-1">
                     Thank you for participating in the {template.name}
                   </p>
                 </div>
@@ -158,7 +482,7 @@ const RunExperiment = () => {
             <Card>
               <CardContent className="pt-6">
                 <div className="flex flex-col items-center justify-center py-8">
-                  <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+                  <FaSpinner className="h-12 w-12 animate-spin text-primary mb-4" />
                   <h3 className="text-lg font-semibold mb-2">Analyzing Your Results</h3>
                   <p className="text-muted-foreground text-sm text-center">
                     Our AI is processing your performance data...
@@ -170,7 +494,7 @@ const RunExperiment = () => {
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-center gap-2 mb-4">
-                  <TrendingUp className="h-5 w-5 text-primary" />
+                  <FaChartLine className="h-5 w-5 text-primary" />
                   <h3 className="text-xl font-bold">AI Performance Analysis</h3>
                 </div>
                 <MarkdownRenderer content={aiAnalysis} />
@@ -178,7 +502,7 @@ const RunExperiment = () => {
             </Card>
           ) : analysisError ? (
             <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
+              <FaExclamationCircle className="h-4 w-4" />
               <AlertDescription>
                 Failed to generate AI analysis: {analysisError}
               </AlertDescription>
@@ -190,14 +514,15 @@ const RunExperiment = () => {
             <CardContent className="pt-6">
               <div className="flex flex-wrap gap-3">
                 <Button onClick={() => navigate('/participant/explore')}>
-                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  <FaArrowLeft className="mr-2 h-4 w-4" />
                   Back to Explore
                 </Button>
                 <Button onClick={handleRetry} variant="outline">
+                  <FaCheckCircle className="mr-2 h-4 w-4" />
                   Try Again
                 </Button>
                 <Button onClick={downloadResults} variant="outline">
-                  <Download className="mr-2 h-4 w-4" />
+                  <FaDownload className="mr-2 h-4 w-4" />
                   Download Results
                 </Button>
                 {aiAnalysis && !analyzingResults && !analysisError && (
@@ -205,7 +530,7 @@ const RunExperiment = () => {
                     onClick={() => analyzeResults(experimentResults)} 
                     variant="outline"
                   >
-                    <TrendingUp className="mr-2 h-4 w-4" />
+                    <FaChartLine className="mr-2 h-4 w-4" />
                     Re-analyze
                   </Button>
                 )}
@@ -219,13 +544,11 @@ const RunExperiment = () => {
 
   // Show experiment runner
   if (experimentStarted) {
-    const TemplateComponent = templateComponents[templateId];
-    
     if (!TemplateComponent) {
       return (
         <div className="min-h-screen bg-background flex items-center justify-center p-4">
           <Alert variant="destructive" className="max-w-md">
-            <AlertCircle className="h-4 w-4" />
+            <FaExclamationCircle className="h-4 w-4" />
             <AlertDescription>
               This experiment template is not yet available.
             </AlertDescription>
@@ -235,7 +558,7 @@ const RunExperiment = () => {
     }
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+      <div className="min-h-screen bg-background">
         <TemplateComponent onComplete={handleExperimentComplete} />
       </div>
     );
@@ -243,17 +566,20 @@ const RunExperiment = () => {
 
   // Show start screen
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="max-w-2xl w-full">
         <CardContent className="pt-6 space-y-6">
           <div className="text-center space-y-2">
+            <div className="flex justify-center mb-4">
+              <FaBrain className="h-12 w-12 text-primary" />
+            </div>
             <h2 className="text-3xl font-bold">{template.name}</h2>
             <p className="text-muted-foreground">{template.fullName}</p>
           </div>
 
           {template.requiresCamera && (
             <Alert>
-              <AlertCircle className="h-4 w-4" />
+              <FaCamera className="h-4 w-4" />
               <AlertDescription>
                 This experiment requires camera access for facial emotion tracking. 
                 Please allow camera access when prompted.
@@ -265,25 +591,25 @@ const RunExperiment = () => {
             <h3 className="font-semibold">Before you begin:</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li className="flex items-start gap-2">
-                <CheckCircle className="h-4 w-4 mt-0.5 text-green-600 flex-shrink-0" />
+                <FaCheckCircle className="h-4 w-4 mt-0.5 text-green-600 flex-shrink-0" />
                 <span>Ensure you're in a quiet environment without distractions</span>
               </li>
               <li className="flex items-start gap-2">
-                <CheckCircle className="h-4 w-4 mt-0.5 text-green-600 flex-shrink-0" />
+                <FaCheckCircle className="h-4 w-4 mt-0.5 text-green-600 flex-shrink-0" />
                 <span>The experiment will take approximately {template.duration}</span>
               </li>
               <li className="flex items-start gap-2">
-                <CheckCircle className="h-4 w-4 mt-0.5 text-green-600 flex-shrink-0" />
+                <FaCheckCircle className="h-4 w-4 mt-0.5 text-green-600 flex-shrink-0" />
                 <span>You will complete {template.trials}</span>
               </li>
               {template.requiresCamera && (
                 <li className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 mt-0.5 text-green-600 flex-shrink-0" />
+                  <FaCheckCircle className="h-4 w-4 mt-0.5 text-green-600 flex-shrink-0" />
                   <span>Position yourself clearly in front of the camera</span>
                 </li>
               )}
               <li className="flex items-start gap-2">
-                <CheckCircle className="h-4 w-4 mt-0.5 text-green-600 flex-shrink-0" />
+                <FaCheckCircle className="h-4 w-4 mt-0.5 text-green-600 flex-shrink-0" />
                 <span>Your results will be analyzed by AI upon completion</span>
               </li>
             </ul>
@@ -295,7 +621,7 @@ const RunExperiment = () => {
               variant="outline"
               className="flex-1"
             >
-              <ArrowLeft className="mr-2 h-4 w-4" />
+              <FaArrowLeft className="mr-2 h-4 w-4" />
               Cancel
             </Button>
             <Button 
