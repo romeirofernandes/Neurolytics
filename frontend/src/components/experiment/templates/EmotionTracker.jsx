@@ -34,18 +34,23 @@ const EmotionTracker = ({ participantId, experimentId, onComplete }) => {
   const [showFixation, setShowFixation] = useState(false);
 
   const words = ['RED', 'GREEN', 'BLUE', 'YELLOW'];
-  const colors = { RED: 'red', GREEN: 'green', BLUE: 'blue', YELLOW: 'yellow' };
+  const colors = { 
+    RED: 'var(--color-error)',     // Using --color-error from index.css
+    GREEN: 'var(--color-success)',   // Using --color-success from index.css
+    BLUE: 'var(--color-info)',    // Using --color-info from index.css
+    YELLOW: 'var(--color-warning)'   // Using --color-warning from index.css
+  };
   const keys = { r: 'RED', g: 'GREEN', b: 'BLUE', y: 'YELLOW' };
 
-  // Emotion colors for visual feedback
+  // Emotion colors for visual feedback using index.css variables
   const emotionColors = {
-    happy: '#10B981',
-    sad: '#3B82F6',
-    angry: '#EF4444',
-    fearful: '#8B5CF6',
-    disgusted: '#F59E0B',
-    surprised: '#EC4899',
-    neutral: '#6B7280',
+    happy: 'var(--color-success)',    // --color-success
+    sad: 'var(--color-info)',      // --color-info
+    angry: 'var(--color-error)',    // --color-error
+    fearful: 'var(--color-highlight)',  // --color-highlight
+    disgusted: 'var(--color-warning)', // --color-warning
+    surprised: 'hsl(var(--chart-4))', // Using chart-4 color from index.css
+    neutral: 'var(--color-neutral)',   // --color-neutral
   };
 
   // 1. Load face-api.js models
@@ -742,10 +747,13 @@ const EmotionTracker = ({ participantId, experimentId, onComplete }) => {
               </div>
             </div>
 
+          {/* Start Button */}
+          <div className="mt-8 max-w-2xl mx-auto space-y-4">
             <Button
               onClick={startExperiment}
               disabled={!isLoaded || !cameraReady || !faceDetected}
-              className="w-full h-14 text-lg font-bold shadow-lg"
+              className="w-full h-14 text-lg font-semibold"
+              size="lg"
             >
               {!isLoaded ? (
                 <span className="flex items-center gap-2">
@@ -760,7 +768,7 @@ const EmotionTracker = ({ participantId, experimentId, onComplete }) => {
               ) : !faceDetected ? (
                 <span className="flex items-center gap-2">
                   <AlertCircle className="w-5 h-5" />
-                  Waiting for face detection...
+                  Waiting for Face Detection...
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
@@ -775,8 +783,8 @@ const EmotionTracker = ({ participantId, experimentId, onComplete }) => {
                 ⚠️ Please position your face clearly in front of the camera to enable the start button
               </p>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     );
   }
