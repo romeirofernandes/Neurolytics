@@ -250,11 +250,13 @@ ${randomization.enabled ? '4. Randomize the order of trials' : '4. Keep trials i
 6. Display clear instructions and feedback
 7. Show progress indicator
 8. Provide summary statistics at the end
+9. Use React hooks and Shadcn UI components
+10. Follow experimental psychology best practices
 
 Generate a complete, production-ready React component.
     `.trim();
 
-      console.log('Sending AI generation request...');
+      console.log('Sending AI generation request with RAG...');
 
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/visual-builder/generate-ai`, {
         method: 'POST',
@@ -270,10 +272,20 @@ Generate a complete, production-ready React component.
       }
 
       const data = await response.json();
-      console.log('AI generated code successfully');
+      console.log('AI generated code successfully with RAG context');
 
       if (!data.success) {
         throw new Error(data.message || 'Failed to generate experiment');
+      }
+
+      // 🔥 Store RAG context
+      if (data.metadata?.ragContext) {
+        setRagContext(data.metadata);
+        console.log('📚 RAG Context:', {
+          baseTemplate: data.metadata.usedTemplate,
+          similarity: data.metadata.templateSimilarityScore,
+          modifications: data.metadata.modifications?.length || 0
+        });
       }
 
       // Save directly to templates.json
@@ -308,7 +320,8 @@ Generate a complete, production-ready React component.
             visualFlow: {
               nodes: nodes,
               edges: edges
-            }
+            },
+            ragContext: data.metadata?.ragContext // 🔥 Pass RAG context
           }
         })
       });
@@ -318,7 +331,7 @@ Generate a complete, production-ready React component.
       }
 
       const saveData = await saveResponse.json();
-      console.log('Saved to templates.json:', saveData);
+      console.log('Saved to templates.json with RAG context:', saveData);
 
       if (saveData.success) {
         setTemplateId(saveData.templateInfo?.templateId);
@@ -407,6 +420,12 @@ Generate a complete, production-ready React component.
             <SidebarTrigger className="-ml-1" />
             <div>
               <h1 className="text-xl font-semibold text-foreground">Visual Flow Builder</h1>
+              {/* 🔥 NEW: Show RAG context if available */}
+              {ragContext?.usedTemplate && (
+                <p className="text-xs text-muted-foreground">
+                  Based on: {ragContext.usedTemplate} ({(ragContext.templateSimilarityScore * 100).toFixed(0)}% match)
+                </p>
+              )}
             </div>
           </div>
 

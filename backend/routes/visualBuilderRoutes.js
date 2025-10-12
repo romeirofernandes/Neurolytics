@@ -75,7 +75,7 @@ router.get('/experiments', async (req, res) => {
   }
 });
 
-// Generate AI experiment from visual flow
+// 🎯 UPDATED: Generate AI experiment from visual flow WITH RAG
 router.post('/generate-ai', async (req, res) => {
   try {
     const { description, researcherId } = req.body;
@@ -87,17 +87,32 @@ router.post('/generate-ai', async (req, res) => {
       });
     }
 
-    console.log('🎨 Generating AI experiment from visual flow...');
+    console.log('🎨 Generating AI experiment from visual flow WITH RAG...');
+
+    // 🔥 RAG: Retrieve relevant templates from knowledge base
+    const relevantTemplates = retrieveRelevantTemplates(description, 3);
+    const modifications = extractModifications(description);
+    
+    console.log(`📚 RAG: Found ${relevantTemplates.length} relevant templates for visual builder`);
+    if (relevantTemplates.length > 0) {
+      console.log(`   - Best match: ${relevantTemplates[0]?.name} (score: ${relevantTemplates[0]?.similarityScore?.toFixed(2)})`);
+    }
+    console.log(`🔧 Detected ${modifications.length} modifications:`, modifications.map(m => m.description));
+
+    // 🔥 Build RAG-enhanced prompt (same as AI Experiment Builder)
+    const systemPrompt = generateRAGPrompt(description, relevantTemplates, modifications);
+
+    console.log('📝 Sending RAG-enhanced prompt to Gemini...');
 
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-    const result = await model.generateContent(description);
+    const result = await model.generateContent(systemPrompt);
     const response = await result.response;
     const generatedCode = response.text();
 
     const codeMatch = generatedCode.match(/```jsx\n([\s\S]*?)\n```/);
     const componentCode = codeMatch ? codeMatch[1] : generatedCode;
 
-    console.log('✅ AI code generated');
+    console.log('✅ AI code generated with RAG context');
 
     res.status(200).json({
       success: true,
@@ -105,7 +120,14 @@ router.post('/generate-ai', async (req, res) => {
       fullResponse: generatedCode,
       metadata: {
         generatedAt: new Date().toISOString(),
-        description: description
+        description: description,
+        usedTemplate: relevantTemplates[0]?.name || null,
+        templateSimilarityScore: relevantTemplates[0]?.similarityScore || 0,
+        modifications: modifications,
+        ragContext: {
+          templatesUsed: relevantTemplates.length,
+          modificationsDetected: modifications.length
+        }
       }
     });
 
@@ -240,7 +262,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
       shortDescription: description || `AI-generated experiment: ${displayName}`,
       detailedDescription: description || `Visual builder experiment: ${displayName}`,
       duration: `~${estimatedDuration || 15} minutes`,
-      trials: metadata?.nodeCount ? `${metadata.nodeCount * metadata.repetitions} trials` : "Variable",
+      trials: metadata?.nodeCount ? `${metadata.nodeCount * (metadata.repetitions || 1)} trials` : "Variable",
       difficulty: "Custom",
       category: "Visual Builder",
       measures: ["Custom measures"],

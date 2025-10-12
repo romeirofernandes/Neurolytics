@@ -30,7 +30,7 @@ import AIExperimentBuilder from './pages/User/AIExperimentBuilder'
 import PreviewExperiment from './pages/Preview/PreviewExperiment'
 import VisualBuilder from './pages/User/VisualBuilder'
 import TermsAndConditions from './pages/TermsAndConditions'
-import PrivacyPolicy from './pages/PrivacyPolicy'
+import PrivacyPolicy from './pages/Policy'
 // Fix Leaflet default marker icons for Vite/Webpack
 import L from 'leaflet';
 import icon from 'leaflet/dist/images/marker-icon.png';

@@ -809,5 +809,116 @@
     },
     "createdAt": "2025-10-12T06:14:41.180Z",
     "experimentId": "68eb4751396f4a4bd5897f33"
+  },
+  {
+    "id": "my-first-experiment",
+    "name": "My first Experiment",
+    "fullName": "My first Experiment",
+    "shortDescription": "yess",
+    "detailedDescription": "yess",
+    "duration": "~15 minutes",
+    "trials": "Variable",
+    "difficulty": "Custom",
+    "category": "AI Generated",
+    "measures": [
+      "Custom measures"
+    ],
+    "icon": "Sparkles",
+    "color": "from-purple-500 to-pink-500",
+    "requiresCamera": false,
+    "keywords": [
+      "my-first-experiment",
+      "ai-generated",
+      "custom"
+    ],
+    "researchAreas": [
+      "Custom Research"
+    ],
+    "publications": [],
+    "researcher": {
+      "id": "68ea3c551baea56718cb37a7",
+      "name": "Russel Daniel Paul",
+      "email": "russ@gmail.com",
+      "institution": "",
+      "designation": "",
+      "fieldOfStudy": "",
+      "orcId": null
+    },
+    "createdAt": "2025-10-12T07:31:32.509Z",
+    "experimentId": "68eb59545499b3b02201e291"
+  },
+  {
+    "id": "4-play-bartt",
+    "name": "4 play Bartt",
+    "fullName": "4 play Bartt",
+    "shortDescription": "Easy points",
+    "detailedDescription": "Easy points",
+    "duration": "~15 minutes",
+    "trials": "Variable",
+    "difficulty": "Custom",
+    "category": "AI Generated",
+    "measures": [
+      "Custom measures"
+    ],
+    "icon": "Sparkles",
+    "color": "from-purple-500 to-pink-500",
+    "requiresCamera": false,
+    "keywords": [
+      "4-play-bartt",
+      "ai-generated",
+      "custom"
+    ],
+    "researchAreas": [
+      "Custom Research"
+    ],
+    "publications": [],
+    "researcher": {
+      "id": "68ea3c551baea56718cb37a7",
+      "name": "Russel Daniel Paul",
+      "email": "russ@gmail.com",
+      "institution": "",
+      "designation": "",
+      "fieldOfStudy": "",
+      "orcId": null
+    },
+    "createdAt": "2025-10-12T07:34:45.424Z",
+    "experimentId": "68eb5a155499b3b02201e29b"
+  },
+  {
+    "id": "customerstroop",
+    "name": "customerStroop",
+    "fullName": "customerStroop",
+    "shortDescription": "its simple",
+    "detailedDescription": "its simple",
+    "duration": "~15 minutes",
+    "trials": "Variable",
+    "difficulty": "Custom",
+    "category": "AI Generated",
+    "measures": [
+      "Custom measures"
+    ],
+    "icon": "Sparkles",
+    "color": "from-purple-500 to-pink-500",
+    "requiresCamera": false,
+    "keywords": [
+      "customerstroop",
+      "ai-generated",
+      "custom"
+    ],
+    "researchAreas": [
+      "Custom Research"
+    ],
+    "publications": [],
+    "researcher": {
+      "id": "68ea3c551baea56718cb37a7",
+      "name": "Russel Daniel Paul",
+      "email": "russ@gmail.com",
+      "institution": "",
+      "designation": "",
+      "fieldOfStudy": "",
+      "orcId": null
+    },
+    "createdAt": "2025-10-12T07:36:32.558Z",
+    "experimentId": "68eb5a805499b3b02201e2a7"
   }
 ]
