@@ -36,17 +36,14 @@ const ParticipantExplore = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
-  // Get unique categories (filter out undefined/null)
-  const categories = ['all', ...new Set(templatesData.map(t => t.category).filter(Boolean))];
+  // Filter to only show experiments with researcher (actual experiments, not base templates)
+  const researcherExperiments = templatesData.filter(t => t.researcher);
+
+  // Get unique categories from researcher experiments only
+  const categories = ['all', ...new Set(researcherExperiments.map(t => t.category).filter(Boolean))];
 
   // Filter templates based on search and category
-  // Only show experiments with researcher field (actual experiments, not templates)
-  const filteredTemplates = templatesData.filter(template => {
-    // First check if it has a researcher (only show actual experiments)
-    if (!template.researcher) {
-      return false;
-    }
-    
+  const filteredTemplates = researcherExperiments.filter(template => {
     const matchesSearch = template.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          template.shortDescription?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          (template.keywords && template.keywords.some(k => k.toLowerCase().includes(searchQuery.toLowerCase())));
@@ -91,7 +88,7 @@ const ParticipantExplore = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-muted-foreground">Available Experiments</p>
-                      <p className="text-2xl font-bold">{templatesData.length}</p>
+                      <p className="text-2xl font-bold">{researcherExperiments.length}</p>
                     </div>
                     <FaBook className="h-8 w-8 text-primary" />
                   </div>
@@ -174,7 +171,7 @@ const ParticipantExplore = () => {
 
             {/* Results Count */}
             <div className="text-sm text-muted-foreground">
-              Showing {filteredTemplates.length} of {templatesData.length} experiments
+              Showing {filteredTemplates.length} of {researcherExperiments.length} experiments
             </div>
 
             {/* Templates Grid */}

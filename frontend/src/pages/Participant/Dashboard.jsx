@@ -35,7 +35,7 @@ const ParticipantDashboard = () => {
   useEffect(() => {
     const fetchActiveExperiments = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/public-experiments');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/public-experiments`);
         if (response.ok) {
           const data = await response.json();
           // Filter to get only published experiments

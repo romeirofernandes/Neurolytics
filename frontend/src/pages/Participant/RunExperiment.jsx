@@ -120,11 +120,20 @@ const RunExperiment = () => {
 
       // Find template in templates.json
       const foundTemplate = templatesData.find(t => t.id === templateId);
+      
+      // Only proceed if template exists AND has a researcher (actual experiment, not base template)
       if (!foundTemplate) {
         setLoadError('Template not found');
         setLoading(false);
         return;
       }
+      
+      if (!foundTemplate.researcher) {
+        setLoadError('This is a base template and cannot be run directly. Please contact a researcher to create an experiment based on this template.');
+        setLoading(false);
+        return;
+      }
+      
       setTemplate(foundTemplate);
 
       // Try to load from base components first
