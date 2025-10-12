@@ -938,5 +938,42 @@
       "Custom Research"
     ],
     "publications": []
+  },
+  {
+    "id": "ren",
+    "name": "Ren",
+    "fullName": "Ren",
+    "shortDescription": "Ren",
+    "detailedDescription": "Ren",
+    "duration": "~15 minutes",
+    "trials": "Variable",
+    "difficulty": "Custom",
+    "category": "AI Generated",
+    "measures": [
+      "Custom measures"
+    ],
+    "icon": "Sparkles",
+    "color": "from-purple-500 to-pink-500",
+    "requiresCamera": false,
+    "keywords": [
+      "ren",
+      "ai-generated",
+      "custom"
+    ],
+    "researchAreas": [
+      "Custom Research"
+    ],
+    "publications": [],
+    "researcher": {
+      "id": "68ea61f96be3c27887e0455e",
+      "name": "Gavin Soares",
+      "email": "crce.secea.10223@gmail.com",
+      "institution": "FrCrce",
+      "designation": "PHD Student",
+      "fieldOfStudy": "Neuro",
+      "orcId": "0009-0007-9216-2865"
+    },
+    "createdAt": "2025-10-12T01:15:22.227Z",
+    "experimentId": "68eb01290bd7a53fc924b291"
   }
 ]
