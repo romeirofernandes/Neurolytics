@@ -5,6 +5,12 @@ const path = require('path');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const Experiment = require('../models/Experiment');
 
+const { 
+  retrieveRelevantTemplates, 
+  extractModifications, 
+  generateRAGPrompt 
+} = require('../utils/ragHelper');
+
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // Save experiment to templates.json (original route)
