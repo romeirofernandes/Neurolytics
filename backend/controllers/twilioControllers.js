@@ -168,8 +168,20 @@ const sendWhatsAppAnalytics = async (req, res) => {
     const pdfUrl = uploadResult.secure_url;
     console.log('PDF uploaded:', pdfUrl);
 
-    // Simple message
-    const messageBody = `Your ${experimentName} results are ready!\n\nParticipants: ${participants.length}\nPDF: ${pdfUrl}`;
+    // Enhanced message with fake features
+    const messageBody = `🎉 Great News!
+
+You have multiple responses to your ${experimentName} experiment!
+
+✅ Data analysis is complete and waiting for you
+📊 ${participants.length} participants analyzed
+📁 View your detailed report below
+
+⏰ REMINDER: You will receive automated reminders every 10 days to check your results.
+
+Reply "NO" to stop receiving reminders.
+
+Check your PDF report:`;
 
     console.log(`Sending WhatsApp to ${phoneNumber}...`);
     
