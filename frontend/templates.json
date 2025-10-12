@@ -558,5 +558,42 @@
       "Custom Research"
     ],
     "publications": []
+  },
+  {
+    "id": "efedfed",
+    "name": "efedfed",
+    "fullName": "efedfed",
+    "shortDescription": "dcdcdcd",
+    "detailedDescription": "dcdcdcd",
+    "duration": "~15 minutes",
+    "trials": "Variable",
+    "difficulty": "Custom",
+    "category": "AI Generated",
+    "measures": [
+      "Custom measures"
+    ],
+    "icon": "Sparkles",
+    "color": "from-purple-500 to-pink-500",
+    "requiresCamera": false,
+    "keywords": [
+      "efedfed",
+      "ai-generated",
+      "custom"
+    ],
+    "researchAreas": [
+      "Custom Research"
+    ],
+    "publications": [],
+    "researcher": {
+      "id": "68ea3c551baea56718cb37a7",
+      "name": "Russel Daniel Paul",
+      "email": "russ@gmail.com",
+      "institution": "",
+      "designation": "",
+      "fieldOfStudy": "",
+      "orcId": null
+    },
+    "createdAt": "2025-10-12T03:11:16.384Z",
+    "experimentId": "68eb1c54b121ed820a03865a"
   }
 ]
