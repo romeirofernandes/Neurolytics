@@ -8,6 +8,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/User/Dashboard'
 import Profile from './pages/User/Profile'
+import Analytics from './pages/User/Analytics'
 import AdminAuth from './pages/Admin/AdminAuth'
 import AdminDashboard from './pages/Admin/AdminDashboard'
 import ParticipantLogin from './pages/Participant/Login'
@@ -135,6 +136,12 @@ const App = () => {
                 <Profile />
               </ProtectedRoute>
             } />
+
+              <Route path="/analytics" element={
+                <ProtectedRoute>
+                  <Analytics />
+                </ProtectedRoute>
+              } />
 
               <Route path="/templates" element={
                 <ProtectedRoute>
