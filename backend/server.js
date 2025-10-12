@@ -10,6 +10,7 @@ const researcherRoutes = require('./routes/researcherRoutes');
 const analysisRoutes = require('./routes/analysisRoutes');
 const emotionsRoutes = require('./routes/emotionsRoutes');
 const aiExperimentRoutes = require('./routes/aiExperimentRoutes');
+const publicExperimentRoutes = require('./routes/publicExperimentRoutes');
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.use('/api/experiments', experimentRoutes);
 app.use('/api/analysis', analysisRoutes);
 app.use('/api/emotions', emotionsRoutes);
 app.use('/api/ai-experiments', aiExperimentRoutes);
+app.use('/public', publicExperimentRoutes); // Public experiment serving
 
 // Health check
 app.get('/', (req, res) => {

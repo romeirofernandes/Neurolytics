@@ -5,7 +5,10 @@ const {
   saveAIExperiment,
   getAIExperiment,
   canPublishExperiment,
-  publishExperiment
+  publishExperiment,
+  buildExperiment,
+  getBuildStatus,
+  togglePublicAccess
 } = require('../controllers/aiExperimentController');
 
 // Chat with AI
@@ -16,6 +19,15 @@ router.post('/save', saveAIExperiment);
 
 // Get AI experiment by ID
 router.get('/:experimentId', getAIExperiment);
+
+// Build experiment to standalone HTML
+router.post('/:experimentId/build', buildExperiment);
+
+// Get build status
+router.get('/:experimentId/build-status', getBuildStatus);
+
+// Toggle public access
+router.post('/:experimentId/toggle-public', togglePublicAccess);
 
 // Check if can publish
 router.get('/:experimentId/can-publish', canPublishExperiment);

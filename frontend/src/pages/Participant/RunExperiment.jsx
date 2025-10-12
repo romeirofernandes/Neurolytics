@@ -15,6 +15,7 @@ import { StroopTemplate } from '../../components/experiment/templates/StroopTemp
 import { PosnerTemplate } from '../../components/experiment/templates/PosnerTemplate';
 import { ABBATemplate } from '../../components/experiment/templates/ABBATemplate';
 import { TowerHanoiTemplate } from '../../components/experiment/templates/TowerHanoiTemplate';
+import { HanoiTowerTemplate } from '../../components/experiment/templates/Tile5HanoiTemplate';
 import { FlankerTemplate } from '../../components/experiment/templates/FlankerTemplate';
 import { GoNoGoTemplate } from '../../components/experiment/templates/GoNoGoTemplate';
 import { NBackTemplate } from '../../components/experiment/templates/NBackTemplate';
@@ -23,13 +24,14 @@ import { DigitSpanTemplate } from '../../components/experiment/templates/DigitSp
 import { VisualSearchTemplate } from '../../components/experiment/templates/VisualSearchTemplate';
 import EmotionTracker from '../../components/experiment/templates/EmotionTracker';
 
-// Template component mapping
-const templateComponents = {
+// Base template component mapping
+const baseTemplateComponents = {
   'bart': BARTTemplate,
   'stroop': StroopTemplate,
   'posner': PosnerTemplate,
   'abba': ABBATemplate,
-  'hanoi': TowerHanoiTemplate,
+  'hanoi': HanoiTowerTemplate,  // Maps to Tile5HanoiTemplate (5 disks)
+  'hanoi1': TowerHanoiTemplate,  // Original 3-disk version
   'flanker': FlankerTemplate,
   'gonogo': GoNoGoTemplate,
   'nback': NBackTemplate,
@@ -37,6 +39,53 @@ const templateComponents = {
   'digitspan': DigitSpanTemplate,
   'visualsearch': VisualSearchTemplate,
   'stroop-emotion': EmotionTracker
+};
+
+/**
+ * Dynamically load component for AI-generated templates
+ */
+const loadDynamicComponent = async (templateId) => {
+  try {
+    // Try to find the template in templates.json
+    const template = templatesData.find(t => t.id === templateId);
+    if (!template) {
+      console.error('Template not found in templates.json:', templateId);
+      return null;
+    }
+
+    // Generate component name from template ID
+    const componentName = templateId
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join('') + 'Template';
+
+    console.log('Attempting to load component:', componentName);
+
+    // Try to dynamically import the component
+    const module = await import(`../../components/experiment/templates/${componentName}.jsx`);
+    
+    // Try to find the component in multiple ways:
+    // 1. Named export matching the expected name
+    // 2. Default export
+    // 3. Any named export (for incorrectly named components)
+    if (module[componentName]) {
+      return module[componentName];
+    } else if (module.default) {
+      return module.default;
+    } else {
+      // Get first named export if exists
+      const exports = Object.keys(module).filter(key => key !== 'default' && key !== '__esModule');
+      if (exports.length > 0) {
+        console.warn(`Component ${componentName} not found, using ${exports[0]} instead`);
+        return module[exports[0]];
+      }
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Failed to load dynamic component:', error);
+    return null;
+  }
 };
 
 const RunExperiment = () => {
@@ -50,12 +99,44 @@ const RunExperiment = () => {
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [analyzingResults, setAnalyzingResults] = useState(false);
   const [analysisError, setAnalysisError] = useState(null);
+  const [TemplateComponent, setTemplateComponent] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
 
   useEffect(() => {
-    const foundTemplate = templatesData.find(t => t.id === templateId);
-    if (foundTemplate) {
+    const loadTemplate = async () => {
+      setLoading(true);
+      setLoadError(null);
+
+      // Find template in templates.json
+      const foundTemplate = templatesData.find(t => t.id === templateId);
+      if (!foundTemplate) {
+        setLoadError('Template not found');
+        setLoading(false);
+        return;
+      }
       setTemplate(foundTemplate);
-    }
+
+      // Try to load from base components first
+      if (baseTemplateComponents[templateId]) {
+        setTemplateComponent(() => baseTemplateComponents[templateId]);
+        setLoading(false);
+        return;
+      }
+
+      // Try to dynamically load AI-generated component
+      const dynamicComponent = await loadDynamicComponent(templateId);
+      if (dynamicComponent) {
+        setTemplateComponent(() => dynamicComponent);
+        setLoading(false);
+        return;
+      }
+
+      setLoadError('Component not found');
+      setLoading(false);
+    };
+
+    loadTemplate();
   }, [templateId]);
 
   const handleExperimentComplete = async (results) => {
@@ -116,13 +197,30 @@ const RunExperiment = () => {
     linkElement.click();
   };
 
-  if (!template) {
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="max-w-md">
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center justify-center py-8">
+              <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+              <p className="text-muted-foreground">Loading experiment...</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Error state
+  if (loadError || !template) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Alert variant="destructive" className="max-w-md">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Experiment template not found.
+            {loadError || 'Experiment template not found.'}
           </AlertDescription>
         </Alert>
       </div>
@@ -219,8 +317,6 @@ const RunExperiment = () => {
 
   // Show experiment runner
   if (experimentStarted) {
-    const TemplateComponent = templateComponents[templateId];
-    
     if (!TemplateComponent) {
       return (
         <div className="min-h-screen bg-background flex items-center justify-center p-4">

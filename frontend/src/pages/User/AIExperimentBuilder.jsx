@@ -9,6 +9,7 @@ import { Textarea } from '../../components/ui/textarea';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
+import { Badge } from '../../components/ui/badge';
 import { 
   Send, 
   Sparkles, 
@@ -26,6 +27,7 @@ import {
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { ExperimentBuildPanel } from '../../components/experiment/ExperimentBuildPanel';
 
 const AIExperimentBuilder = () => {
   const { user } = useAuth();
@@ -37,13 +39,21 @@ const AIExperimentBuilder = () => {
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: `👋 Hello! I'm your AI Experiment Builder assistant. 
+      content: `👋 Hello! I'm your AI Experiment Builder assistant powered by **RAG (Retrieval-Augmented Generation)**.
+
+Instead of creating experiments from scratch, I retrieve and modify **validated psychological experiment templates** based on your needs.
 
 I can help you:
-- **Create** new psychological experiments from scratch
-- **Modify** existing experimental templates
-- **Optimize** trial timing and randomization
-- **Suggest** best practices for your research
+- **Retrieve** existing templates (Stroop, N-Back, BART, Go/No-Go, etc.)
+- **Modify** templates with your specific requirements
+- **Customize** trials, timing, stimuli, and difficulty
+- **Optimize** experimental designs with best practices
+
+**How it works:**
+1. Describe what you want (e.g., "Create a Stroop task with 30 trials")
+2. I'll find the most similar template from our knowledge base
+3. I'll modify it according to your specifications
+4. You'll get production-ready code based on proven templates
 
 What would you like to build today?`,
       timestamp: new Date()
@@ -59,6 +69,8 @@ What would you like to build today?`,
   const [experimentDescription, setExperimentDescription] = useState('');
   const [showCodeEditor, setShowCodeEditor] = useState(false);
   const [activeTab, setActiveTab] = useState('chat');
+  const [usedTemplate, setUsedTemplate] = useState(null);
+  const [templateSimilarity, setTemplateSimilarity] = useState(0);
 
   // Publish state
   const [canPublish, setCanPublish] = useState(false);
@@ -112,6 +124,8 @@ What would you like to build today?`,
           content: data.message,
           code: data.code,
           suggestions: data.suggestions,
+          usedTemplate: data.usedTemplate,
+          templateSimilarity: data.templateSimilarityScore,
           timestamp: new Date()
         };
 
@@ -120,8 +134,10 @@ What would you like to build today?`,
         // If code was generated, store it
         if (data.code) {
           setGeneratedCode(data.code);
+          setUsedTemplate(data.usedTemplate);
+          setTemplateSimilarity(data.templateSimilarityScore);
           setShowCodeEditor(true);
-          setActiveTab('code');
+          setActiveTab('code'); // Switch to code tab
         }
       } else {
         throw new Error(data.message);
@@ -176,8 +192,20 @@ What would you like to build today?`,
 
       if (data.success) {
         setCurrentExperiment(data.experiment);
+        
+        // Store template info if available
+        if (data.templateInfo && data.templateInfo.templateId) {
+          setCurrentExperiment(prev => ({
+            ...prev,
+            templateId: data.templateInfo.templateId
+          }));
+        }
+        
         alert('✅ Experiment saved successfully!');
         checkCanPublish(data.experiment._id);
+        
+        // Switch to build tab to show the preview
+        setActiveTab('build');
       } else {
         throw new Error(data.message);
       }
@@ -300,9 +328,9 @@ What would you like to build today?`,
                   <Code className="w-4 h-4" />
                   Code
                 </TabsTrigger>
-                <TabsTrigger value="preview" className="gap-2" disabled={!generatedCode}>
-                  <Eye className="w-4 h-4" />
-                  Preview
+                <TabsTrigger value="build" className="gap-2" disabled={!currentExperiment}>
+                  <Rocket className="w-4 h-4" />
+                  Build & Share
                 </TabsTrigger>
               </TabsList>
 
@@ -409,6 +437,20 @@ What would you like to build today?`,
                                     {msg.suggestions.map((sugg, i) => (
                                       <p key={i} className="text-xs">• {sugg}</p>
                                     ))}
+                                  </div>
+                                )}
+
+                                {msg.usedTemplate && (
+                                  <div className="mt-3 pt-3 border-t border-border">
+                                    <div className="flex items-center gap-2">
+                                      <Badge variant="secondary" className="text-xs">
+                                        <Sparkles className="w-3 h-3 mr-1" />
+                                        RAG: Using {msg.usedTemplate}
+                                      </Badge>
+                                      <Badge variant="outline" className="text-xs">
+                                        {msg.templateSimilarity}% match
+                                      </Badge>
+                                    </div>
                                   </div>
                                 )}
 
@@ -547,22 +589,13 @@ What would you like to build today?`,
                   </Card>
                 </TabsContent>
 
-                <TabsContent value="preview" className="h-full m-0">
-                  <Card className="h-full">
-                    <CardHeader>
-                      <CardTitle>Experiment Preview</CardTitle>
-                      <CardDescription>
-                        Preview how your experiment will look to participants
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="bg-muted/50 rounded-lg p-8 min-h-[500px] flex items-center justify-center">
-                        <p className="text-muted-foreground">
-                          Live preview coming soon...
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
+                <TabsContent value="build" className="h-full m-0">
+                  <div className="space-y-6">
+                    <ExperimentBuildPanel 
+                      experimentId={currentExperiment?._id} 
+                      templateId={currentExperiment?.templateId}
+                    />
+                  </div>
                 </TabsContent>
               </div>
             </Tabs>
