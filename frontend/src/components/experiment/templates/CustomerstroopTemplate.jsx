@@ -12,6 +12,7 @@ export const StroopTemplate = ({ onComplete }) => {
 
   const words = ['RED', 'GREEN', 'BLUE', 'YELLOW'];
   const colors = { RED: 'red', GREEN: 'green', BLUE: 'blue', YELLOW: 'yellow' };
+  // Define keys for keyboard responses
   const keys = { r: 'RED', g: 'GREEN', b: 'BLUE', y: 'YELLOW' };
 
   useEffect(() => {
@@ -19,6 +20,7 @@ export const StroopTemplate = ({ onComplete }) => {
   }, []);
 
   useEffect(() => {
+    // Handle keyboard input for responses
     const handleKeyPress = (e) => {
       if (keys[e.key.toLowerCase()]) {
         handleResponse(keys[e.key.toLowerCase()]);
@@ -45,10 +47,12 @@ export const StroopTemplate = ({ onComplete }) => {
 
     const nextTrial = currentTrial + 1;
     if (isTraining && nextTrial >= 5) {
+      // After 5 training trials, switch to test mode
       setIsTraining(false);
       setCurrentTrial(0);
       generateTrial();
-    } else if (!isTraining && nextTrial >= 40) { // Modified to 40 trials
+    } else if (!isTraining && nextTrial >= 15) {
+      // After 15 test trials (total 20 trials), complete the task
       onComplete?.(results);
     } else {
       setCurrentTrial(nextTrial);
@@ -60,7 +64,7 @@ export const StroopTemplate = ({ onComplete }) => {
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
         <CardTitle>Stroop Task</CardTitle>
-        <CardDescription>{isTraining ? 'Training Mode' : `Trial ${currentTrial + 1} of 40`}</CardDescription> {/* Modified to 40 trials */}
+        <CardDescription>{isTraining ? 'Training Mode' : `Trial ${currentTrial + 1} of 15`}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="text-center text-sm text-muted-foreground">Press the key corresponding to the COLOR of the word (not what it says)</div>
@@ -69,7 +73,7 @@ export const StroopTemplate = ({ onComplete }) => {
         </div>
         <div className="grid grid-cols-4 gap-2">
           {Object.entries(colors).map(([name, colorValue]) => (
-            <Button key={name} onClick={() => handleResponse(name)} style={{ backgroundColor: colorValue }} className="text-white">{name[0]}</Button>
+            <Button key={name} onClick={() => handleResponse(name)} style={{ backgroundColor: colorValue }} className="text-white">{name[0].toUpperCase()}</Button>
           ))}
         </div>
         <div className="text-center text-xs text-muted-foreground">Keyboard shortcuts: R, G, B, Y</div>

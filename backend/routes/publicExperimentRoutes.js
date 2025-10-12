@@ -89,30 +89,47 @@ router.get('/preview/:publicId', async (req, res) => {
 });
 
 /**
- * Get experiment metadata
+ * Get experiment metadata (including consent form)
  * @route GET /public/info/:publicId
  */
 router.get('/info/:publicId', async (req, res) => {
   try {
     const { publicId } = req.params;
     
-    const experiment = await getPublicExperiment(publicId);
+    const BuiltExperiment = require('../models/BuiltExperiment');
+    const Experiment = require('../models/Experiment');
+    
+    // Find the built experiment
+    const builtExperiment = await BuiltExperiment.findOne({ publicId, isPublic: true });
+    
+    if (!builtExperiment) {
+      return res.status(404).json({
+        success: false,
+        message: 'Experiment not found or not published'
+      });
+    }
+    
+    // Get the original experiment with consent form
+    const experiment = await Experiment.findById(builtExperiment.experimentId)
+      .populate('consentFormId');
     
     if (!experiment) {
       return res.status(404).json({
         success: false,
-        message: 'Experiment not found'
+        message: 'Experiment configuration not found'
       });
     }
     
     res.json({
       success: true,
       experiment: {
-        publicId: experiment.publicId,
-        title: experiment.title,
-        buildVersion: experiment.buildVersion,
-        accessCount: experiment.accessCount,
-        createdAt: experiment.createdAt
+        publicId: builtExperiment.publicId,
+        title: builtExperiment.title,
+        description: experiment.description,
+        buildVersion: builtExperiment.buildVersion,
+        accessCount: builtExperiment.accessCount,
+        consentForm: experiment.consentFormId || null,
+        createdAt: builtExperiment.createdAt
       }
     });
     

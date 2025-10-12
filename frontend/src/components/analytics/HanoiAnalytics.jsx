@@ -1,25 +1,41 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
-import { Download } from 'lucide-react';
+import { Download, MapPin } from 'lucide-react';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ScatterChart, Scatter, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Area, AreaChart } from 'recharts';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip as LeafletTooltip } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 const HanoiAnalytics = ({ templateId }) => {
+  // Ensure Leaflet CSS is loaded
+  useEffect(() => {
+    console.log('HanoiAnalytics mounted - Leaflet should be available');
+  }, []);
+  
   // Hardcoded data for 8 participants with realistic Hanoi performance
   const isExtended = templateId === 'hanoi'; // 5 discs version
   
   const participantData = [
-    { id: 'P001', age: 24, gender: 'Female', education: "Bachelor's", city: 'Mumbai, Maharashtra', moves: isExtended ? 45 : 12, time: isExtended ? 342 : 95, optimalMoves: isExtended ? 31 : 7, efficiency: isExtended ? 68.9 : 58.3 },
-    { id: 'P002', age: 31, gender: 'Male', education: "Master's", city: 'Delhi, Delhi', moves: isExtended ? 38 : 9, time: isExtended ? 298 : 78, optimalMoves: isExtended ? 31 : 7, efficiency: isExtended ? 81.6 : 77.8 },
-    { id: 'P003', age: 28, gender: 'Male', education: 'PhD', city: 'Bangalore, Karnataka', moves: isExtended ? 35 : 8, time: isExtended ? 275 : 71, optimalMoves: isExtended ? 31 : 7, efficiency: isExtended ? 88.6 : 87.5 },
-    { id: 'P004', age: 22, gender: 'Female', education: "Bachelor's", city: 'Chennai, Tamil Nadu', moves: isExtended ? 52 : 15, time: isExtended ? 389 : 112, optimalMoves: isExtended ? 31 : 7, efficiency: isExtended ? 59.6 : 46.7 },
-    { id: 'P005', age: 35, gender: 'Male', education: "Master's", city: 'Pune, Maharashtra', moves: isExtended ? 40 : 10, time: isExtended ? 315 : 89, optimalMoves: isExtended ? 31 : 7, efficiency: isExtended ? 77.5 : 70.0 },
-    { id: 'P006', age: 26, gender: 'Female', education: "Bachelor's", city: 'Hyderabad, Telangana', moves: isExtended ? 48 : 13, time: isExtended ? 356 : 98, optimalMoves: isExtended ? 31 : 7, efficiency: isExtended ? 64.6 : 53.8 },
-    { id: 'P007', age: 29, gender: 'Male', education: "Master's", city: 'Kolkata, West Bengal', moves: isExtended ? 36 : 9, time: isExtended ? 282 : 74, optimalMoves: isExtended ? 31 : 7, efficiency: isExtended ? 86.1 : 77.8 },
-    { id: 'P008', age: 33, gender: 'Female', education: 'PhD', city: 'Ahmedabad, Gujarat', moves: isExtended ? 33 : 7, time: isExtended ? 265 : 68, optimalMoves: isExtended ? 31 : 7, efficiency: isExtended ? 93.9 : 100.0 },
+    { id: 'P001', age: 24, gender: 'Female', education: "Bachelor's", city: 'Mumbai, Maharashtra', moves: isExtended ? 45 : 12, time: isExtended ? 342 : 95, optimalMoves: isExtended ? 31 : 7, efficiency: isExtended ? 68.9 : 58.3, lat: 19.0760, lng: 72.8777 },
+    { id: 'P002', age: 31, gender: 'Male', education: "Master's", city: 'Delhi, Delhi', moves: isExtended ? 38 : 9, time: isExtended ? 298 : 78, optimalMoves: isExtended ? 31 : 7, efficiency: isExtended ? 81.6 : 77.8, lat: 28.7041, lng: 77.1025 },
+    { id: 'P003', age: 28, gender: 'Male', education: 'PhD', city: 'Bangalore, Karnataka', moves: isExtended ? 35 : 8, time: isExtended ? 275 : 71, optimalMoves: isExtended ? 31 : 7, efficiency: isExtended ? 88.6 : 87.5, lat: 12.9716, lng: 77.5946 },
+    { id: 'P004', age: 22, gender: 'Female', education: "Bachelor's", city: 'Chennai, Tamil Nadu', moves: isExtended ? 52 : 15, time: isExtended ? 389 : 112, optimalMoves: isExtended ? 31 : 7, efficiency: isExtended ? 59.6 : 46.7, lat: 13.0827, lng: 80.2707 },
+    { id: 'P005', age: 35, gender: 'Male', education: "Master's", city: 'Pune, Maharashtra', moves: isExtended ? 40 : 10, time: isExtended ? 315 : 89, optimalMoves: isExtended ? 31 : 7, efficiency: isExtended ? 77.5 : 70.0, lat: 18.5204, lng: 73.8567 },
+    { id: 'P006', age: 26, gender: 'Female', education: "Bachelor's", city: 'Hyderabad, Telangana', moves: isExtended ? 48 : 13, time: isExtended ? 356 : 98, optimalMoves: isExtended ? 31 : 7, efficiency: isExtended ? 64.6 : 53.8, lat: 17.3850, lng: 78.4867 },
+    { id: 'P007', age: 29, gender: 'Male', education: "Master's", city: 'Kolkata, West Bengal', moves: isExtended ? 36 : 9, time: isExtended ? 282 : 74, optimalMoves: isExtended ? 31 : 7, efficiency: isExtended ? 86.1 : 77.8, lat: 22.5726, lng: 88.3639 },
+    { id: 'P008', age: 33, gender: 'Female', education: 'PhD', city: 'Ahmedabad, Gujarat', moves: isExtended ? 33 : 7, time: isExtended ? 265 : 68, optimalMoves: isExtended ? 31 : 7, efficiency: isExtended ? 93.9 : 100.0, lat: 23.0225, lng: 72.5714 },
   ];
+
+  // Function to get color based on efficiency
+  const getEfficiencyColor = (efficiency) => {
+    if (efficiency >= 85) return '#10b981'; // Excellent - Green
+    if (efficiency >= 70) return '#3b82f6'; // Good - Blue
+    if (efficiency >= 60) return '#f59e0b'; // Average - Orange
+    return '#ef4444'; // Poor - Red
+  };
 
   const avgMoves = (participantData.reduce((sum, p) => sum + p.moves, 0) / participantData.length).toFixed(1);
   const avgTime = (participantData.reduce((sum, p) => sum + p.time, 0) / participantData.length).toFixed(1);
@@ -271,6 +287,81 @@ const HanoiAnalytics = ({ templateId }) => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Geographic Distribution Map */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <MapPin className="h-5 w-5" />
+                Participant Geographic Distribution
+              </CardTitle>
+              <CardDescription>Performance efficiency across Indian cities</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[350px] rounded-lg overflow-hidden border bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+            <MapContainer 
+              center={[20.5937, 78.9629]} 
+              zoom={5} 
+              style={{ height: '100%', width: '100%' }}
+              scrollWheelZoom={false}
+              zoomControl={false}
+              attributionControl={false}
+            >
+              <TileLayer
+                url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+              />
+              {participantData.map((participant) => (
+                <CircleMarker
+                  key={participant.id}
+                  center={[participant.lat, participant.lng]}
+                  radius={8}
+                  fillColor={getEfficiencyColor(participant.efficiency)}
+                  color="#fff"
+                  weight={2}
+                  opacity={1}
+                  fillOpacity={0.9}
+                >
+                  <Popup>
+                    <div className="p-1">
+                      <p className="font-bold text-sm">{participant.city.split(',')[0]}</p>
+                      <p className="text-xs mt-1" style={{ color: getEfficiencyColor(participant.efficiency) }}>
+                        {participant.efficiency.toFixed(1)}% Efficient
+                      </p>
+                    </div>
+                  </Popup>
+                  <LeafletTooltip direction="top" offset={[0, -8]} opacity={1} permanent>
+                    <span className="text-xs font-semibold">{participant.city.split(',')[0]}</span>
+                  </LeafletTooltip>
+                </CircleMarker>
+              ))}
+            </MapContainer>
+          </div>
+          
+          {/* Map Legend */}
+          <div className="mt-3 flex flex-wrap gap-3 justify-center text-xs">
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#10b981' }}></div>
+              <span>Excellent (≥85%)</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#3b82f6' }}></div>
+              <span>Good (70-84%)</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#f59e0b' }}></div>
+              <span>Average (60-69%)</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#ef4444' }}></div>
+              <span>Poor (&lt;60%)</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Detailed Participant Table */}
       <Card>

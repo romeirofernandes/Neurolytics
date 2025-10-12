@@ -1,23 +1,41 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
-import { Download } from 'lucide-react';
+import { Download, MapPin } from 'lucide-react';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ScatterChart, Scatter, AreaChart, Area } from 'recharts';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip as LeafletTooltip } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 const BARTAnalytics = () => {
+  // Ensure Leaflet CSS is loaded
+  useEffect(() => {
+    console.log('BARTAnalytics mounted - Leaflet should be available');
+  }, []);
   // 5 participants with realistic BART data
   const participantData = [
-    { id: 'P001', age: 24, gender: 'Female', education: "Bachelor's", city: 'Mumbai, Maharashtra', avgPumps: 28.4, totalEarnings: 2450, explosions: 8, riskScore: 'Moderate' },
-    { id: 'P002', age: 30, gender: 'Male', education: "Master's", city: 'Bangalore, Karnataka', avgPumps: 35.2, totalEarnings: 2890, explosions: 12, riskScore: 'High' },
-    { id: 'P003', age: 27, gender: 'Male', education: "Bachelor's", city: 'Delhi, Delhi', avgPumps: 22.1, totalEarnings: 2180, explosions: 5, riskScore: 'Conservative' },
-    { id: 'P004', age: 25, gender: 'Female', education: "Master's", city: 'Pune, Maharashtra', avgPumps: 31.5, totalEarnings: 2720, explosions: 10, riskScore: 'Moderate-High' },
-    { id: 'P005', age: 29, gender: 'Male', education: 'PhD', city: 'Chennai, Tamil Nadu', avgPumps: 26.8, totalEarnings: 2530, explosions: 7, riskScore: 'Moderate' },
+    { id: 'P001', age: 24, gender: 'Female', education: "Bachelor's", city: 'Mumbai, Maharashtra', avgPumps: 28.4, totalEarnings: 2450, explosions: 8, riskScore: 'Moderate', lat: 19.0760, lng: 72.8777 },
+    { id: 'P002', age: 30, gender: 'Male', education: "Master's", city: 'Bangalore, Karnataka', avgPumps: 35.2, totalEarnings: 2890, explosions: 12, riskScore: 'High', lat: 12.9716, lng: 77.5946 },
+    { id: 'P003', age: 27, gender: 'Male', education: "Bachelor's", city: 'Delhi, Delhi', avgPumps: 22.1, totalEarnings: 2180, explosions: 5, riskScore: 'Conservative', lat: 28.7041, lng: 77.1025 },
+    { id: 'P004', age: 25, gender: 'Female', education: "Master's", city: 'Pune, Maharashtra', avgPumps: 31.5, totalEarnings: 2720, explosions: 10, riskScore: 'Moderate-High', lat: 18.5204, lng: 73.8567 },
+    { id: 'P005', age: 29, gender: 'Male', education: 'PhD', city: 'Chennai, Tamil Nadu', avgPumps: 26.8, totalEarnings: 2530, explosions: 7, riskScore: 'Moderate', lat: 13.0827, lng: 80.2707 },
   ];
 
   const avgPumps = (participantData.reduce((sum, p) => sum + p.avgPumps, 0) / participantData.length).toFixed(1);
   const avgEarnings = Math.round(participantData.reduce((sum, p) => sum + p.totalEarnings, 0) / participantData.length);
+
+  // Get color based on risk score
+  const getRiskColor = (riskScore) => {
+    switch(riskScore) {
+      case 'Conservative': return '#10b981';
+      case 'Moderate': return '#3b82f6';
+      case 'Moderate-High': return '#f59e0b';
+      case 'High': return '#ef4444';
+      default: return '#6b7280';
+    }
+  };
 
   // Trial-by-trial risk progression
   const riskProgression = [
@@ -256,6 +274,75 @@ const BARTAnalytics = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Geographic Distribution Map */}
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MapPin className="w-5 h-5" />
+              Participant Geographic Distribution
+            </CardTitle>
+            <CardDescription>Interactive map showing participant locations across India</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[350px] rounded-lg overflow-hidden border bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+              <MapContainer 
+                center={[20.5937, 78.9629]} 
+                zoom={5} 
+                style={{ height: '100%', width: '100%' }}
+                scrollWheelZoom={false}
+                zoomControl={false}
+                attributionControl={false}
+              >
+                <TileLayer
+                  url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+                />
+                {participantData.map((participant) => (
+                  <CircleMarker
+                    key={participant.id}
+                    center={[participant.lat, participant.lng]}
+                    radius={8}
+                    fillColor={getRiskColor(participant.riskScore)}
+                    color="#fff"
+                    weight={2}
+                    opacity={1}
+                    fillOpacity={0.9}
+                  >
+                    <Popup>
+                      <div className="p-1">
+                        <p className="font-bold text-sm">{participant.city.split(',')[0]}</p>
+                        <p className="text-xs mt-1" style={{ color: getRiskColor(participant.riskScore) }}>
+                          {participant.riskScore}
+                        </p>
+                      </div>
+                    </Popup>
+                    <LeafletTooltip direction="top" offset={[0, -8]} opacity={1} permanent>
+                      <span className="text-xs font-semibold">{participant.city.split(',')[0]}</span>
+                    </LeafletTooltip>
+                  </CircleMarker>
+                ))}
+              </MapContainer>
+            </div>
+            <div className="mt-3 flex flex-wrap gap-3 justify-center text-xs">
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#10b981' }}></div>
+                <span>Conservative</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#3b82f6' }}></div>
+                <span>Moderate</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#f59e0b' }}></div>
+                <span>Moderate-High</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#ef4444' }}></div>
+                <span>High Risk</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle>Risk-Taking by Participant</CardTitle>

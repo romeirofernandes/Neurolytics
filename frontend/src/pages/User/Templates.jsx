@@ -8,15 +8,13 @@ export default function Templates() {
       <AppSidebar />
       <main className="w-full">
         <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-          <div className="flex h-16 items-center gap-4 px-6">
+          <div className="flex h-23 items-center gap-4 px-6">
             <SidebarTrigger />
             <div>
               <h1 className="text-2xl font-bold text-foreground">
                 Experiment Templates
               </h1>
-              <p className="text-sm text-muted-foreground mt-0.5">
-                Browse and select templates to create your experiments
-              </p>
+              
             </div>
           </div>
         </div>

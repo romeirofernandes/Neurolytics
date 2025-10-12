@@ -21,7 +21,8 @@ import {
   BarChart3,
   Zap
 } from 'lucide-react';
-import templatesData from '../../../templates.json';
+import templatesData from '../../../public/templates.json';
+import CryptoSponsor from '../../components/user/CryptoSponsor';
 
 const Dashboard = () => {
   const { user, isAuthenticated } = useAuth();
@@ -31,7 +32,7 @@ const Dashboard = () => {
     total: 0,
     published: 0,
     draft: 0,
-    totalParticipants: 0
+    totalParticipants: 4
   });
   const [recentActivity, setRecentActivity] = useState([]);
   const [notifications, setNotifications] = useState([]);
@@ -50,7 +51,7 @@ const Dashboard = () => {
     // Calculate stats from templates
     const publishedCount = Math.floor(templatesData.length * 0.4);
     const draftCount = templatesData.length - publishedCount;
-    const totalParticipants = Math.floor(Math.random() * 500) + 200;
+    const totalParticipants = 4;
     
     setStats({
       total: templatesData.length,
@@ -88,15 +89,7 @@ const Dashboard = () => {
         icon: Users,
         color: 'text-chart-4'
       },
-      {
-        id: 4,
-        type: 'create',
-        title: 'AI Experiment created',
-        description: 'Custom N-Back task',
-        time: '2 days ago',
-        icon: Sparkles,
-        color: 'text-warning'
-      }
+      
     ]);
 
     // Generate notifications
@@ -179,7 +172,7 @@ const Dashboard = () => {
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
               <Card className="hover:shadow-lg transition-shadow">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
@@ -199,15 +192,15 @@ const Dashboard = () => {
               <Card className="hover:shadow-lg transition-shadow">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardDescription className="text-xs">Published</CardDescription>
-                    <CheckCircle2 className="w-4 h-4 text-success" />
+                    <CardDescription className="text-xs">Research Areas</CardDescription>
+                    <Sparkles className="w-4 h-4 text-chart-4" />
                   </div>
-                  <CardTitle className="text-2xl sm:text-3xl text-success">{stats.published}</CardTitle>
+                  <CardTitle className="text-2xl sm:text-3xl text-chart-4">8</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Rocket className="w-3 h-3" />
-                    <span>Live now</span>
+                    <Zap className="w-3 h-3" />
+                    <span>Active studies</span>
                   </div>
                 </CardContent>
               </Card>
@@ -215,23 +208,7 @@ const Dashboard = () => {
               <Card className="hover:shadow-lg transition-shadow">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardDescription className="text-xs">Drafts</CardDescription>
-                    <Clock className="w-4 h-4 text-warning" />
-                  </div>
-                  <CardTitle className="text-2xl sm:text-3xl text-warning">{stats.draft}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <FileText className="w-3 h-3" />
-                    <span>In progress</span>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="hover:shadow-lg transition-shadow">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardDescription className="text-xs">Participants</CardDescription>
+                    <CardDescription className="text-xs">Total Participants</CardDescription>
                     <Users className="w-4 h-4 text-info" />
                   </div>
                   <CardTitle className="text-2xl sm:text-3xl text-info">{stats.totalParticipants}</CardTitle>
@@ -239,11 +216,49 @@ const Dashboard = () => {
                 <CardContent>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Activity className="w-3 h-3" />
-                    <span>Total</span>
+                    <span>Engaged</span>
                   </div>
                 </CardContent>
               </Card>
             </div>
+
+            {/* Crypto Sponsorship Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5" />
+                  Blockchain Sponsorship
+                </CardTitle>
+                <CardDescription>
+                  Sponsor your experiments on the blockchain for transparent tracking
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {/* Example sponsorship cards - replace with your actual experiments */}
+                  {stats.total > 0 ? (
+                    <>
+                      <CryptoSponsor 
+                        experimentId="stroop-task-001" 
+                        experimentTitle="Stroop Color Task"
+                      />
+                      <CryptoSponsor 
+                        experimentId="bart-task-001" 
+                        experimentTitle="Balloon Analog Risk Task"
+                      />
+                      <CryptoSponsor 
+                        experimentId="posner-task-001" 
+                        experimentTitle="Posner Cueing Task"
+                      />
+                    </>
+                  ) : (
+                    <div className="col-span-full text-center py-8 text-muted-foreground">
+                      <p>Create experiments to enable blockchain sponsorship</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Notifications and Activity */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">

@@ -275,9 +275,9 @@ export const ExperimentBuildPanel = ({ experimentId, templateId }) => {
                   <div className="flex items-center gap-2">
                     <input
                       readOnly
-                      value={`http://localhost:5173/preview/${templateId || buildStatus.publicId}`}
+                      value={`http://localhost:5173/preview/${buildStatus.templateId || templateId || buildStatus.publicId}`}
                       className="flex-1 text-sm bg-muted px-3 py-2 rounded border"
-                      placeholder="Public preview URL (no login required)"
+                      placeholder="Preview URL (no login required)"
                     />
                     <Button
                       size="sm"
@@ -290,33 +290,33 @@ export const ExperimentBuildPanel = ({ experimentId, templateId }) => {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => copyToClipboard(`http://localhost:5173/preview/${templateId || buildStatus.publicId}`)}
+                      onClick={() => copyToClipboard(`http://localhost:5173/preview/${buildStatus.templateId || templateId || buildStatus.publicId}`)}
                     >
                       {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                     </Button>
                   </div>
                   
-                  {/* Standalone HTML URL (backend served) */}
+                  {/* Public Experiment URL (frontend) */}
                   {buildStatus.isPublic && (
                     <div className="flex items-center gap-2">
                       <input
                         readOnly
-                        value={buildStatus.urls.public}
+                        value={`http://localhost:5173/run-experiment/${buildStatus.templateId || templateId || buildStatus.publicId}`}
                         className="flex-1 text-sm bg-muted px-3 py-2 rounded border"
-                        placeholder="Standalone HTML (backend)"
+                        placeholder="Public experiment URL"
                       />
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => window.open(buildStatus.urls.public, '_blank')}
+                        onClick={() => window.open(`http://localhost:5173/run-experiment/${buildStatus.templateId || templateId || buildStatus.publicId}`, '_blank')}
                       >
                         <ExternalLink className="mr-2 h-4 w-4" />
-                        Open HTML
+                        Open
                       </Button>
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => copyToClipboard(buildStatus.urls.public)}
+                        onClick={() => copyToClipboard(`http://localhost:5173/run-experiment/${buildStatus.templateId || templateId || buildStatus.publicId}`)}
                       >
                         {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                       </Button>

@@ -8,8 +8,9 @@ export const StroopTemplate = ({ onComplete }) => {
   const [color, setColor] = useState('');
   const [startTime, setStartTime] = useState(0);
   const [results, setResults] = useState([]);
-  // Removing isTraining state
+  const [isTraining, setIsTraining] = useState(true);
 
+  // Define the words and colors to be used in the Stroop task
   const words = ['RED', 'GREEN', 'BLUE', 'YELLOW'];
   const colors = { RED: 'red', GREEN: 'green', BLUE: 'blue', YELLOW: 'yellow' };
   const keys = { r: 'RED', g: 'GREEN', b: 'BLUE', y: 'YELLOW' };
@@ -44,8 +45,11 @@ export const StroopTemplate = ({ onComplete }) => {
     setResults([...results, result]);
 
     const nextTrial = currentTrial + 1;
-    // Removed training logic
-    if (nextTrial >= 10) { // Modified to 10 trials
+    if (isTraining && nextTrial >= 5) {
+      setIsTraining(false);
+      setCurrentTrial(0);
+      generateTrial();
+    } else if (!isTraining && nextTrial >= 20) {
       onComplete?.(results);
     } else {
       setCurrentTrial(nextTrial);
@@ -57,8 +61,7 @@ export const StroopTemplate = ({ onComplete }) => {
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
         <CardTitle>Stroop Task</CardTitle>
-        {/* Updated description */}
-        <CardDescription>Trial {currentTrial + 1} of 10</CardDescription>
+        <CardDescription>{isTraining ? 'Training Mode' : `Trial ${currentTrial + 1} of 20`}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="text-center text-sm text-muted-foreground">Press the key corresponding to the COLOR of the word (not what it says)</div>

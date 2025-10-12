@@ -315,7 +315,7 @@ button:disabled {
 /**
  * Build and save experiment to database
  */
-async function buildAndSaveExperiment(experimentId, componentCode, title, description) {
+async function buildAndSaveExperiment(experimentId, componentCode, title, description, templateId = null) {
   try {
     console.log(`🔨 Building standalone experiment: ${title}`);
     
@@ -338,6 +338,7 @@ async function buildAndSaveExperiment(experimentId, componentCode, title, descri
     const builtExperiment = new BuiltExperiment({
       experimentId,
       publicId,
+      templateId,
       title,
       htmlContent: finalHTML,
       cssContent,
@@ -348,11 +349,12 @@ async function buildAndSaveExperiment(experimentId, componentCode, title, descri
     
     await builtExperiment.save();
     
-    console.log(`✅ Experiment built successfully! Public ID: ${publicId}`);
+    console.log(`✅ Experiment built successfully! Public ID: ${publicId}, Template ID: ${templateId || 'N/A'}`);
     
     return {
       success: true,
       publicId,
+      templateId,
       builtExperiment
     };
     
@@ -363,6 +365,7 @@ async function buildAndSaveExperiment(experimentId, componentCode, title, descri
     const builtExperiment = new BuiltExperiment({
       experimentId,
       publicId: nanoid(10),
+      templateId,
       title,
       htmlContent: '',
       jsContent: '',
@@ -382,14 +385,14 @@ async function buildAndSaveExperiment(experimentId, componentCode, title, descri
 /**
  * Rebuild an existing experiment
  */
-async function rebuildExperiment(experimentId, componentCode, title, description) {
+async function rebuildExperiment(experimentId, componentCode, title, description, templateId = null) {
   try {
     // Find existing built experiment
     const existing = await BuiltExperiment.findOne({ experimentId });
     
     if (!existing) {
       // Create new if doesn't exist
-      return buildAndSaveExperiment(experimentId, componentCode, title, description);
+      return buildAndSaveExperiment(experimentId, componentCode, title, description, templateId);
     }
     
     console.log(`🔨 Rebuilding experiment: ${title}`);
@@ -408,6 +411,7 @@ async function rebuildExperiment(experimentId, componentCode, title, description
     
     // Update existing
     existing.title = title;
+    existing.templateId = templateId || existing.templateId; // Preserve or update templateId
     existing.htmlContent = finalHTML;
     existing.cssContent = cssContent;
     existing.jsContent = jsContent;

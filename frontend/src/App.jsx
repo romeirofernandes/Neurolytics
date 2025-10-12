@@ -9,6 +9,7 @@ import Register from './pages/Register'
 import Dashboard from './pages/User/Dashboard'
 import Profile from './pages/User/Profile'
 import Analytics from './pages/User/Analytics'
+import MyExperiments from './pages/User/MyExperiments'
 import AdminAuth from './pages/Admin/AdminAuth'
 import AdminDashboard from './pages/Admin/AdminDashboard'
 import ParticipantLogin from './pages/Participant/Login'
@@ -29,6 +30,22 @@ import AIExperimentBuilder from './pages/User/AIExperimentBuilder'
 import PreviewExperiment from './pages/Preview/PreviewExperiment'
 import PupilTracker from './components/experiment/templates/PupilTracker'
 import PupilTrackingActivity from './pages/Experiment/PupilTrackingActivity'
+import VisualBuilder from './pages/User/VisualBuilder'
+import TermsAndConditions from './pages/TermsAndConditions'
+import PrivacyPolicy from './pages/Policy'
+// Fix Leaflet default marker icons for Vite/Webpack
+import L from 'leaflet';
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+
+let DefaultIcon = L.icon({
+  iconUrl: icon,
+  shadowUrl: iconShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41]
+});
+
+L.Marker.prototype.options.icon = DefaultIcon;
 
 // Inline route protection components
 const ProtectedRoute = ({ children }) => {
@@ -79,6 +96,8 @@ const App = () => {
             <Routes>
               {/* Public routes - accessible to everyone */}
               <Route path="/" element={<Landing />} />
+              <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               
               {/* Auth routes - only accessible when NOT logged in */}
               <Route path="/login" element={
@@ -150,6 +169,12 @@ const App = () => {
                   <Templates />
                 </ProtectedRoute>
               } />
+
+              <Route path="/my-experiments" element={
+                <ProtectedRoute>
+                  <MyExperiments />
+                </ProtectedRoute>
+              } />
             
               {/* Admin routes */}
               <Route path="/admin/auth" element={<AdminAuth />} />
@@ -176,21 +201,16 @@ const App = () => {
                   <ParticipantExplore />
                 </ProtectedParticipantRoute>
               } />
-              <Route path="/participant/experiment/:templateId" element={
-                <ProtectedParticipantRoute>
-                  <TemplateDetail />
-                </ProtectedParticipantRoute>
-              } />
-              <Route path="/participant/run-experiment/:templateId" element={
-                <ProtectedParticipantRoute>
-                  <RunExperiment />
-                </ProtectedParticipantRoute>
-              } />
               
-              {/* Public experiment participation route (with consent) */}
-              <Route path="/experiment/:experimentId" element={
-                <PublicExperimentPage />
-              } />
+              {/* Public participant experiment routes - no authentication required */}
+              <Route path="/participant/experiment/:templateId" element={<TemplateDetail />} />
+              <Route path="/participant/run-experiment/:templateId" element={<RunExperiment />} />
+              
+              {/* Public experiment route - works like preview but for public sharing */}
+              <Route path="/run-experiment/:templateId" element={<RunExperiment />} />
+              
+              {/* Public experiment participation route (with consent) - using publicId */}
+              <Route path="/experiment/:publicId" element={<PublicExperimentPage />} />
               
               {/* Public preview route - no authentication required */}
               <Route path="/preview/:templateId" element={<PreviewExperiment />} />
@@ -199,6 +219,7 @@ const App = () => {
               
               {/* Pupil tracking activity route */}
               <Route path="/experiment/pupil-tracking-activity" element={<PupilTrackingActivity />} />
+              <Route path="/visual-builder" element={<VisualBuilder />} />
               
               {/* 404 route - catch all unmatched routes */}
               <Route path="*" element={<NotFoundPage />} />
@@ -212,7 +233,7 @@ const App = () => {
 
 // Public Experiment Page Component (shows consent first, then experiment)
 const PublicExperimentPage = () => {
-  const { experimentId } = useParams();
+  const { publicId } = useParams();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [experimentData, setExperimentData] = useState(null);
@@ -220,13 +241,14 @@ const PublicExperimentPage = () => {
 
   useEffect(() => {
     loadExperiment();
-  }, [experimentId]);
+  }, [publicId]);
 
   const loadExperiment = async () => {
     try {
       setLoading(true);
+      // Use the public info endpoint with publicId
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/experiments/public/${experimentId}`
+        `${import.meta.env.VITE_API_URL}/public/info/${publicId}`
       );
       
       if (!response.ok) {
@@ -244,24 +266,27 @@ const PublicExperimentPage = () => {
 
   const handleConsent = async () => {
     try {
-      // Record consent
-      await fetch(
-        `${import.meta.env.VITE_API_URL}/api/consent-forms/${experimentData.consentForm._id}/consent`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            experimentId: experimentData.experimentId,
-            consentGiven: true,
-            ipAddress: '', // Could be captured on backend
-          }),
-        }
-      );
+      // Record consent if there's a consent form
+      if (experimentData.consentForm?._id) {
+        await fetch(
+          `${import.meta.env.VITE_API_URL}/api/consent-forms/${experimentData.consentForm._id}/consent`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              publicId: publicId,
+              consentGiven: true,
+              ipAddress: '', // Could be captured on backend
+            }),
+          }
+        );
+      }
 
       setConsentGiven(true);
     } catch (error) {
       console.error('Error recording consent:', error);
-      alert('Failed to record consent. Please try again.');
+      // Don't block the user if consent recording fails
+      setConsentGiven(true);
     }
   };
 
@@ -314,17 +339,16 @@ const PublicExperimentPage = () => {
     );
   }
 
-  // Show experiment after consent
-  if (consentGiven && experimentData) {
+  // Show experiment after consent - load it via iframe from backend
+  if (consentGiven || !experimentData?.consentForm) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
-        {/* Your experiment runner component here */}
-        <div className="max-w-4xl mx-auto p-8">
-          <h1 className="text-3xl font-bold mb-4">{experimentData.title}</h1>
-          <p className="text-muted-foreground mb-8">{experimentData.description}</p>
-          {/* Render experiment blocks */}
-          {/* <ExperimentRunner blocks={experimentData.configuration.blocks} /> */}
-        </div>
+        <iframe
+          src={`${import.meta.env.VITE_API_URL}/public/experiment/${publicId}`}
+          className="w-full h-screen border-0"
+          title={experimentData?.title || 'Experiment'}
+          allow="camera; microphone"
+        />
       </div>
     );
   }

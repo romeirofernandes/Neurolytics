@@ -14,7 +14,7 @@ import {
   FaPlay, FaCheckCircle, FaExclamationCircle, FaBook,
   FaUsers, FaChartLine, FaFileAlt, FaEye
 } from 'react-icons/fa';
-import templatesData from '../../../templates.json';
+import templatesData from '../../../public/templates.json';
 
 // Icon mapping
 const iconMap = {
@@ -40,7 +40,8 @@ const TemplateDetail = () => {
 
   useEffect(() => {
     const foundTemplate = templatesData.find(t => t.id === templateId);
-    if (foundTemplate) {
+    // Only set template if it has a researcher (actual experiment, not base template)
+    if (foundTemplate && foundTemplate.researcher) {
       setTemplate(foundTemplate);
     }
   }, [templateId]);

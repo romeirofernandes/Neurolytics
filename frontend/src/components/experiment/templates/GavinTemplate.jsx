@@ -15,8 +15,7 @@ export const NBackTemplate = ({ onComplete }) => {
   const [blockStats, setBlockStats] = useState({ hits: 0, misses: 0, falseAlarms: 0, correctRejections: 0 });
 
   const letters = ['A', 'B', 'C', 'D', 'E', 'H', 'I', 'K', 'L', 'M', 'O', 'P', 'R', 'S', 'T'];
-  // Modified: Reduced trials per block to achieve a total of 20 trials (10 trials per block)
-  const trialsPerBlock = 10;
+  const trialsPerBlock = 10; // Modified: Each block now has 10 trials to reach a total of 20
   const totalBlocks = 2;
   const nBack = 2;
 

@@ -76,11 +76,21 @@ const Hero2 = () => {
             <div
               className="absolute inset-0 rounded shadow-lg bg-card blur-[10rem] bg-grainy opacity-20" />
 
-            {/* Hero Image */}
+            {/* Hero Image - Switches based on theme */}
             <img
-              src="https://kikxai.netlify.app/_next/image?url=%2Fassets%2Fhero-image.png&w=1920&q=75"
-              alt="Hero Image"
-              className="relative w-full h-auto shadow-md grayscale-100 rounded border border-border" />
+              src={
+                theme === 'dark'
+                  ? "/Dashboard_dark.png" // Dark mode image (placeholder - replace with your dark dashboard screenshot)
+                  : "/Dashboard_white.png" // Light mode image (placeholder - replace with your light dashboard screenshot)
+              }
+              alt={`Dashboard Interface - ${theme === 'dark' ? 'Dark' : 'Light'} Mode`}
+              className="relative w-full h-auto shadow-md grayscale-100 rounded border border-border transition-all duration-500"
+              loading="eager"
+              onError={(e) => {
+                // Fallback to default image if custom images fail to load
+                e.target.src = "https://kikxai.netlify.app/_next/image?url=%2Fassets%2Fhero-image.png&w=1920&q=75";
+              }}
+            />
           </div>
         </div>
       </div>

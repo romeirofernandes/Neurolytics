@@ -196,11 +196,30 @@ INSTRUCTIONS:
 6. Keep the experiment scientifically valid
 7. Add helpful comments explaining any changes
 
-RESPONSE FORMAT:
-- Provide a brief explanation of what template you're using and what changes you made
-- Then provide the complete modified code in a jsx code block
+**React Component Best Practices:**
+1. Use React hooks (useState, useEffect, useCallback, useRef)
+2. **CRITICAL: Always validate state before accessing properties**
+3. **Use optional chaining (?.) for nested property access**
+4. **Add null/undefined checks before using state variables**
+5. Initialize all state with safe default values
+6. Clean up timers/listeners in useEffect return
+7. Prevent memory leaks with cleanup functions
+8. Use useRef for values that don't trigger re-renders (timeouts, intervals)
+9. Implement proper error boundaries
+10. Handle edge cases (empty arrays, null values, loading states)
 
-Your response:`;
+**Error-Prone Patterns to AVOID:**
+❌ \`currentTrial.block\` - Can fail if currentTrial is null
+✅ \`currentTrial?.block\` - Safe with optional chaining
+✅ \`if (currentTrial) { currentTrial.block }\` - Explicit null check
+
+❌ \`results[0].value\` - Can fail if results is empty
+✅ \`results[0]?.value\` - Safe access
+✅ \`if (results.length > 0) { results[0].value }\` - Length check first
+
+❌ Direct state access in callbacks without checks
+✅ Always validate state exists before using
+`;
 
   return prompt;
 }

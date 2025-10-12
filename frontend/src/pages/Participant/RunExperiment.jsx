@@ -4,12 +4,15 @@ import { useParticipant } from '../../context/ParticipantContext';
 import { Card, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Alert, AlertDescription } from '../../components/ui/alert';
-import { MarkdownRenderer } from '../../components/ui/MarkdownRenderer';
-import { Loader2 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { Loader2, Trophy } from 'lucide-react';
 import { FaArrowLeft, FaCheckCircle, FaExclamationCircle, FaSpinner, FaChartLine, FaDownload, FaBrain, FaCamera } from 'react-icons/fa';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import templatesData from '../../../templates.json';
+import templatesData from '../../../public/templates.json';
 import ConsentDisplay from '../../components/experiment/ConsentDisplay';
 import { BARTTemplate } from '../../components/experiment/templates/BARTTemplate';
 import { StroopTemplate } from '../../components/experiment/templates/StroopTemplate';
@@ -112,6 +115,9 @@ const RunExperiment = () => {
   const [loadingConsent, setLoadingConsent] = useState(true);
   const [consentError, setConsentError] = useState(null);
 
+  // Add state for crypto points
+  const [cryptoPointsAwarded, setCryptoPointsAwarded] = useState(null);
+
   useEffect(() => {
     const loadTemplate = async () => {
       setLoading(true);
@@ -119,11 +125,20 @@ const RunExperiment = () => {
 
       // Find template in templates.json
       const foundTemplate = templatesData.find(t => t.id === templateId);
+      
+      // Only proceed if template exists AND has a researcher (actual experiment, not base template)
       if (!foundTemplate) {
         setLoadError('Template not found');
         setLoading(false);
         return;
       }
+      
+      if (!foundTemplate.researcher) {
+        setLoadError('This is a base template and cannot be run directly. Please contact a researcher to create an experiment based on this template.');
+        setLoading(false);
+        return;
+      }
+      
       setTemplate(foundTemplate);
 
       // Try to load from base components first
@@ -192,7 +207,27 @@ const RunExperiment = () => {
     setExperimentResults(results);
     setExperimentComplete(true);
     
-    // Automatically start AI analysis
+    // Add participant to template contributors
+    if (participant?.mongoId && templateId) {
+      try {
+        await fetch(`${import.meta.env.VITE_API_URL}/api/visual-builder/add-contributor`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            templateId: templateId,
+            participantId: participant.mongoId
+          })
+        });
+        console.log('✅ Added to template contributors');
+      } catch (error) {
+        console.error('⚠️ Failed to add contributor:', error);
+        // Don't fail the experiment completion if this fails
+      }
+    }
+    
+    await awardCryptoPoints(templateId);
+    
+    // Then analyze results
     await analyzeResults(results);
   };
 
@@ -507,6 +542,42 @@ const RunExperiment = () => {
     }
   };
 
+  // Award crypto points to participant
+  const awardCryptoPoints = async (experimentId) => {
+    try {
+      const participantId = participant?.id;
+      if (!participantId) return;
+
+      const walletAddress = localStorage.getItem(`wallet_${participantId}`);
+      if (!walletAddress) {
+        console.log('No wallet connected - skipping crypto points');
+        return;
+      }
+
+      console.log('Awarding crypto points...');
+      
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/crypto/points/award`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          experimentId,
+          participantWallet: walletAddress
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        console.log('✅ Crypto points awarded!', data);
+        setCryptoPointsAwarded(data); // 🎯 Save the result
+      } else {
+        console.log('Points already awarded or error:', data.message);
+      }
+    } catch (error) {
+      console.error('Crypto points error:', error);
+    }
+  };
+
   // Loading state
   if (loading || loadingConsent) {
     return (
@@ -601,6 +672,35 @@ const RunExperiment = () => {
             </CardContent>
           </Card>
 
+          {/* Crypto Points Awarded Alert */}
+          {cryptoPointsAwarded && (
+            <Card className="border-2 border-yellow-500/20 bg-gradient-to-br from-yellow-500/5 to-orange-500/5">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 rounded-full bg-yellow-500/10">
+                    <Trophy className="h-8 w-8 text-yellow-600" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-bold text-foreground">
+                      🎉 {cryptoPointsAwarded.points} Points Earned!
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Transaction: 
+                      <a 
+                        href={cryptoPointsAwarded.explorerUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline ml-1"
+                      >
+                        {cryptoPointsAwarded.transactionHash.slice(0, 10)}...
+                      </a>
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* AI Analysis Section */}
           {analyzingResults ? (
             <Card>
@@ -621,7 +721,66 @@ const RunExperiment = () => {
                   <FaChartLine className="h-5 w-5 text-primary" />
                   <h3 className="text-xl font-bold">AI Performance Analysis</h3>
                 </div>
-                <MarkdownRenderer content={aiAnalysis} />
+                <div className="prose prose-sm dark:prose-invert max-w-none">
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      h1: ({ node, ...props }) => <h1 className="text-2xl font-bold mt-6 mb-4 text-foreground" {...props} />,
+                      h2: ({ node, ...props }) => <h2 className="text-xl font-bold mt-5 mb-3 text-foreground border-b pb-2 border-border" {...props} />,
+                      h3: ({ node, ...props }) => <h3 className="text-lg font-semibold mt-4 mb-2 text-foreground" {...props} />,
+                      h4: ({ node, ...props }) => <h4 className="text-base font-semibold mt-3 mb-2 text-foreground" {...props} />,
+                      p: ({ node, ...props }) => <p className="my-3 text-muted-foreground leading-relaxed" {...props} />,
+                      ul: ({ node, ...props }) => <ul className="list-disc pl-6 my-3 space-y-1 text-muted-foreground" {...props} />,
+                      ol: ({ node, ...props }) => <ol className="list-decimal pl-6 my-3 space-y-1 text-muted-foreground" {...props} />,
+                      li: ({ node, ...props }) => <li className="text-muted-foreground" {...props} />,
+                      table: ({ node, ...props }) => (
+                        <div className="my-4 overflow-x-auto">
+                          <table className="min-w-full border-collapse border border-border rounded-lg" {...props} />
+                        </div>
+                      ),
+                      thead: ({ node, ...props }) => <thead className="bg-muted" {...props} />,
+                      tbody: ({ node, ...props }) => <tbody className="divide-y divide-border" {...props} />,
+                      tr: ({ node, ...props }) => <tr className="hover:bg-muted/50 transition-colors" {...props} />,
+                      th: ({ node, ...props }) => <th className="border border-border px-4 py-2 text-left font-semibold text-foreground" {...props} />,
+                      td: ({ node, ...props }) => <td className="border border-border px-4 py-2 text-muted-foreground" {...props} />,
+                      strong: ({ node, ...props }) => <strong className="font-bold text-foreground" {...props} />,
+                      em: ({ node, ...props }) => <em className="italic text-foreground" {...props} />,
+                      code: ({ node, inline, className, children, ...props }) => {
+                        const match = /language-(\w+)/.exec(className || '');
+                        return !inline && match ? (
+                          <SyntaxHighlighter
+                            style={vscDarkPlus}
+                            language={match[1]}
+                            PreTag="div"
+                            className="rounded-lg my-4"
+                            {...props}
+                          >
+                            {String(children).replace(/\n$/, '')}
+                          </SyntaxHighlighter>
+                        ) : (
+                          <code className="bg-muted px-1.5 py-0.5 rounded text-sm font-mono text-primary" {...props}>
+                            {children}
+                          </code>
+                        );
+                      },
+                      pre: ({ node, children, ...props }) => (
+                        <pre className="bg-muted p-4 rounded-lg my-4 overflow-x-auto text-sm font-mono" {...props}>
+                          {children}
+                        </pre>
+                      ),
+                      blockquote: ({ node, ...props }) => (
+                        <blockquote className="border-l-4 border-primary pl-4 py-2 my-4 italic bg-muted/30 rounded-r-lg text-foreground/80" {...props} />
+                      ),
+                      a: ({ node, ...props }) => (
+                        <a className="text-primary hover:underline font-medium" target="_blank" rel="noopener noreferrer" {...props} />
+                      ),
+                      hr: ({ node, ...props }) => <hr className="my-6 border-border" {...props} />,
+                      img: ({ node, ...props }) => <img className="rounded-lg my-4 max-w-full h-auto" {...props} />,
+                    }}
+                  >
+                    {aiAnalysis}
+                  </ReactMarkdown>
+                </div>
               </CardContent>
             </Card>
           ) : analysisError ? (

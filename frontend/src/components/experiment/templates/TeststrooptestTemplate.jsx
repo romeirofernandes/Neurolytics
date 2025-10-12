@@ -48,7 +48,7 @@ export const StroopTemplate = ({ onComplete }) => {
       setIsTraining(false);
       setCurrentTrial(0);
       generateTrial();
-    } else if (!isTraining && nextTrial >= 40) { // Modified to 40 trials
+    } else if (!isTraining && nextTrial >= 20) {
       onComplete?.(results);
     } else {
       setCurrentTrial(nextTrial);
@@ -60,7 +60,7 @@ export const StroopTemplate = ({ onComplete }) => {
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
         <CardTitle>Stroop Task</CardTitle>
-        <CardDescription>{isTraining ? 'Training Mode' : `Trial ${currentTrial + 1} of 40`}</CardDescription> {/* Modified text */}
+        <CardDescription>{isTraining ? 'Training Mode' : `Trial ${currentTrial + 1} of 20`}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="text-center text-sm text-muted-foreground">Press the key corresponding to the COLOR of the word (not what it says)</div>

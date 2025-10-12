@@ -39,23 +39,7 @@ const AIExperimentBuilder = () => {
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: `👋 Hello! I'm your AI Experiment Builder assistant powered by **RAG (Retrieval-Augmented Generation)**.
-
-Instead of creating experiments from scratch, I retrieve and modify **validated psychological experiment templates** based on your needs.
-
-I can help you:
-- **Retrieve** existing templates (Stroop, N-Back, BART, Go/No-Go, etc.)
-- **Modify** templates with your specific requirements
-- **Customize** trials, timing, stimuli, and difficulty
-- **Optimize** experimental designs with best practices
-
-**How it works:**
-1. Describe what you want (e.g., "Create a Stroop task with 30 trials")
-2. I'll find the most similar template from our knowledge base
-3. I'll modify it according to your specifications
-4. You'll get production-ready code based on proven templates
-
-What would you like to build today?`,
+      content: `Hi! I’m your AI Experiment Builder, powered by a personalized LLM with RAG. I retrieve validated psychological experiment templates and adapt them to your needs, letting you customize trials, stimuli, and timing. Just tell me your experiment idea, and I’ll generate production-ready code optimized for accuracy and reliability.`,
       timestamp: new Date()
     }
   ]);
@@ -156,11 +140,14 @@ What would you like to build today?`,
 
   const handleQuickAction = (action) => {
     const prompts = {
-      createStroop: "Create a Stroop task with 40 trials, colored words (red, blue, green, yellow), and measure response time and accuracy.",
-      createNBack: "Create a 2-back working memory task with letters, 20 trials, and track hits, misses, and false alarms.",
-      modifyTiming: "I want to adjust the timing - make the fixation 750ms and stimulus presentation 2000ms.",
-      addRandomization: "Add randomization to the trial order and ensure stimuli don't repeat consecutively.",
-      optimizeTrials: "Reduce the number of trials to make the experiment shorter while maintaining statistical power."
+      createStroop: "Create a Stroop Color-Word Task with 20 trials (5 training) measuring selective attention and cognitive control. Use red, green, blue, and yellow colors with keyboard responses (R, G, B, Y).",
+      createNBack: "Create a 2-Back Working Memory Task with 30 trials across 2 blocks. Use letters A-T and track hits, misses, false alarms, and correct rejections.",
+      createBART: "Create a Balloon Analogue Risk Task (BART) with 33 trials (3 training) measuring risk-taking behavior. Use different colored balloons (blue, yellow, orange, green) with varying explosion probabilities.",
+      createFlanker: "Create an Eriksen Flanker Task with 20 trials (5 training) measuring selective attention. Use letters X, C, V, B with congruent/incongruent flankers and keyboard responses (A/L).",
+      createGoNoGo: "Create a Go/No-Go Inhibition Task with 30 trials measuring response inhibition. Use 80% Go trials and 20% No-Go trials with spacebar responses.",
+      createPosner: "Create a Posner Spatial Cueing Task with 40 trials measuring spatial attention. Use 75% valid cues and 25% invalid cues with left/right boxes.",
+      createHanoi: "Create a Tower of Hanoi problem-solving task with 3 disks measuring planning and executive function. Track number of moves and solution time.",
+      modifyTiming: "I want to adjust the timing - make the fixation 750ms and stimulus presentation 2000ms with a 500ms inter-trial interval."
     };
 
     setInputMessage(prompts[action]);
@@ -190,6 +177,10 @@ What would you like to build today?`,
 
       const data = await response.json();
 
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || `Server error: ${response.status}`);
+      }
+
       if (data.success) {
         setCurrentExperiment(data.experiment);
         
@@ -206,12 +197,10 @@ What would you like to build today?`,
         
         // Switch to build tab to show the preview
         setActiveTab('build');
-      } else {
-        throw new Error(data.message);
       }
     } catch (error) {
       console.error('Save error:', error);
-      alert('Failed to save experiment');
+      alert(`Failed to save experiment: ${error.message}`);
     } finally {
       setSaving(false);
     }
@@ -285,14 +274,6 @@ What would you like to build today?`,
           <div className="flex items-center gap-2">
             {currentExperiment && (
               <>
-                <Button
-                  variant="outline"
-                  onClick={() => navigate(`/user/consent-form-builder/${currentExperiment._id}`)}
-                  className="gap-2"
-                >
-                  <FileCode className="w-4 h-4" />
-                  Create Consent Form
-                </Button>
                 
                 <Button
                   onClick={handlePublishExperiment}
@@ -342,50 +323,99 @@ What would you like to build today?`,
                       <CardHeader>
                         <CardTitle className="text-sm flex items-center gap-2">
                           <Lightbulb className="w-4 h-4" />
-                          Quick Actions
+                          Quick Start Templates
                         </CardTitle>
+                        <CardDescription className="text-xs">
+                          Based on validated experiments
+                        </CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full justify-start"
-                          onClick={() => handleQuickAction('createStroop')}
-                        >
-                          Create Stroop Task
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full justify-start"
-                          onClick={() => handleQuickAction('createNBack')}
-                        >
-                          Create N-Back Task
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full justify-start"
-                          onClick={() => handleQuickAction('modifyTiming')}
-                        >
-                          Adjust Timing
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full justify-start"
-                          onClick={() => handleQuickAction('addRandomization')}
-                        >
-                          Add Randomization
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full justify-start"
-                          onClick={() => handleQuickAction('optimizeTrials')}
-                        >
-                          Optimize Trials
-                        </Button>
+                        <div className="space-y-1 mb-3">
+                          <p className="text-xs font-semibold text-muted-foreground">Cognitive Control</p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full justify-start text-xs h-8"
+                            onClick={() => handleQuickAction('createStroop')}
+                          >
+                             Stroop Task
+                          </Button>
+                        </div>
+
+                        <div className="space-y-1 mb-3">
+                          <p className="text-xs font-semibold text-muted-foreground">Working Memory</p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full justify-start text-xs h-8"
+                            onClick={() => handleQuickAction('createNBack')}
+                          >
+                             N-Back (2-Back)
+                          </Button>
+                        </div>
+
+                        <div className="space-y-1 mb-3">
+                          <p className="text-xs font-semibold text-muted-foreground">Decision Making</p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full justify-start text-xs h-8"
+                            onClick={() => handleQuickAction('createBART')}
+                          >
+                            BART (Risk)
+                          </Button>
+                        </div>
+
+                        <div className="space-y-1 mb-3">
+                          <p className="text-xs font-semibold text-muted-foreground">Attention</p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full justify-start text-xs h-8"
+                            onClick={() => handleQuickAction('createFlanker')}
+                          >
+                             Flanker Task
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full justify-start text-xs h-8"
+                            onClick={() => handleQuickAction('createPosner')}
+                          >
+                             Posner Cueing
+                          </Button>
+                        </div>
+
+                        <div className="space-y-1 mb-3">
+                          <p className="text-xs font-semibold text-muted-foreground">Executive Function</p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full justify-start text-xs h-8"
+                            onClick={() => handleQuickAction('createGoNoGo')}
+                          >
+                             Go/No-Go
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full justify-start text-xs h-8"
+                            onClick={() => handleQuickAction('createHanoi')}
+                          >
+                             Tower of Hanoi
+                          </Button>
+                        </div>
+
+                        <div className="border-t pt-2 mt-3">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="w-full justify-start text-xs h-8"
+                            onClick={() => handleQuickAction('modifyTiming')}
+                          >
+                             Adjust Timing
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
 

@@ -10,8 +10,9 @@ import { Badge } from '../../components/ui/badge';
 import { Separator } from '../../components/ui/separator';
 import { BarChart3, TrendingUp, Users, Clock, Brain, Target, AlertCircle, Download, FileText, Sparkles, Activity } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import templates from '../../../templates.json';
+import templates from '../../../public/templates.json';
 import jsPDF from 'jspdf';
+
 import html2canvas from 'html2canvas';
 
 // Import analytics components for each template
@@ -144,24 +145,24 @@ const Analytics = () => {
         return <StroopEmotionAnalytics />;
       case 'bart':
         return <BARTAnalytics />;
-      case 'stroop':
-        return <StroopAnalytics />;
-      case 'flanker':
-        return <FlankerAnalytics />;
-      case 'posner':
-        return <PosnerAnalytics />;
-      case 'simon':
-        return <SimonAnalytics />;
-      case 'gonogo':
-        return <GoNoGoAnalytics />;
-      case 'nback':
-        return <NBackAnalytics />;
-      case 'digitspan':
-        return <DigitSpanAnalytics />;
-      case 'visualsearch':
-        return <VisualSearchAnalytics />;
-      case 'abba':
-        return <ABBAAnalytics />;
+      // case 'stroop':
+      //   return <StroopAnalytics />;
+      // case 'flanker':
+      //   return <FlankerAnalytics />;
+      // case 'posner':
+      //   return <PosnerAnalytics />;
+      // case 'simon':
+      //   return <SimonAnalytics />;
+      // case 'gonogo':
+      //   return <GoNoGoAnalytics />;
+      // case 'nback':
+      //   return <NBackAnalytics />;
+      // case 'digitspan':
+      //   return <DigitSpanAnalytics />;
+      // case 'visualsearch':
+      //   return <VisualSearchAnalytics />;
+      // case 'abba':
+      //   return <ABBAAnalytics />;
       case 'hanoi':
       case 'hanoi1':
         return <HanoiAnalytics templateId={templateId} />;
@@ -186,10 +187,9 @@ const Analytics = () => {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-background sticky top-0 z-10">
+        <header className="flex h-23 shrink-0 items-center gap-2 border-b px-4 bg-background sticky top-0 z-10">
           <SidebarTrigger className="-ml-1" />
           <div className="flex items-center gap-2">
-            <Activity className="h-5 w-5" />
             <h1 className="text-xl font-semibold">Analytics Dashboard</h1>
           </div>
         </header>
@@ -205,8 +205,15 @@ const Analytics = () => {
             </CardHeader>
             <CardContent>
               <Tabs value={selectedTemplate} onValueChange={setSelectedTemplate} className="w-full">
-                <TabsList className="w-full grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-2 h-auto p-2 bg-muted/50">
-                  {mainTemplates.map((template, index) => (
+                <TabsList className="w-full grid grid-cols-3 gap-2 h-auto p-2 bg-muted/50">
+                  {mainTemplates
+                    .filter(template => 
+                      template.id === 'stroop-emotion' || 
+                      template.id === 'bart' || 
+                      template.id === 'hanoi' || 
+                      template.id === 'hanoi1'
+                    )
+                    .map((template, index) => (
                     <motion.div
                       key={template.id}
                       initial={{ opacity: 0, y: 20 }}

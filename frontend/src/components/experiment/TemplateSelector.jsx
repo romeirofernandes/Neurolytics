@@ -36,7 +36,6 @@ const templates = [
         measures: ['Selective attention', 'Cognitive control', 'Emotional responses', 'Stroop effect', 'Affect during conflict'],
         component: EmotionTracker,
         icon: Camera,
-        color: 'from-indigo-500 to-purple-500',
         requiresCamera: true,
     },
     {
@@ -50,7 +49,6 @@ const templates = [
         measures: ['Risk-taking propensity', 'Reward sensitivity', 'Decision-making strategy'],
         component: BARTTemplate,
         icon: Brain,
-        color: 'from-blue-500 to-cyan-500'
     },
     {
         id: 'stroop',
@@ -63,7 +61,6 @@ const templates = [
         measures: ['Selective attention', 'Response inhibition', 'Processing speed', 'Stroop effect magnitude'],
         component: StroopTemplate,
         icon: Target,
-        color: 'from-purple-500 to-pink-500'
     },
   {
     id: 'flanker',
@@ -76,7 +73,6 @@ const templates = [
     measures: ['Selective attention', 'Cognitive control', 'Interference suppression', 'Flanker effect'],
     component: FlankerTemplate,
     icon: Filter,
-    color: 'from-orange-500 to-red-500'
   },
     {
         id: 'posner',
@@ -89,7 +85,6 @@ const templates = [
         measures: ['Spatial attention', 'Cueing effects', 'Attentional orienting', 'Response time benefits'],
         component: PosnerTemplate,
         icon: Zap,
-        color: 'from-yellow-500 to-orange-500'
     },
   {
     id: 'simon',
@@ -102,7 +97,6 @@ const templates = [
     measures: ['S-R compatibility', 'Spatial interference', 'Automatic processing', 'Simon effect'],
     component: SimonTemplate,
     icon: Move,
-    color: 'from-teal-500 to-cyan-500'
   },
   {
     id: 'gonogo',
@@ -115,7 +109,6 @@ const templates = [
     measures: ['Response inhibition', 'Impulse control', 'Commission errors', 'Reaction time'],
     component: GoNoGoTemplate,
     icon: Hand,
-    color: 'from-rose-500 to-pink-500'
   },
   {
     id: 'nback',
@@ -128,7 +121,6 @@ const templates = [
     measures: ['Working memory', 'Updating ability', 'Sustained attention', 'Executive function'],
     component: NBackTemplate,
     icon: RefreshCw,
-    color: 'from-violet-500 to-purple-500'
   },
   {
     id: 'digitspan',
@@ -141,7 +133,6 @@ const templates = [
     measures: ['Short-term memory', 'Memory span', 'Recall accuracy', 'Sequential processing'],
     component: DigitSpanTemplate,
     icon: Hash,
-    color: 'from-emerald-500 to-green-500'
   },
   {
     id: 'visualsearch',
@@ -154,7 +145,6 @@ const templates = [
     measures: ['Visual attention', 'Search slopes', 'Feature integration', 'Processing efficiency'],
     component: VisualSearchTemplate,
     icon: Search,
-    color: 'from-indigo-500 to-blue-500'
   },
   {
     id: 'voice-crt',
@@ -167,7 +157,6 @@ const templates = [
     measures: ['Analytical thinking', 'Cognitive reflection', 'Response inhibition', 'Voice fluency', 'Reaction time'],
     component: VoiceCRTTemplate,
     icon: Mic,
-    color: 'from-pink-500 to-rose-500',
     requiresCamera: false,
   },
     {
@@ -181,7 +170,6 @@ const templates = [
         measures: ['Action planning', 'Response compatibility', 'Motor control', 'Cognitive flexibility'],
         component: ABBATemplate,
         icon: Layers,
-        color: 'from-green-500 to-emerald-500'
     },
     {
         id: 'hanoi',
@@ -194,7 +182,6 @@ const templates = [
         measures: ['Planning ability', 'Problem-solving efficiency', 'Working memory', 'Strategic thinking'],
         component: TowerHanoiTemplate,
         icon: Puzzle,
-        color: 'from-red-500 to-rose-500'
     }
 ];
 
@@ -225,23 +212,13 @@ const TemplateSelector = ({ onTemplateSelect }) => {
 
 	const getDifficultyColor = (measures) => {
 		// Simple heuristic based on number of measures
-		if (measures.length <= 2) return 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20';
-		if (measures.length <= 3) return 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20';
-		return 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20';
+		if (measures.length <= 2) return 'bg-success/10 text-success border-success/20';
+		if (measures.length <= 3) return 'bg-warning/10 text-warning border-warning/20';
+		return 'bg-destructive/10 text-destructive border-destructive/20';
 	};
 
 	const handleTemplateClick = (templateId) => {
-		const template = templates.find(t => t.id === templateId);
-		
-		// Check if template requires camera
-		if (template?.requiresCamera) {
-			// Show warning and request permission
-			if (confirm('⚠️ This experiment requires camera access for emotion tracking.\n\nCamera permissions will be requested when you start the experiment.\n\nClick OK to continue.')) {
-				setSelectedTemplate(templateId);
-			}
-		} else {
-			setSelectedTemplate(templateId);
-		}
+		setSelectedTemplate(templateId);
 	};
 
 	const handleRunTemplate = () => {
@@ -702,12 +679,11 @@ const TemplateSelector = ({ onTemplateSelect }) => {
 					Back to Templates
 				</Button>
 
-				<Card className="border-2">
-					<div className={`h-3 bg-gradient-to-r ${template.color}`} />
+				<Card className="border">
 					<CardHeader className="space-y-6">
 						<div className="flex items-start gap-6">
-							<div className={`p-4 rounded-xl bg-gradient-to-br ${template.color} text-white shadow-lg`}>
-								<Icon className="h-10 w-10" />
+							<div className="p-4 rounded-xl bg-primary/10 border border-primary/20">
+								<Icon className="h-10 w-10 text-primary" />
 							</div>
 							<div className="flex-1">
 								<CardTitle className="text-3xl mb-2">{template.fullName}</CardTitle>
@@ -716,10 +692,10 @@ const TemplateSelector = ({ onTemplateSelect }) => {
 						</div>
 
 						{template.requiresCamera && (
-							<Alert className="border-amber-500 bg-amber-50 dark:bg-amber-900/20">
-								<Camera className="h-4 w-4 text-amber-600" />
-								<AlertDescription className="text-amber-800 dark:text-amber-200">
-									<strong>Camera Required:</strong> This experiment uses facial emotion tracking. You will be asked for camera permission.
+							<Alert className="border bg-background">
+								<Camera className="h-4 w-4 text-muted-foreground" />
+								<AlertDescription className="text-muted-foreground">
+									<strong>Camera Required:</strong> This experiment uses facial emotion tracking. Camera permission will be requested when you start.
 								</AlertDescription>
 							</Alert>
 						)}
@@ -734,11 +710,11 @@ const TemplateSelector = ({ onTemplateSelect }) => {
 
 						{/* Info Grid */}
 						<div className="grid grid-cols-2 gap-4">
-							<div className="bg-secondary/50 rounded-lg p-4">
+							<div className="bg-muted rounded-lg p-4 border">
 								<div className="text-sm text-muted-foreground mb-1">Duration</div>
 								<div className="text-xl font-semibold">{template.duration}</div>
 							</div>
-							<div className="bg-secondary/50 rounded-lg p-4">
+							<div className="bg-muted rounded-lg p-4 border">
 								<div className="text-sm text-muted-foreground mb-1">Trials</div>
 								<div className="text-xl font-semibold">{template.trials}</div>
 							</div>
@@ -749,12 +725,13 @@ const TemplateSelector = ({ onTemplateSelect }) => {
 							<h3 className="font-semibold text-lg mb-3">What This Measures</h3>
 							<div className="flex flex-wrap gap-2">
 								{template.measures.map((measure, idx) => (
-									<span 
+									<Badge 
 										key={idx} 
-										className="text-sm bg-primary/10 text-primary px-3 py-1.5 rounded-full font-medium"
+										variant="secondary"
+										className="text-sm px-3 py-1.5"
 									>
 										{measure}
-									</span>
+									</Badge>
 								))}
 							</div>
 						</div>
@@ -817,30 +794,55 @@ const TemplateSelector = ({ onTemplateSelect }) => {
 			</div>
 
 			{/* Search and Filter */}
-			<div className="flex flex-col sm:flex-row gap-4">
-				<div className="relative flex-1">
-					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-					<Input
-						placeholder="Search templates by name, description, or measure..."
-						value={searchQuery}
-						onChange={(e) => setSearchQuery(e.target.value)}
-						className="pl-10 w-full"
-					/>
-				</div>
-				<div className="flex gap-2 flex-wrap">
-					{categories.map(category => (
-						<Button
-							key={category}
-							variant={selectedCategory === category ? "default" : "outline"}
-							onClick={() => setSelectedCategory(category)}
-							className="capitalize"
-							size="sm"
-						>
-							{category}
-						</Button>
-					))}
-				</div>
-			</div>
+			<Card className="shadow-sm">
+				<CardContent className="pt-6">
+					<div className="space-y-4">
+						{/* Search Bar */}
+						<div className="relative">
+							<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none z-10" />
+							<Input
+								placeholder="Search templates by name, description, or measure..."
+								value={searchQuery}
+								onChange={(e) => setSearchQuery(e.target.value)}
+								className="pl-11 h-12 text-base shadow-sm border-2 focus:border-primary transition-all"
+							/>
+							{searchQuery && (
+								<button
+									onClick={() => setSearchQuery('')}
+									className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+								>
+									<svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+									</svg>
+								</button>
+							)}
+						</div>
+						
+						{/* Category Filter Pills */}
+						<div className="flex flex-col gap-2">
+							<label className="text-sm font-medium text-muted-foreground">Filter by Category:</label>
+							<div className="flex gap-2 flex-wrap">
+								{categories.map(category => (
+									<Button
+										key={category}
+										variant={selectedCategory === category ? "default" : "outline"}
+										onClick={() => setSelectedCategory(category)}
+										className="capitalize transition-all"
+										size="sm"
+									>
+										{category}
+										{selectedCategory === category && (
+											<span className="ml-2 bg-white/20 px-1.5 py-0.5 rounded text-xs">
+												{filteredTemplates.length}
+											</span>
+										)}
+									</Button>
+								))}
+							</div>
+						</div>
+					</div>
+				</CardContent>
+			</Card>
 
 			{/* Results Count */}
 			<div className="text-sm text-muted-foreground">

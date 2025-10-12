@@ -1,0 +1,459 @@
+const express = require('express');
+const router = express.Router();
+const fs = require('fs').promises;
+const path = require('path');
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+const Experiment = require('../models/Experiment');
+
+const { 
+  retrieveRelevantTemplates, 
+  extractModifications, 
+  generateRAGPrompt 
+} = require('../utils/ragHelper');
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+// Save experiment to templates.json (original route)
+router.post('/save', async (req, res) => {
+  try {
+    const { experiment } = req.body;
+    
+    if (!experiment || !experiment.id) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid experiment data'
+      });
+    }
+
+    const templatesPath = path.join(__dirname, '../../frontend/public/templates.json');
+    let templates = [];
+    
+    try {
+      const data = await fs.readFile(templatesPath, 'utf8');
+      templates = JSON.parse(data);
+    } catch (error) {
+      console.log('No existing templates file, creating new one');
+    }
+
+    const existingIndex = templates.findIndex(t => t.id === experiment.id);
+    
+    if (existingIndex !== -1) {
+      templates[existingIndex] = experiment;
+    } else {
+      templates.push(experiment);
+    }
+
+    await fs.writeFile(templatesPath, JSON.stringify(templates, null, 2));
+
+    res.json({
+      success: true,
+      message: 'Experiment saved successfully',
+      data: experiment
+    });
+  } catch (error) {
+    console.error('Save experiment error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to save experiment'
+    });
+  }
+});
+
+// Get all visual builder experiments
+router.get('/experiments', async (req, res) => {
+  try {
+    const templatesPath = path.join(__dirname, '../../frontend/public/templates.json');
+    const data = await fs.readFile(templatesPath, 'utf8');
+    const templates = JSON.parse(data);
+    
+    const visualExperiments = templates.filter(t => t.source === 'visual-builder');
+    
+    res.json({
+      success: true,
+      data: visualExperiments
+    });
+  } catch (error) {
+    console.error('Get experiments error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to load experiments'
+    });
+  }
+});
+
+// 🎯 UPDATED: Generate AI experiment from visual flow WITH RAG
+router.post('/generate-ai', async (req, res) => {
+  try {
+    const { description, researcherId } = req.body;
+
+    if (!description) {
+      return res.status(400).json({
+        success: false,
+        message: 'Description is required'
+      });
+    }
+
+    console.log('🎨 Generating AI experiment from visual flow WITH RAG...');
+
+    // 🔥 RAG: Retrieve relevant templates from knowledge base
+    const relevantTemplates = retrieveRelevantTemplates(description, 3);
+    const modifications = extractModifications(description);
+    
+    console.log(`📚 RAG: Found ${relevantTemplates.length} relevant templates for visual builder`);
+    if (relevantTemplates.length > 0) {
+      console.log(`   - Best match: ${relevantTemplates[0]?.name} (score: ${relevantTemplates[0]?.similarityScore?.toFixed(2)})`);
+    }
+    console.log(`🔧 Detected ${modifications.length} modifications:`, modifications.map(m => m.description));
+
+    // 🔥 Build RAG-enhanced prompt (same as AI Experiment Builder)
+    const systemPrompt = generateRAGPrompt(description, relevantTemplates, modifications);
+
+    console.log('📝 Sending RAG-enhanced prompt to Gemini...');
+
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const result = await model.generateContent(systemPrompt);
+    const response = await result.response;
+    const generatedCode = response.text();
+
+    const codeMatch = generatedCode.match(/```jsx\n([\s\S]*?)\n```/);
+    const componentCode = codeMatch ? codeMatch[1] : generatedCode;
+
+    console.log('✅ AI code generated with RAG context');
+
+    res.status(200).json({
+      success: true,
+      code: componentCode,
+      fullResponse: generatedCode,
+      metadata: {
+        generatedAt: new Date().toISOString(),
+        description: description,
+        usedTemplate: relevantTemplates[0]?.name || null,
+        templateSimilarityScore: relevantTemplates[0]?.similarityScore || 0,
+        modifications: modifications,
+        ragContext: {
+          templatesUsed: relevantTemplates.length,
+          modificationsDetected: modifications.length
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ AI Generation error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to generate AI experiment',
+      error: error.message
+    });
+  }
+});
+
+// Save AI-generated experiment directly to templates.json
+router.post('/save-ai', async (req, res) => {
+  try {
+    const { 
+      title, 
+      description, 
+      componentCode, 
+      researcherId,
+      researcherData, // Full researcher object from frontend
+      estimatedDuration,
+      metadata 
+    } = req.body;
+
+    if (!title || !componentCode) {
+      return res.status(400).json({
+        success: false,
+        message: 'Title and component code are required'
+      });
+    }
+
+    console.log('💾 Saving AI-generated experiment to templates.json...');
+    
+    // Log researcher info
+    if (researcherData) {
+      console.log(`✅ Researcher data received: ${researcherData.name} (${researcherData.email})`);
+    } else {
+      console.log('⚠️ No researcher data provided');
+    }
+
+    // Format name: First letter uppercase, rest lowercase, no hyphens/camelCase
+    const formatName = (name) => {
+      // Remove special characters and extra spaces
+      const cleaned = name.replace(/[^a-zA-Z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+      // Split into words, capitalize first letter of each, lowercase rest
+      const words = cleaned.split(' ');
+      const formatted = words.map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+      ).join(' '); // Join with space, not camelCase
+      return formatted;
+    };
+
+    // Generate template ID from title (lowercase with hyphens for URL)
+    const templateId = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    
+    // Generate component name (for code, keep it valid JavaScript)
+    let componentName = title
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join('')
+      .replace(/[^a-zA-Z0-9]/g, '');
+    
+    if (/^\d/.test(componentName)) {
+      componentName = 'Custom' + componentName;
+    }
+    componentName = componentName + 'Template';
+    
+    // Format display name
+    const displayName = formatName(title);
+
+    // Prepare the component code with proper export
+    let finalComponentCode = componentCode;
+    
+    // Remove any CSS file imports (they don't exist)
+    finalComponentCode = finalComponentCode.replace(/import\s+['"]\.\/[^'"]*\.css['"]\s*;?\s*/gi, '');
+    finalComponentCode = finalComponentCode.replace(/import\s+['"][^'"]*\.css['"]\s*;?\s*/gi, '');
+    
+    if (!componentCode.includes('export const') && !componentCode.includes('export default')) {
+      const componentMatch = componentCode.match(/const\s+(\w+)\s*=\s*\(/);
+      const existingComponentName = componentMatch ? componentMatch[1] : componentName;
+      
+      if (/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(existingComponentName)) {
+        finalComponentCode = finalComponentCode.replace(
+          new RegExp(`const\\s+${existingComponentName}\\s*=`),
+          `export const ${componentName} =`
+        );
+      }
+    }
+
+    // Add imports if not present
+    if (!finalComponentCode.includes('import')) {
+      const imports = `import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+
+`;
+      finalComponentCode = imports + finalComponentCode;
+    }
+
+    // Save component file
+    const templatesDir = path.join(__dirname, '../../frontend/src/components/experiment/templates');
+    const templateFilePath = path.join(templatesDir, `${componentName}.jsx`);
+    
+    try {
+      await fs.writeFile(templateFilePath, finalComponentCode, 'utf-8');
+      console.log(`✅ Component file created: ${componentName}.jsx`);
+    } catch (fileError) {
+      console.error('❌ Error writing component file:', fileError);
+    }
+
+    // Update templates.json
+    const templatesJsonPath = path.join(__dirname, '../../frontend/public/templates.json');
+    let templates = [];
+    
+    try {
+      const templatesData = await fs.readFile(templatesJsonPath, 'utf-8');
+      templates = JSON.parse(templatesData);
+    } catch (error) {
+      console.log('Creating new templates.json file');
+      templates = [];
+    }
+
+    // Check if template already exists
+    const existingIndex = templates.findIndex(t => t.id === templateId);
+    
+    const newTemplate = {
+      id: templateId,
+      name: displayName, // Use formatted name
+      fullName: displayName, // Use formatted name
+      shortDescription: description || `AI-generated experiment: ${displayName}`,
+      detailedDescription: description || `Visual builder experiment: ${displayName}`,
+      duration: `~${estimatedDuration || 15} minutes`,
+      trials: metadata?.nodeCount ? `${metadata.nodeCount * (metadata.repetitions || 1)} trials` : "Variable",
+      difficulty: "Custom",
+      category: "Visual Builder",
+      measures: ["Custom measures"],
+      icon: "Sparkles",
+      color: "from-purple-500 to-pink-500",
+      requiresCamera: false,
+      keywords: [templateId, "visual-builder", "ai-generated", "custom"],
+      researchAreas: ["Custom Research"],
+      publications: [],
+      source: "visual-builder-ai",
+      researcher: researcherData, // Add full researcher object
+      visualFlow: metadata?.visualFlow || null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    
+    if (existingIndex !== -1) {
+      templates[existingIndex] = {
+        ...newTemplate,
+        createdAt: templates[existingIndex].createdAt || newTemplate.createdAt,
+        updatedAt: new Date().toISOString()
+      };
+      console.log(`✅ Updated template in templates.json: ${templateId}`);
+    } else {
+      templates.push(newTemplate);
+      console.log(`✅ Added new template to templates.json: ${templateId}`);
+    }
+    
+    await fs.writeFile(templatesJsonPath, JSON.stringify(templates, null, 2), 'utf-8');
+    console.log('✅ templates.json updated successfully');
+
+    // Also save to Experiment model for build panel compatibility
+    try {
+      const experimentData = {
+        title: displayName,
+        description: description || `Visual builder experiment: ${displayName}`,
+        researcherId: researcherId, // Use researcher ID from request
+        templateType: 'custom', // Required field - set to 'custom' for visual builder experiments
+        templateId: templateId,
+        componentCode: finalComponentCode,
+        estimatedDuration: estimatedDuration || 15,
+        aiGenerated: true,
+        source: 'visual-builder-ai',
+        status: 'draft',
+        metadata: {
+          ...metadata,
+          componentName,
+          displayName
+        }
+      };
+
+      // Check if experiment already exists
+      let experiment = await Experiment.findOne({ templateId });
+      
+      if (experiment) {
+        // Update existing experiment
+        Object.assign(experiment, experimentData);
+        await experiment.save();
+        console.log(`✅ Updated Experiment document: ${experiment._id}`);
+      } else {
+        // Create new experiment
+        experiment = new Experiment(experimentData);
+        await experiment.save();
+        console.log(`✅ Created new Experiment document: ${experiment._id}`);
+      }
+
+      res.status(201).json({
+        success: true,
+        message: 'Experiment saved successfully',
+        experimentId: experiment._id.toString(), // Use MongoDB _id for build panel
+        templateInfo: {
+          templateId,
+          componentName,
+          filePath: `src/components/experiment/templates/${componentName}.jsx`
+        },
+        experiment: {
+          _id: experiment._id.toString(),
+          title: displayName,
+          description,
+          templateId
+        }
+      });
+    } catch (dbError) {
+      console.error('⚠️ Database save failed, but templates.json was updated:', dbError);
+      // Still return success since templates.json was updated
+      res.status(201).json({
+        success: true,
+        message: 'Experiment saved to templates.json (database save failed)',
+        experimentId: templateId, // Fallback to templateId
+        templateInfo: {
+          templateId,
+          componentName,
+          filePath: `src/components/experiment/templates/${componentName}.jsx`
+        },
+        experiment: {
+          _id: templateId,
+          title: displayName,
+          description
+        }
+      });
+    }
+
+  } catch (error) {
+    console.error('❌ Save error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error saving experiment to templates.json',
+      error: error.message
+    });
+  }
+});
+
+// Add participant to template contributors when experiment is completed
+router.post('/add-contributor', async (req, res) => {
+  try {
+    const { templateId, participantId } = req.body;
+
+    if (!templateId || !participantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'templateId and participantId are required'
+      });
+    }
+
+    console.log(`📝 Adding participant ${participantId} to template ${templateId} contributors...`);
+
+    const templatesJsonPath = path.join(__dirname, '../../frontend/public/templates.json');
+    
+    // Read templates.json
+    let templates = [];
+    try {
+      const templatesData = await fs.readFile(templatesJsonPath, 'utf-8');
+      templates = JSON.parse(templatesData);
+    } catch (error) {
+      console.error('Error reading templates.json:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to read templates.json'
+      });
+    }
+
+    // Find the template
+    const templateIndex = templates.findIndex(t => t.id === templateId);
+    
+    if (templateIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: 'Template not found'
+      });
+    }
+
+    // Initialize contributors array if it doesn't exist
+    if (!templates[templateIndex].contributors) {
+      templates[templateIndex].contributors = [];
+    }
+
+    // Add participant ID if not already in the array
+    if (!templates[templateIndex].contributors.includes(participantId)) {
+      templates[templateIndex].contributors.push(participantId);
+      console.log(`✅ Added participant ${participantId} to template ${templateId}`);
+    } else {
+      console.log(`ℹ️ Participant ${participantId} already in contributors for ${templateId}`);
+    }
+
+    // Update updatedAt timestamp
+    templates[templateIndex].updatedAt = new Date().toISOString();
+
+    // Write back to templates.json
+    await fs.writeFile(templatesJsonPath, JSON.stringify(templates, null, 2), 'utf-8');
+    console.log('✅ templates.json updated successfully');
+
+    res.status(200).json({
+      success: true,
+      message: 'Contributor added successfully',
+      contributorsCount: templates[templateIndex].contributors.length
+    });
+
+  } catch (error) {
+    console.error('❌ Error adding contributor:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error adding contributor',
+      error: error.message
+    });
+  }
+});
+
+module.exports = router;
