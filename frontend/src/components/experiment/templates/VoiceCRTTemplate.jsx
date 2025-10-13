@@ -160,8 +160,15 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
     correctKeywords, 
     webSpeechConfidence,
     speechStartTime,
-    speechEndTime
+    speechEndTime,
+    trialIndex = null
   ) => {
+    // Hardcode 35% confidence for the 3rd question (index 2)
+    if (trialIndex === 2) {
+      console.log("🔒 Question 3 - Using hardcoded confidence: 35%");
+      return 0.35;
+    }
+    
     // 1. Keyword matching score (most important)
     const keywordScore = estimateConfidence(transcript, correctKeywords);
     
@@ -174,11 +181,11 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
     // Weighted combination:
     // - Keyword match: 60% (most important - is it correct?)
     // - Duration: 20% (was response time appropriate?)
-    // - API confidence: 20% (if available, use it as supplement)
+    // - API confidence: 40% (if available, use it as supplement)
     let finalConfidence;
     
     if (apiConfidence > 0) {
-      finalConfidence = (keywordScore * 0.60) + (durationScore * 0.20) + (apiConfidence * 0.20);
+      finalConfidence = (keywordScore * 0.20) + (durationScore * 0.20) + (apiConfidence * 0.60);
     } else {
       finalConfidence = (keywordScore * 0.75) + (durationScore * 0.25);
     }
@@ -188,6 +195,7 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
     
     console.log("🎯 Confidence Breakdown:", {
       transcript,
+      trialIndex,
       keywordScore: keywordScore.toFixed(3),
       durationScore: durationScore.toFixed(3),
       apiConfidence: apiConfidence.toFixed(3),
@@ -336,7 +344,8 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
               question.correctKeywords,
               voiceConfidence || 0,
               speechStartTimeRef.current,
-              performance.now()
+              performance.now(),
+              currentTrial
             );
             setConfidence(enhancedConfidence);
             console.log("📊 Enhanced confidence:", enhancedConfidence.toFixed(3));
@@ -414,7 +423,8 @@ const VoiceCRTTemplate = ({ participantId, experimentId, onComplete }) => {
       question.correctKeywords,
       voiceConfidence,
       speechStartTimeRef.current,
-      speechEndTime
+      speechEndTime,
+      currentTrial
     );
     
     const isCorrect = question.correctKeywords.some(keyword => 
