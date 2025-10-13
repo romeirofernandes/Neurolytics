@@ -18,6 +18,7 @@ import {
 } from '../ui/sidebar';
 import { Button } from '../ui/button';
 import { HiHome, HiCog, HiLogout, HiUser, HiSun, HiMoon, HiChartBar, HiClipboardList, HiCollection, HiCheckCircle } from 'react-icons/hi';
+import { Award } from 'lucide-react';
 
 const ParticipantSidebar = () => {
   const { participant, logout } = useParticipant();
@@ -49,6 +50,11 @@ const ParticipantSidebar = () => {
       title: 'Participated',
       url: '/participant/participated',
       icon: HiCheckCircle,
+    },
+    {
+      title: 'Achievements',
+      url: '/participant/achievements',
+      icon: Award,
     },
   ];
 
