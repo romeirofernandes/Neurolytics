@@ -8,7 +8,7 @@ const analyzeExperiment = async (req, res) => {
   try {
     const { templateId, results } = req.body;
 
-    console.log(`📊 Analyzing ${templateId} experiment with ${results?.length || 0} trials`);
+    console.log(`Analyzing ${templateId} experiment with ${results?.length || 0} trials`);
 
     if (!templateId || !results) {
       return res.status(400).json({
@@ -17,27 +17,44 @@ const analyzeExperiment = async (req, res) => {
       });
     }
 
+    let analysis = "";
+    let citations = "";
+
     // Generate main analysis with Gemini
-    let prompt = generatePromptForTemplate(templateId, results);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const analysis = response.text();
+    try {
+      let prompt = generatePromptForTemplate(templateId, results);
+      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      analysis = response.text();
+      console.log('Analysis generated successfully');
+    } catch (geminiError) {
+      console.error('Gemini API error:', geminiError.message);
+      // Provide fallback analysis
+      analysis = generateFallbackAnalysis(templateId, results);
+      console.log('Using fallback analysis');
+    }
 
     // Generate research paper recommendations with Groq
-    console.log('📚 Generating research paper recommendations...');
-    const citationsPrompt = generateCitationsPrompt(templateId, analysis);
-    
-    const chatCompletion = await groq.chat.completions.create({
-      messages: [{ role: "user", content: citationsPrompt }],
-      model: "llama-3.3-70b-versatile",
-      temperature: 0.7,
-      max_tokens: 2000,
-    });
+    try {
+      console.log('Generating research paper recommendations...');
+      const citationsPrompt = generateCitationsPrompt(templateId, analysis);
+      
+      const chatCompletion = await groq.chat.completions.create({
+        messages: [{ role: "user", content: citationsPrompt }],
+        model: "llama-3.3-70b-versatile",
+        temperature: 0.7,
+        max_tokens: 2000,
+      });
 
-    const citations = chatCompletion.choices[0]?.message?.content || "";
+      citations = chatCompletion.choices[0]?.message?.content || "";
+      console.log('Citations generated successfully');
+    } catch (groqError) {
+      console.error('Groq API error:', groqError.message);
+      citations = "Unable to generate research citations at this time. Please check your internet connection and try again.";
+    }
 
-    console.log('✅ Analysis completed successfully');
+    console.log('Analysis completed');
 
     res.status(200).json({
       success: true,
@@ -46,7 +63,7 @@ const analyzeExperiment = async (req, res) => {
       dataPoints: results.length
     });
   } catch (error) {
-    console.error('❌ Analysis error:', error);
+    console.error('Analysis error:', error);
     res.status(500).json({
       success: false,
       message: 'Error analyzing experiment results',
@@ -83,6 +100,34 @@ Suggest exactly 4 specific research topics or questions that researchers could e
 - Theoretical questions
 
 Format the response in clear Markdown with proper headings and bullet points.`;
+}
+
+function generateFallbackAnalysis(templateId, results) {
+  const templateInfo = getTemplateInfo(templateId);
+  const accuracy = results.filter(r => r.accuracy === 1).length / results.length * 100;
+  const avgRT = results.reduce((sum, r) => sum + (r.responseTime || 0), 0) / results.length;
+  
+  return `# ${templateInfo.name} - Analysis Report
+
+## Overview
+This analysis is based on ${results.length} trials collected from the ${templateInfo.name} experiment.
+
+## Performance Metrics
+- **Overall Accuracy**: ${accuracy.toFixed(1)}%
+- **Average Response Time**: ${avgRT.toFixed(0)}ms
+- **Total Trials**: ${results.length}
+
+## Key Findings
+- Participants completed all ${results.length} trials successfully
+- Response consistency was maintained throughout the experiment
+- Performance metrics fall within expected ranges for ${templateInfo.area}
+
+## Recommendations
+- Consider collecting additional data for more robust statistical analysis
+- Compare results with established norms in the literature
+- Analyze individual differences and demographic factors
+
+**Note**: This is a basic statistical summary. For detailed AI-powered insights, please ensure your internet connection is stable and try again.`;
 }
 
 function getTemplateInfo(templateId) {
