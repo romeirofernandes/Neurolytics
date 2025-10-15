@@ -23,7 +23,9 @@ const twilioRoutes = require('./routes/twilioRoutes');
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: 'https://neurolytics-bnb.vercel.app', 
+}));
 app.use(express.json());
 
 // Request logging middleware
