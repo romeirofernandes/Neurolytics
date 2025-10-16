@@ -1,6 +1,6 @@
 <div align="center">
 
-# Team Cotton — Web-Based Experiment Platform
+# Neurolytics — Web-Based Experiment Platform
 
 [![Experiment Platform](https://img.shields.io/badge/Experiment%20Platform-Online-6c5ce7?style=for-the-badge&logo=github&logoColor=white)](https://github.com/BnB-25-Final-Round/Team-Cotton_Final-Round_31)
 [![BitNBuild-2025](https://img.shields.io/badge/BitNBuild-2025-4ecdc4?style=for-the-badge&logo=trophy)](https://github.com/BnB-25-Final-Round/Team-Cotton_Final-Round_31)
